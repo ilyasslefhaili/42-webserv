@@ -3,18 +3,23 @@ CFLAGS =
 
 NAME = webserv
 
-FILES  = main.c
+HEADERS = main.hpp
 
-OBJS = $(FILES:.c=.o)
+FILES  = main.cpp
+
+OBJS = $(FILES:.cpp=.o)
 
 all:	$(NAME)
 
 $(NAME): $(OBJS)
-	cc $(CFLAGS) $(OBJS)-o $(NAME)
+	c++ $(CFLAGS) $(OBJS) -o $(NAME)
 
-$(OBJS): $(SRC)
-	cc $(CFLAGS) -c $(SRC)
+$(OBJS): $(FILES)
+	c++ $(CFLAGS) -c $(FILES)
 
+
+exec: all
+	./$(NAME)
 
 clean: 
 	rm -f $(OBJS)
