@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 
 int	main()
 {
@@ -112,30 +113,47 @@ int	main()
 						sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
 					printf("New connection from %s\n", address_buffer);
 				} else {
-					char request[1024];
-					int bytes_received = recv(i, request, 1024, 0);
-					if (bytes_received < 1) {
-						FD_CLR(i, &master); // we clear the fd from the master 
-						close(i);
-						continue ;
-					}
-					printf("Received %d bytes.\n", bytes_received);
-					printf("Sending response...\n");
-					const char *response =
-					"HTTP/1.1 200 OK\r\n"
-					"Connection: close\r\n"
-					"Content-Type: text/plain\r\n\r\n"
-					"Local time is: ";
-					int bytes_sent = send(i, response, strlen(response), 0);
-					printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(response));
+					// char request[1024];
+					// int bytes_received = recv(i, request, 1024, 0);
+					// if (bytes_received < 1) {
+					// 	FD_CLR(i, &master); // we clear the fd from the master 
+					// 	close(i);
+					// 	continue ;
+					// }
+					// printf("Received %d bytes.\n", bytes_received);
+					// printf("Sending response...\n");
+					// const char *response =
+					// "HTTP/1.1 200 OK\r\n"
+					// "Connection: close\r\n"
+					// "Content-Type: text/plain\r\n\r\n"
+					// "Local time is: ";
+					// int bytes_sent = send(i, response, strlen(response), 0);
+					// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(response));
 
-					time_t timer;
-					time(&timer);
-					char *time_msg = ctime(&timer);
-					 bytes_sent = send(i, time_msg, strlen(time_msg), 0);
-					printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
-					FD_CLR(i, &master); // add this to code
-					close(i);
+					// time_t timer;
+					// time(&timer);
+					// char *time_msg = ctime(&timer);
+					//  bytes_sent = send(i, time_msg, strlen(time_msg), 0);
+					// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
+					// FD_CLR(i, &master); // add this to code
+					// close(i);
+
+					char read[1024];
+					int bytes_received = recv(i, read, 1024, 0);
+					if (bytes_received < 1) {
+						FD_CLR(i, &master);
+						close(i);
+						continue;
+					}
+					int j;
+					for (j = 1; j <= max_socket; j++) {
+						if (FD_ISSET(j, &master)) {
+							if (j == socket_listen || j == i)
+								continue ;
+							else
+								send(j, read, bytes_received, 0);
+						}
+					}
 				}
 			}
 			i++;
@@ -145,47 +163,5 @@ int	main()
 	close(socket_listen);
 	printf("Finished.\n");
 
-	
 	return 0;
 }
-
-
-
-// struct sockaddr_storage client_address;
-	// socklen_t client_len = sizeof(client_address);
-	// int socket_client = accept(socket_listen,
-	// (struct sockaddr*) &client_address, &client_len);
-	// if (!ISVALIDSOCKET(socket_client)) {
-	// 	fprintf(stderr, "accept() failed. (%d)\n", errno);
-	// 	return 1;
-	// }
-
-	// printf("Client is connected... ");
-	// char address_buffer[100];
-	// getnameinfo((struct sockaddr*)&client_address,
-	// client_len, address_buffer, sizeof(address_buffer), 0, 0,
-	// NI_NUMERICHOST);
-	// printf("%s\n", address_buffer);
-
-	// printf("Reading request...\n");
-	// char request[1024];
-	// int bytes_received = recv(socket_client, request, 1024, 0);
-	// printf("Received %d bytes.\n", bytes_received);
-
-	// printf("Sending response...\n");
-	// const char *response =
-	// "HTTP/1.1 200 OK\r\n"
-	// "Connection: close\r\n"
-	// "Content-Type: text/plain\r\n\r\n"
-	// "Local time is: ";
-	// int bytes_sent = send(socket_client, response, strlen(response), 0);
-	// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(response));
-
-	// time_t timer;
-	// time(&timer);
-	// char *time_msg = ctime(&timer);
-	// bytes_sent = send(socket_client, time_msg, strlen(time_msg), 0);
-	// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
-
-	// printf("Closing connection...\n");
- 	// close(socket_client);
