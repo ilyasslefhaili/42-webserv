@@ -7,161 +7,110 @@
 #include <errno.h>
 
 #define ISVALIDSOCKET(s) ((s) >= 0)
+#define GETSOCKETERRNO() (errno)
 
 
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string>
+
+#include "models/Server.hpp"
 
 int	main()
 {
-	printf("Configuring local address...\n");
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(hints));	//zeroing
+	Server	server;
 
-	hints.ai_family = AF_INET;	// protocol either AF_INET (ipv4), or AF_INET6 (ipv6)
-	hints.ai_socktype = SOCK_STREAM;	// SOCK_STREAM means we are going to use TCP, change to SOCK_DGRAM for UDP
-	hints.ai_flags = AI_PASSIVE;
-	/*
-		AI_PASSIVE
-		This is telling getaddrinfo() that we want it to bind to the wildcard address. That is, we are asking getaddrinfo() to set up the address,
-		so we listen on any available network interface.
-	*/ 
+	int server_socket = server.create_socket("127.0.0.1", "8080");
 
-	struct addrinfo *bind_address;
-	// getaddresinfo() fills addrinfo with needed information
-	//	it also takes hint parameters
-	//  second parameter is the port we gonna listen for connections on
-	getaddrinfo(0, "8080", &hints, &bind_address);  // this will generate and address thats suitable for bind().
-
-	printf("Creating socket...\n");
-	int socket_listen;
-	socket_listen = socket(bind_address->ai_family,			//creating socket file descriptor
-	bind_address->ai_socktype, bind_address->ai_protocol);
-
-	if (!ISVALIDSOCKET(socket_listen)) {
-		fprintf(stderr, "socket() failed. (%d)\n", errno);
-		return 1;
-	}
-
-	//dual sockets ?
-	// int option = 0;
-	// if (setsockopt(socket_listen, IPPROTO_IPV6, IPV6_V6ONLY,
-	// 	(void*)&option, sizeof(option))) {
-	// 		fprintf(stderr, "setsockopt() failed. (%d)\n", GETSOCKETERRNO());
-	// 		return 1;
-	// }
-	
-	printf("Binding socket to local address...\n");
-	// after creating the socket, we need to call bind to associate it with our address we got from getaddrinfo()
-	if (bind(socket_listen,bind_address->ai_addr, bind_address->ai_addrlen)) {
-		fprintf(stderr, "bind() failed. (%d)\n", errno);
-		return 1;
-	}
-	freeaddrinfo(bind_address);	// we no longer bind_address, we free it
-
-	printf("Listening...\n");
-	/* once the socket has been created and bound to a local address, 
-	 we can start listening for connections with the listen 
-	 the second parameter refers to how man connectons it is allowed to queue up. 
-	 the operating system will reject new connections if the 10 connections are queued up */
-	if (listen(socket_listen, 10) < 0) {
-		fprintf(stderr, "listen() failed. (%d)\n", errno);
-		return 1;
-	}
-
-	fd_set master; //  a struct to store all of the active sockets.
-	FD_ZERO(&master);	// clears all file descriptors from the set
-	FD_SET(socket_listen, &master); // add socket_listen to master set
-	int max_socket = socket_listen;	// we define max_socket where we store the highest numbered fd
-
-	printf("Waiting for connections...\n");
-	while(1) {
-
+	while (1)
+	{
 		fd_set reads;
-		reads = master;	// select will change our set so we use a copy
-		// we give select a set of sockets, and it  tells us which are ready to be
-		if (select(max_socket + 1, &reads, 0, 0, 0) < 0) {
-			fprintf(stderr, "select() failed. (%d)\n", errno);
-			return 1;
+ 		reads = server.wait_on_clients(server_socket);
+		if (FD_ISSET(server_socket, &reads))
+		{
+				ClientInfo client;
+				client.address_length = sizeof(client.address);
+				
+
+			client.socket = accept(server_socket,
+				(struct sockaddr*) &(client.address),
+				&(client.address_length));
+
+			server.insert_client(client);
+			
+			if (!ISVALIDSOCKET(client.socket)) {
+				fprintf(stderr, "accept() failed. (%d)\n",
+					GETSOCKETERRNO());
+				return 1;
+			}
+			// printf("New connection from %s.\n",
+			// server.get_client_address(client));
+			std::cout << "New connection from " << server.get_client_address(client) << std::endl;
+
 		}
-		int i = 1;
-		while (i <= max_socket) {
-			// printf("LULE\n");
-			if (FD_ISSET(i, &reads)) {	// FD_ISSET() is only true for sockets that are ready to be read
-				// handle socket
-				if (i == socket_listen) {
-					struct sockaddr_storage	client_address;
-					socklen_t	client_len = sizeof(client_address);
-					int socket_client = accept(socket_listen,
-						(struct sockaddr*) &client_address,
-						&client_len);
-					if (!ISVALIDSOCKET(socket_client)) {
-						fprintf(stderr, "accept() failed. (%d)\n", errno);
-						return (1);
-					}
-
-					FD_SET(socket_client, &master);
-					if (socket_client > max_socket)
-						max_socket = socket_client;
-					
-					char address_buffer[100];
-					getnameinfo((struct sockaddr *) &client_address,
-						client_len,
-						address_buffer,
-						sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
-					printf("New connection from %s\n", address_buffer);
-				} else {
-					// char request[1024];
-					// int bytes_received = recv(i, request, 1024, 0);
-					// if (bytes_received < 1) {
-					// 	FD_CLR(i, &master); // we clear the fd from the master 
-					// 	close(i);
-					// 	continue ;
-					// }
-					// printf("Received %d bytes.\n", bytes_received);
-					// printf("Sending response...\n");
-					// const char *response =
-					// "HTTP/1.1 200 OK\r\n"
-					// "Connection: close\r\n"
-					// "Content-Type: text/plain\r\n\r\n"
-					// "Local time is: ";
-					// int bytes_sent = send(i, response, strlen(response), 0);
-					// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(response));
-
-					// time_t timer;
-					// time(&timer);
-					// char *time_msg = ctime(&timer);
-					//  bytes_sent = send(i, time_msg, strlen(time_msg), 0);
-					// printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
-					// FD_CLR(i, &master); // add this to code
-					// close(i);
-
-					char read[1024];
-					int bytes_received = recv(i, read, 1024, 0);
-					if (bytes_received < 1) {
-						FD_CLR(i, &master);
-						close(i);
-						continue;
-					}
-					int j;
-					for (j = 1; j <= max_socket; j++) {
-						if (FD_ISSET(j, &master)) {
-							if (j == socket_listen || j == i)
-								continue ;
-							else
-								send(j, read, bytes_received, 0);
-						}
-					}
+		std::vector<ClientInfo>::iterator it = server.get_clients().begin();
+		std::vector<ClientInfo>::iterator e = server.get_clients().end();
+		while (it != e)
+		{
+			if (FD_ISSET(it->socket, &reads))
+			{
+				if (MAX_REQUEST_SIZE == it->received) {
+					server.send_400(*it);
+					continue;
 				}
 			}
-			i++;
+			int r = recv(it->socket,
+				it->request + it->received,
+				MAX_REQUEST_SIZE - it->received, 0);
+			if (r < 1) {
+				// printf("Unexpected disconnect from %s.\n",
+				// server.get_client_address(*it));
+				std::cout << "Unexpected disconnect from " << server.get_client_address(*it) << std::endl;
+				server.drop_client(*it);
+			}
+			else
+			{
+				it->received += r;
+				it->request[it->received] = 0;
+				char *q = strstr(it->request, "\r\n\r\n");
+				if (q)
+				{
+					if (strncmp("GET /", it->request, 5)) {
+						server.send_400(*it);
+					}
+					else
+					{
+						char *path = it->request + 4;
+						char *end_path = strstr(path, " ");
+						if (!end_path) {
+							server.send_400(*it);
+						}
+						else
+						{
+							*end_path = 0;
+							server.serve_resource(*it, path);
+						}
+ 					}
+				}
+			}
+			++it;
 		}
 	}
-	printf("Closing listening socket...\n");
-	close(socket_listen);
-	printf("Finished.\n");
 
+	printf("\nClosing socket...\n");
+ 	close(server_socket);
+	printf("Finished.\n");
 	return 0;
 }
+
+
+
+//dual sockets ?
+// int option = 0;
+// if (setsockopt(socket_listen, IPPROTO_IPV6, IPV6_V6ONLY,
+// 	(void*)&option, sizeof(option))) {
+// 		fprintf(stderr, "setsockopt() failed. (%d)\n", GETSOCKETERRNO());
+// 		return 1;
+// }

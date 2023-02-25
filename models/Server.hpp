@@ -42,7 +42,7 @@ class Server {
 		Server(const Server & server);
 		Server & operator=(const Server & server);
 
-		ClientInfo	&get_client(int socket);
+		ClientInfo	get_client(int socket);
 		void		drop_client(ClientInfo & client);
 		std::string	get_client_address(ClientInfo &client);
 		fd_set		wait_on_clients(int server);
@@ -52,6 +52,7 @@ class Server {
 		int 		create_socket(const char* host, const char *port);
 
 		std::vector<ClientInfo> &get_clients();
+		void					insert_client(ClientInfo &client);
 
 	public:
 		class MatchSocket

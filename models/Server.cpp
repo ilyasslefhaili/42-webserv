@@ -24,7 +24,7 @@ Server & Server::operator=(const Server & server)
 	return *this;
 }
 
-ClientInfo	&Server::get_client(int socket)
+ClientInfo	Server::get_client(int socket)
 {
 	std::vector<ClientInfo>::iterator it
 		= std::find_if(_clients.begin(), _clients.end(), Server::MatchSocket(socket));
@@ -56,7 +56,7 @@ void		Server::drop_client(ClientInfo & client)
 
 std::string	Server::get_client_address(ClientInfo &client)
 {
-	static char address_buffer[100];
+	char address_buffer[100];
 
 	getnameinfo((struct sockaddr*)&client.address,
 		client.address_length,
@@ -110,7 +110,7 @@ void		Server::send_404(ClientInfo &client)
 	drop_client(client);
 }
 
-const std::string &get_content_type(const char* path) {
+const std::string get_content_type(const char* path) {
 	const char *last_dot = strrchr(path, '.');
 	if (last_dot) {
 		if (strcmp(last_dot, ".css") == 0) return "text/css";
@@ -148,7 +148,7 @@ void		Server::serve_resource(ClientInfo &client, std::string path)
 		return ;
 	}
 	char full_path[128];
- 	sprintf(full_path, "public%s", path);
+ 	sprintf(full_path, "public%s", path.c_str());
 
 	FILE *fp = fopen(full_path, "rb");
  	if (!fp) {
@@ -165,9 +165,9 @@ void		Server::serve_resource(ClientInfo &client, std::string path)
 	send(client.socket, buffer, strlen(buffer), 0);
 	sprintf(buffer, "Connection: close\r\n");
 	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Content-Length: %u\r\n", cl);
+	sprintf(buffer, "Content-Length: %lu\r\n", cl);
 	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Content-Type: %s\r\n", ct);
+	sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
 	send(client.socket, buffer, strlen(buffer), 0);
 	sprintf(buffer, "\r\n");
 	send(client.socket, buffer, strlen(buffer), 0);
@@ -241,4 +241,9 @@ bool Server::MatchSocket::operator()(const ClientInfo& obj) const
 std::vector<ClientInfo> &Server::get_clients()
 {
 	return _clients;
+}
+
+void	Server::insert_client(ClientInfo &client)
+{
+	_clients.insert(_clients.begin(), client);
 }
