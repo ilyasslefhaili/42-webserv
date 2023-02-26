@@ -41,7 +41,10 @@ class Response
 Response& get_response_object(Request& re_st);
 std::string content_from_path(std::string& path);
 std::string get_response(Request& re_st);
-
+std::string create_status_line(int status);
+std::string get_content_lenght(Response &a);
+std::string get_response(Request& re_st);
+Response& get_response_object(Request& re_st);
 
 
 
