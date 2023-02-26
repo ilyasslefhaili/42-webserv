@@ -32,6 +32,7 @@ std::string get_response(Request& re_st){
     response += create_status_line(a.get_status());
     response += content_from_path(re_st._path);
     response += get_content_lenght(a);
+    response += "\n\r";
     response += a.get_body();
     return response;
 }
@@ -56,6 +57,17 @@ int Response::file_opening(std::string path, std::string method){
         {
             this->_status = 404;
             return (404);
+        }
+        else
+        {
+            this->_status = 200;
+            std::string str;
+            while (!this->_file.eof()){
+                std::getline(this->_file, str);
+                this->_body += str;
+                if (!this->_file.eof())
+                    this->_body += "\n";
+            }
         }
     }
     return (0);
