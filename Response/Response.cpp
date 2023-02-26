@@ -12,15 +12,11 @@
 
 #include "Response.hpp"
 
-int Response::file_opening(std::string path, std::string method){
-    if (method == "GET")
-    {
-        this->_file.open(path);
+void Response::fill_attributes(Request& re_st){
+    if (re_st._method == "GET"){
+        this->_file.open(re_st._path);
         if (!(this->_file.is_open()))
-        {
             this->_status = 404;
-            return (404);
-        }
         else
         {
             this->_status = 200;
@@ -33,7 +29,11 @@ int Response::file_opening(std::string path, std::string method){
             }
         }
     }
-    return (0);
+    else if (re_st._method == "POST"){
+        this->_status = 200;
+        this->_file.open(re_st._path, std::ios::out);
+        this->_file<<re_st._body;
+    }
 }
 
 std::string Response::get_body(){

@@ -42,11 +42,7 @@ Response& get_response_object(Request& re_st){
     Response *a = new Response();
 
     a->set_content_type(content_from_path(re_st._path));
-    if (re_st._method == "GET")
-    {
-        if (a->file_opening(re_st._path, re_st._method))
-            return (*a);
-    }
+    a->fill_attributes(re_st);
     return *a;
 }
 

@@ -5,7 +5,8 @@ int main()
 {
     Request l;
 
-    l._path = "./response.cpp";
-    l._method = "GET";
+    l._path = "a.html";
+    l._method = "POST";
+    l._body = "hello world";
     std::cout<<get_response(l)<<std::endl;
 }

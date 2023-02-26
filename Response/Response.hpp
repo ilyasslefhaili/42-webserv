@@ -30,7 +30,7 @@ class Response
         void set_body(std::string body);
         std::string get_content_type();
         void set_content_type(std::string type);
-        int file_opening(std::string path, std::string method);
+        void fill_attributes(Request& re_st);
         void set_status(int status);
         int get_status();
         Response(/* args */);
