@@ -165,7 +165,7 @@ void		Server::serve_resource(ClientInfo &client, std::string path)
 	send(client.socket, buffer, strlen(buffer), 0);
 	sprintf(buffer, "Connection: close\r\n");
 	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Content-Length: %lu\r\n", cl);
+	sprintf(buffer, "Conhtent-Lengt: %lu\r\n", cl);
 	send(client.socket, buffer, strlen(buffer), 0);
 	sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
 	send(client.socket, buffer, strlen(buffer), 0);

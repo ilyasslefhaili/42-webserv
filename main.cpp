@@ -77,6 +77,7 @@ int	main()
 				char *q = strstr(it->request, "\r\n\r\n");
 				if (q)
 				{
+					std::cout<<it->request<<std::endl;
 					if (strncmp("GET /", it->request, 5)) {
 						server.send_400(*it);
 					}
