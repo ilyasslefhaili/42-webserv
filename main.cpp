@@ -30,9 +30,10 @@ int	main()
  		reads = server.wait_on_clients(server_socket);
 		if (FD_ISSET(server_socket, &reads))
 		{
-				ClientInfo client;
-				client.address_length = sizeof(client.address);
-				
+			ClientInfo client;
+			memset(&client, 0, sizeof(client)); // will change how to handle this
+			client.address_length = sizeof(client.address);
+		
 
 			client.socket = accept(server_socket,
 				(struct sockaddr*) &(client.address),
