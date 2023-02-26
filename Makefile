@@ -5,24 +5,23 @@ NAME = webserv
 
 HEADERS = main.hpp
 
-FILES  = main.cpp
+SRC  = main.cpp models/Server.cpp
 
-OBJS = $(FILES:.cpp=.o)
+OBJ = $(SRC:.cpp=.o)
 
 all:	$(NAME)
 
-$(NAME): $(OBJS)
-	c++ $(CFLAGS) $(OBJS) -o $(NAME)
+$(NAME): $(SRC)
+	c++ $(CFLAGS) $(SRC) -o $(NAME)
 
-$(OBJS): $(FILES)
-	c++ $(CFLAGS) -c $(FILES)
+# $(OBJ): $(SRC)
+# 	c++ $(CFLAGS) -c $(SRC)
 
-
-exec: all
-	./$(NAME)
+# exec: all
+# 	./$(NAME)
 
 clean: 
-	rm -f $(OBJS)
+	rm -f $(OBJ)
 
 fclean: clean
 	rm -f $(NAME)
