@@ -10,16 +10,37 @@
 #define GETSOCKETERRNO() (errno)
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <string.h>
 #include <time.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 
-#include "models/Server.hpp"
+#include "src/Server.hpp"
+#include <vector>
+# include "src/Request.hpp"
+# include "Response/Response.hpp"
 
-int	main()
+void	parse(const char *path)
 {
+	std::ifstream config_file(path);
+
+	std::string line;
+	std::string	current_section;
+
+
+}
+
+int	main(int argc, char **argv)
+{
+	// if (argc != 2)
+	// {
+	// 	std::cout << "usage: ./webserv 'path_to_config_file'" << std::endl;
+	// 	return (1);
+	// }
+	parse(argv[1]);
+	std::vector<Server> servers;
+
 	Server	server;
 
 	int server_socket = server.create_socket("127.0.0.1", "8080");
@@ -28,16 +49,17 @@ int	main()
 	{
 		fd_set reads;
  		reads = server.wait_on_clients(server_socket);
-		if (FD_ISSET(server_socket, &reads))
+		if (FD_ISSET(server_socket, &reads)) // will return true if file descriptor was flagged by select
 		{
 			ClientInfo client;
-			memset(&client, 0, sizeof(client)); // will change how to handle this
+			bzero(&client, sizeof(client));
 			client.address_length = sizeof(client.address);
 		
-
+			// create a new socket for an incoming TCP connection.
+			// accept blocks the program until a new connection is made
 			client.socket = accept(server_socket,
 				(struct sockaddr*) &(client.address),
-				&(client.address_length));
+				&(client.address_length)); 
 
 			server.insert_client(client);
 			
@@ -46,8 +68,6 @@ int	main()
 					GETSOCKETERRNO());
 				return 1;
 			}
-			// printf("New connection from %s.\n",
-			// server.get_client_address(client));
 			std::cout << "New connection from " << server.get_client_address(client) << std::endl;
 
 		}
@@ -57,7 +77,7 @@ int	main()
 		{
 			if (FD_ISSET(it->socket, &reads))
 			{
-				if (MAX_REQUEST_SIZE == it->received) {
+				if (it->received == MAX_REQUEST_SIZE) {
 					server.send_400(*it);
 					continue;
 				}
@@ -66,8 +86,6 @@ int	main()
 				it->request + it->received,
 				MAX_REQUEST_SIZE - it->received, 0);
 			if (r < 1) {
-				// printf("Unexpected disconnect from %s.\n",
-				// server.get_client_address(*it));
 				std::cout << "Unexpected disconnect from " << server.get_client_address(*it) << std::endl;
 				server.drop_client(*it);
 			}
@@ -75,15 +93,20 @@ int	main()
 			{
 				it->received += r;
 				it->request[it->received] = 0;
+
+				// http header and body are seperated by a blank line
+				// if q is not null we know tha the header has been received
 				char *q = strstr(it->request, "\r\n\r\n");
 				if (q)
 				{
-					std::cout<<it->request<<std::endl;
-					if (strncmp("GET /", it->request, 5)) {
-						server.send_400(*it);
-					}
-					else
-					{
+					// if (strncmp("GET /", it->request, 5)) {
+					// 	server.send_400(*it);
+					// }
+					// else
+					// {
+						Request request(it->request);
+						//
+
 						char *path = it->request + 4;
 						char *end_path = strstr(path, " ");
 						if (!end_path) {
@@ -92,9 +115,9 @@ int	main()
 						else
 						{
 							*end_path = 0;
-							server.serve_resource(*it, path);
+							server.serve_resource(*it, request);
 						}
- 					}
+ 					// }
 				}
 			}
 			++it;
