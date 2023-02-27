@@ -4,7 +4,7 @@ NAME = webserv
 
 HEADERS = main.hpp
 
-SRC  = main.cpp models/Server.cpp
+SRC  = main.cpp src/Server.cpp src/Request.cpp Response/Response.cpp Response/response_utils.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
