@@ -1,8 +1,6 @@
 
 #include "Server.hpp"
 
-
-
 Server::Server()
 {
 	
@@ -69,10 +67,10 @@ std::string	Server::get_client_address(ClientInfo &client)
 // int represents the socket here
 fd_set		Server::wait_on_clients(int server)
 {
-	fd_set reads;
-	FD_ZERO(&reads);
-	FD_SET(server, &reads);
-	int max_socket = server;
+	fd_set reads;		// a struct which will hold all our active sockets
+	FD_ZERO(&reads);	// Initialize fd_set reads to have zero bits for all file descriptors.
+	FD_SET(server, &reads);	// set the bit for the server fd in reads
+	int max_socket = server; // this var will always have the largest socket fd
 
 	std::vector<ClientInfo>::iterator it = _clients.begin();
 	while (it != _clients.end())
@@ -82,6 +80,7 @@ fd_set		Server::wait_on_clients(int server)
 			max_socket = it->socket;
 		++it;
 	}
+	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
 	if (select(max_socket+1, &reads, 0, 0, 0) < 0) {
 		// fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
 		// exit(1);
@@ -132,23 +131,23 @@ const std::string get_content_type(const char* path) {
 }
 
 
-void		Server::serve_resource(ClientInfo &client, std::string path)
+void		Server::serve_resource(ClientInfo &client, Request &request)
 {
-	std::cout << "server_resource " << get_client_address(client) << " " << path << std::endl;\
-	if (path == "/")
-		path = "/index.html";
-	if (path.size() > 100)
+	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;\
+	if (request._path == "/")
+		request._path = "/index.html";
+	if (request._path.size() > 100)
 	{
 		send_400(client);
 		return ;
 	}
-	if (path.find("..") != std::string::npos)
+	if (request._path.find("..") != std::string::npos)
 	{
 		send_404(client);
 		return ;
 	}
 	char full_path[128];
- 	sprintf(full_path, "public%s", path.c_str());
+ 	sprintf(full_path, "public%s", request._path.c_str());
 
 	FILE *fp = fopen(full_path, "rb");
  	if (!fp) {
@@ -192,7 +191,8 @@ void		Server::serve_resource(ClientInfo &client, std::string path)
 
 int Server::create_socket(const char* host, const char *port)
 {
-	printf("Configuring local address...\n");
+	std::cout << "Configuring local address......" << std::endl;
+
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -201,17 +201,16 @@ int Server::create_socket(const char* host, const char *port)
 	struct addrinfo *bind_address;
 	getaddrinfo(host, port, &hints, &bind_address);
 
-	printf("Creating socket...\n");
+	std::cout << "Creating socket..." << std::endl;
 	int socket_listen;
 	socket_listen = socket(bind_address->ai_family,
 	bind_address->ai_socktype, bind_address->ai_protocol);
-	if (!ISVALIDSOCKET(socket_listen))
+	if (socket_listen < 0)
 	{
 		fprintf(stderr, "socket() failed. (%d)\n", errno);
 		exit(1);
 	}
-
-	printf("Binding socket to local address...\n");
+	std::cout << "Binding socket to local address..." << std::endl;
 	if (bind(socket_listen,
 		bind_address->ai_addr, bind_address->ai_addrlen))
 	{
@@ -220,7 +219,7 @@ int Server::create_socket(const char* host, const char *port)
 	}
 	freeaddrinfo(bind_address);
 
-	printf("Listening...\n");
+	std::cout << "Listening..." << std::endl;	
 	if (listen(socket_listen, 10) < 0)
 	{
 		fprintf(stderr, "listen() failed. (%d)\n", errno);
@@ -228,7 +227,6 @@ int Server::create_socket(const char* host, const char *port)
 	}
 	return socket_listen;
 }
-
 
 
 Server::MatchSocket::MatchSocket(int s) : socket(s) {}
@@ -246,4 +244,9 @@ std::vector<ClientInfo> &Server::get_clients()
 void	Server::insert_client(ClientInfo &client)
 {
 	_clients.insert(_clients.begin(), client);
+}
+
+void	Server::add_location(Location &location)
+{
+	_locations.push_back(location);
 }

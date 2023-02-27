@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ilefhail <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/02/26 00:54:47 by ilefhail         ###   ########.fr       */
+/*   Updated: 2023/02/27 20:08:08 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define RESPONSE_HPP
 
 #include <iostream>
-#include "../models/Request.hpp"
+#include "../src/Request.hpp"
 #include <fstream>
 
 class Response
