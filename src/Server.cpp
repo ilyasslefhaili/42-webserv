@@ -155,27 +155,30 @@ void		Server::serve_resource(ClientInfo &client, Request &request)
 		return;
  	}
 	fseek(fp, 0L, SEEK_END);
-	size_t cl = ftell(fp);
+	// size_t cl = ftell(fp);
 	rewind(fp);
-	std::string ct = get_content_type(full_path);
+	request._path = full_path;
+	std::string response = get_response(request);
+	send(client.socket, response.c_str(), response.size(), 0);
+	// std::string ct = get_content_type(full_path);
+// 
+ 	// char buffer[BSIZE];
+	// sprintf(buffer, "HTTP/1.1 200 OK\r\n");
+	// send(client.socket, buffer, strlen(buffer), 0);
+	// sprintf(buffer, "Connection: close\r\n");
+	// send(client.socket, buffer, strlen(buffer), 0);
+	// sprintf(buffer, "Conhtent-Lengt: %lu\r\n", cl);
+	// send(client.socket, buffer, strlen(buffer), 0);
+	// sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
+	// send(client.socket, buffer, strlen(buffer), 0);
+	// sprintf(buffer, "\r\n");
+	// send(client.socket, buffer, strlen(buffer), 0);
 
- 	char buffer[BSIZE];
-	sprintf(buffer, "HTTP/1.1 200 OK\r\n");
-	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Connection: close\r\n");
-	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Conhtent-Lengt: %lu\r\n", cl);
-	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
-	send(client.socket, buffer, strlen(buffer), 0);
-	sprintf(buffer, "\r\n");
-	send(client.socket, buffer, strlen(buffer), 0);
-
-	int r = fread(buffer, 1, BSIZE, fp);
-	while (r) {
-		send(client.socket, buffer, r, 0);
-		r = fread(buffer, 1, BSIZE, fp);
-	}
+	// int r = fread(buffer, 1, BSIZE, fp);
+	// while (r) {
+		// send(client.socket, buffer, r, 0);
+		// r = fread(buffer, 1, BSIZE, fp);
+	// }
 
 	fclose(fp);
  	drop_client(client);
