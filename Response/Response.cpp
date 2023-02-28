@@ -32,7 +32,9 @@ void Response::fill_attributes(Request& re_st){
     else if (re_st._method == "POST"){
         this->_status = 200;
         this->_file.open(re_st._path, std::ios::out);
+        std::cout<<"hna"<<std::endl;
         this->_file<<re_st._body;
+        this->_file.close();
     }
 }
 

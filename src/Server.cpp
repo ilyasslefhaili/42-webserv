@@ -149,15 +149,16 @@ void		Server::serve_resource(ClientInfo &client, Request &request)
 	char full_path[128];
  	sprintf(full_path, "public%s", request._path.c_str());
 
-	FILE *fp = fopen(full_path, "rb");
- 	if (!fp) {
-		send_404(client);
-		return;
- 	}
-	fseek(fp, 0L, SEEK_END);
+	// FILE *fp = fopen(full_path, "rb");
+ 	// if (!fp) {
+		// send_404(client);
+		// return;
+ 	// }
+	// fseek(fp, 0L, SEEK_END);
 	// size_t cl = ftell(fp);
-	rewind(fp);
+	// rewind(fp);
 	request._path = full_path;
+	std::cout<<request._body<<std::endl;
 	std::string response = get_response(request);
 	send(client.socket, response.c_str(), response.size(), 0);
 	// std::string ct = get_content_type(full_path);
@@ -180,7 +181,7 @@ void		Server::serve_resource(ClientInfo &client, Request &request)
 		// r = fread(buffer, 1, BSIZE, fp);
 	// }
 
-	fclose(fp);
+	// fclose(fp);
  	drop_client(client);
 
 	/*

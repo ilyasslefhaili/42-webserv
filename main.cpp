@@ -28,7 +28,6 @@ void	parse(const char *path)
 	std::string line;
 	std::string	current_section;
 
-
 }
 
 int	main(int argc, char **argv)
