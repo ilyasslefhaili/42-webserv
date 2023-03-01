@@ -82,17 +82,16 @@ void    Request::parse_request(const char *request)
     }
     i++;
     
-    // std::cout << "Method: " << this->_method << std::endl;
-    // std::cout << "Path: " << this->_path << std::endl;
-    // std::cout << "Procol ver: " << this->_protocol_ver << std::endl;
-    // std::cout << "Path :" << this->_path << std::endl;
-    // std::map<std::string, std::string>::iterator it = _header.begin();
-    // while (it != _header.end())
-    // {
-    //     std::cout << it->first << ": " << it->second << std::endl;
-    //     ++it;
-    // }
-    // std::cout << "Body :" << std::endl;
-    // std::cout << this->_body << std::endl;
+    std::cout << "Method: " << this->_method << std::endl;
+    std::cout << "Path: " << this->_path << std::endl;
+    std::cout << "Procol ver: " << this->_protocol_ver << std::endl;
+    std::map<std::string, std::string>::iterator it = _header.begin();
+    while (it != _header.end())
+    {
+        std::cout << it->first << ": " << it->second << std::endl;
+        ++it;
+    }
+    std::cout << "Body :" << std::endl;
+    std::cout << this->_body << std::endl;
 
 }

@@ -4,7 +4,13 @@ NAME = webserv
 
 HEADERS = main.hpp
 
-SRC  = main.cpp src/Server.cpp src/Request.cpp Response/Response.cpp Response/response_utils.cpp
+SRC  = main.cpp 	\
+		src/Server.cpp 	\
+		src/Request.cpp 	\
+		Response/Response.cpp \
+		Response/response_utils.cpp	\
+		src/Config.cpp			\
+		src/ServerConfig.cpp	\
 
 OBJ = $(SRC:.cpp=.o)
 

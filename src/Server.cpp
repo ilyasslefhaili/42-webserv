@@ -224,7 +224,7 @@ int Server::create_socket(const char* host, const char *port)
 	freeaddrinfo(bind_address);
 
 	std::cout << "Listening..." << std::endl;	
-	if (listen(socket_listen, 10) < 0)
+	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
 		fprintf(stderr, "listen() failed. (%d)\n", errno);
 		exit(1);
@@ -250,7 +250,3 @@ void	Server::insert_client(ClientInfo &client)
 	_clients.insert(_clients.begin(), client);
 }
 
-void	Server::add_location(Location &location)
-{
-	_locations.push_back(location);
-}

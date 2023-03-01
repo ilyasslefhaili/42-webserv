@@ -28,6 +28,7 @@
 #include <map>
 #include "../Response/Response.hpp"
 #include "Request.hpp"
+#include "ServerConfig.hpp"
 
 
 struct ClientInfo {
@@ -38,29 +39,18 @@ struct ClientInfo {
 	int						received;
 };
 
+class ServerConfig;
 
 class Server {
 	private:
 		std::vector<ClientInfo> 			_clients;
-		std::string							_port;
-		std::string							_server_name;
-		std::string							_root;
-		std::string							_index;
-		
-		std::vector<Location>				_locations;
-
-		// the key is gonna be the response code, and the value is the error page
-		std::map<std::string, std::string>	_error_pages;
-
-		// other attributes to get form .config file
+		ServerConfig						_config;
 
 	public:
 		Server();
 		~Server();
 		Server(const Server & server);
 		Server & operator=(const Server & server);
-
-		void	add_location(Location &location);
 
 		// takes a socket and search _clients
 		ClientInfo	get_client(int socket);

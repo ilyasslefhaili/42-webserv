@@ -18,27 +18,23 @@
 
 #include "src/Server.hpp"
 #include <vector>
-# include "src/Request.hpp"
-# include "Response/Response.hpp"
+#include "src/Request.hpp"
+#include "Response/Response.hpp"
+#include "src/Config.hpp"
 
-void	parse(const char *path)
-{
-	std::ifstream config_file(path);
-
-	std::string line;
-	std::string	current_section;
-
-}
 
 int	main(int argc, char **argv)
 {
-	// if (argc != 2)
-	// {
-	// 	std::cout << "usage: ./webserv 'path_to_config_file'" << std::endl;
-	// 	return (1);
-	// }
-	parse(argv[1]);
-	std::vector<Server> servers;
+	if (argc > 2)
+	{
+		std::cout << "usage: ./webserv 'path_to_config_file'" << std::endl;
+		return (1);
+	}
+	Config config(argc == 2 ? argv[1] : "webserv.conf");
+	config.parse();
+	config.print();
+
+	// return (0);
 
 	Server	server;
 
