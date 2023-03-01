@@ -13,11 +13,11 @@
 
 #include "Response.hpp"
 
-std::string create_status_line(int status){
+std::string create_status_line(int status, Request&re_st){
     if (status == 404)
-        return ("HTTP/1.1 404 Not Found\r\n");
+        return (re_st._protocol_ver + " 404 Not Found\r\n");
     else if (status == 200)
-        return ("HTTP/1.1 200 OK\r\n");
+        return (re_st._protocol_ver + " 200 OK\r\n");
     return "";
 }
 
@@ -26,11 +26,11 @@ std::string get_content_lenght(Response &a){
     return (str + "\r\n");
 }
 
-std::string get_response(Request& re_st){
-    Response &a = get_response_object(re_st);
+std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
+    Response &a = get_response_object(re_st, configs);
     std::string response;
 
-    response += create_status_line(a.get_status());
+    response += create_status_line(a.get_status(), re_st);
     response += content_from_path(re_st._path);
     response += get_content_lenght(a);
     response += "\r\n";
@@ -38,9 +38,11 @@ std::string get_response(Request& re_st){
     return response;
 }
 
-Response& get_response_object(Request& re_st){
+Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response();
 
+    a->set_config(get_server(re_st, configs));
+    a->link_root_path(re_st);
     a->set_content_type(content_from_path(re_st._path));
     a->fill_attributes(re_st);
     return *a;
@@ -80,4 +82,30 @@ std::string content_from_path(std::string& path){
             return "Content-Type: text/plain\r\n";
     }
     return "Content-Type: application/octet-stream\r\n";
+}
+
+//find the matching location
+// Location find_loction()
+
+//find the matching config
+std::vector<std::string> split_host_port(std::string host_port){
+    size_t pos = 0;
+    std::vector<std::string> to_ret;
+    while ((pos = host_port.find(":")) != std::string::npos) {
+        to_ret.push_back(host_port.substr(0, pos));
+        host_port.erase(0, pos + 1);
+    }
+
+    to_ret.push_back(host_port);
+    return (to_ret);
+}
+
+ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
+    std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
+
+    for (size_t i = 0; i < configs.size();i++){
+        if (configs[i]._port == host_vec.at(1) && configs[i]._server_name == configs[i]._server_name)
+            return (configs[i]);
+    }
+    return (configs[0]);
 }

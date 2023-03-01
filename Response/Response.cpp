@@ -14,9 +14,11 @@
 
 void Response::fill_attributes(Request& re_st){
     if (re_st._method == "GET"){
-        this->_file.open(re_st._path);
+        this->_file.open(this->_path);
         if (!(this->_file.is_open()))
+        {
             this->_status = 404;
+        }
         else
         {
             this->_status = 200;
@@ -32,10 +34,12 @@ void Response::fill_attributes(Request& re_st){
     else if (re_st._method == "POST"){
         this->_status = 200;
         this->_file.open(re_st._path, std::ios::out);
-        std::cout<<"hna"<<std::endl;
         this->_file<<re_st._body;
         this->_file.close();
     }
+}
+void Response::get_error_page(){
+    
 }
 
 std::string Response::get_body(){
@@ -56,6 +60,20 @@ void Response::set_status(int status){
 
 int Response::get_status(){
     return _status;
+}
+
+void Response::link_root_path(Request& re_st){
+    _path = this->_configs._root;
+    _path += re_st._path;
+    std::cout<<"                    "<<_path<<std::endl;
+}
+
+void   Response::set_config(ServerConfig& conf){
+    this->_configs = conf;
+}
+
+ServerConfig& Response::get_config(){
+    return (this->_configs);
 }
 
 Response::Response(/* args */)

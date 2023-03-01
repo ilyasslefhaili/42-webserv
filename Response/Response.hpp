@@ -14,16 +14,21 @@
 #define RESPONSE_HPP
 
 #include <iostream>
+#include "../src/Server.hpp"
 #include "../src/Request.hpp"
 #include <fstream>
-
+#include "../src/Location.hpp"
+#include "../src/ServerConfig.hpp"
+#include "../src/Config.hpp"
 class Response
 {
     private:
         std::string     _content_type;
         int             _status;
         //size_t          _cl;
+        ServerConfig    _configs;
         std::fstream    _file;
+        std::string     _path;
         std::string     _body;
     public:
         std::string get_body();
@@ -31,20 +36,25 @@ class Response
         std::string get_content_type();
         void set_content_type(std::string type);
         void fill_attributes(Request& re_st);
+        void link_root_path(Request& re_st);
+        void get_error_page();
         void set_status(int status);
         int get_status();
+        void set_config(ServerConfig& conf);
+        ServerConfig& get_config();
         Response(/* args */);
         ~Response();
         
 };
 
-Response& get_response_object(Request& re_st);
+ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs);
 std::string content_from_path(std::string& path);
 std::string get_response(Request& re_st);
 std::string create_status_line(int status);
 std::string get_content_lenght(Response &a);
-std::string get_response(Request& re_st);
-Response& get_response_object(Request& re_st);
+std::string get_response(Request& re_st, std::vector<ServerConfig> &configs);
+Response&   get_response_object(Request& re_st, std::vector<ServerConfig> &configs);
+std::vector<std::string> split_host_port(std::string host_port);
 
 
 

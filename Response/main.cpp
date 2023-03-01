@@ -3,10 +3,9 @@
 #include "Response.hpp"
 int main()
 {
-    Request l;
+    std::string e = "95409549:000";
+    std::vector<std::string> a = split_host_port(e);
+    std::cout<< a[0] << "    "<< a[1]<<std::endl;
 
-    l._path = "a.html";
-    l._method = "POST";
-    l._body = "hello world";
-    std::cout<<get_response(l)<<std::endl;
+    
 }
