@@ -16,11 +16,12 @@
 #include <cstdlib>
 #include <string>
 
-#include "src/Server.hpp"
 #include <vector>
 #include "src/Request.hpp"
 #include "Response/Response.hpp"
 #include "src/Config.hpp"
+#include "src/Server.hpp"
+
 
 
 int	main(int argc, char **argv)
@@ -31,14 +32,25 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	Config config(argc == 2 ? argv[1] : "webserv.conf");
-	config.parse();
-	config.print();
+	try 
+	{
+		config.parse();
+		config.init_if_not_set();
+		// config.print(); 
+	} catch (Config::ConfigFileException &e)
+	{
+		std::cout << e.what() << std::endl;
+		exit(1);
+	}
+	std::vector<Server> servers;
+	config.generate_servers(servers);
 
-	// return (0);
 
-	Server	server;
+	// we test with one server first
+	Server	server = servers[0];
 
-	int server_socket = server.create_socket("127.0.0.1", "8080");
+	int server_socket = server.create_socket(server.get_config()._host.c_str(),
+		server.get_config()._port.c_str());
 
 	while (1)
 	{
@@ -94,31 +106,13 @@ int	main(int argc, char **argv)
 				char *q = strstr(it->request, "\r\n\r\n");
 				if (q)
 				{
-					// if (strncmp("GET /", it->request, 5)) {
-					// 	server.send_400(*it);
-					// }
-					// else
-					// {
-						Request request(it->request);
-						//
-
-						char *path = it->request + 4;
-						char *end_path = strstr(path, " ");
-						if (!end_path) {
-							server.send_400(*it);
-						}
-						else
-						{
-							*end_path = 0;
-							server.serve_resource(*it, request);
-						}
- 					// }
+					Request request(it->request);
+					server.serve_resource(*it, request);
 				}
 			}
 			++it;
 		}
 	}
-
 	printf("\nClosing socket...\n");
  	close(server_socket);
 	printf("Finished.\n");
