@@ -5,7 +5,6 @@
 # define CONFIG_HPP
 
 # include <vector>
-# include "ServerConfig.hpp"
 # include <string>
 # include <vector>
 # include <iostream>
@@ -13,8 +12,15 @@
 # include <sstream>
 # include <stdexcept>
 
+# include "Server.hpp"
+# include "ServerConfig.hpp"
+
 
 // this class will parse the config file and create a config class for every server
+
+
+
+class Server;
 
 class Config {
     private:
@@ -32,6 +38,18 @@ class Config {
         void    parse();
         void    parse_location(std::string &key, std::istringstream &ss, Location &current_location);
         void    print();
+
+        void generate_servers(std::vector<Server> &servers);
+
+        // there are some parameters that are set if not stated in the config file
+        // example host : 127.0.0.1 by default
+        void                init_if_not_set();
+
+        class ConfigFileException : public std::exception
+        {
+			public:
+				virtual const char * what() const throw();
+        };
 
 
 };

@@ -191,9 +191,8 @@ void    Config::parse()
 	{
 		// error 
 		// brackets are not properly formatted
-		throw std::runtime_error("brackets are not properly formatted; unclosed curly bracked ?");
+		throw ConfigFileException();
 	}
-
 
 	
 }
@@ -240,4 +239,53 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 	}
 }
 
+void Config::generate_servers(std::vector<Server> &servers)
+{
+	int i = 0;
+	while (i < _configs.size())
+	{
+		Server server(_configs[i]);
+		std::cout << "################################################################################" << std::endl;
+		std::cout << "server " << i
+		<< ": host: " << server.get_config()._host
+		<< ", port: " << server.get_config()._port
+		<<" generated."<< std::endl;
+		servers.push_back(server);
+		i++;
+	}
+	std::cout << "################################################################################" << std::endl;
+	std::cout << std::endl;
+}
 
+// parameters that should be default
+// host
+// error page
+// server name
+// max request size
+// index
+// also throw exception if some mandatory parameters are not set
+void	Config::init_if_not_set()
+{
+	int i = 0;
+	while (i < _configs.size())
+	{
+		if (_configs[i]._port == "" || _configs[i]._root == "")
+			throw ConfigFileException();
+		if (_configs[i]._host == "")
+			_configs[i]._host = "127.0.0.1";
+		if (_configs[i]._server_name == "")
+			_configs[i]._server_name = ""; // idk what to set here
+		if (_configs[i]._index == "")
+			_configs[i]._index = "index.html";
+		if (_configs[i]._error_pages.empty())
+			_configs[i]._error_pages["404"] = "public/error/404.html";
+		if (_configs[i]._max_body == 0)
+			_configs[i]._max_body = 1024;
+		i++;
+	}
+}
+
+const char * Config::ConfigFileException::what() const throw()
+{
+	return "Config file is not formatted properly, or not set properly";
+}

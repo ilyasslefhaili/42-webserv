@@ -1,9 +1,9 @@
 
 #include "Server.hpp"
 
-Server::Server()
+Server::Server(ServerConfig const &config)
+	: _config(config)
 {
-	
 }
 
 Server::~Server()
@@ -19,6 +19,7 @@ Server::Server(const Server & server)
 Server & Server::operator=(const Server & server)
 {
 	this->_clients = server._clients;
+	this->_config = server._config;
 	return *this;
 }
 
@@ -250,3 +251,8 @@ void	Server::insert_client(ClientInfo &client)
 	_clients.insert(_clients.begin(), client);
 }
 
+
+ServerConfig	& Server::get_config()
+{
+	return _config;
+}

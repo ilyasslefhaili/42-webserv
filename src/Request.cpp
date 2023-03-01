@@ -45,6 +45,21 @@ void    Request::get_method_and_path(std::string &line)
     
 }
 
+void    Request::print_request() const
+{
+    std::cout << "Method: " << this->_method << std::endl;
+    std::cout << "Path: " << this->_path << std::endl;
+    std::cout << "Procol ver: " << this->_protocol_ver << std::endl;
+    std::map<std::string, std::string>::const_iterator it = _header.begin();
+    while (it != _header.end())
+    {
+        std::cout << it->first << ": " << it->second << std::endl;
+        ++it;
+    }
+    std::cout << "Body :" << std::endl;
+    std::cout << this->_body << std::endl;
+}
+
 // GET /fish.png HTTP/1.1
 // User-Agent: PostmanRuntime/7.29.2
 // Accept: */*
@@ -80,18 +95,6 @@ void    Request::parse_request(const char *request)
             _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to rmeove the \r
         }
     }
-    i++;
-    
-    std::cout << "Method: " << this->_method << std::endl;
-    std::cout << "Path: " << this->_path << std::endl;
-    std::cout << "Procol ver: " << this->_protocol_ver << std::endl;
-    std::map<std::string, std::string>::iterator it = _header.begin();
-    while (it != _header.end())
-    {
-        std::cout << it->first << ": " << it->second << std::endl;
-        ++it;
-    }
-    std::cout << "Body :" << std::endl;
-    std::cout << this->_body << std::endl;
+    // print_request();
 
 }

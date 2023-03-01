@@ -5,30 +5,31 @@
 # define SERVER_HPP
 
 # include <vector>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <errno.h>
-#include <cstdio>
-#include <string>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <netdb.h>
+# include <unistd.h>
+# include <errno.h>
+# include <cstdio>
+# include <string>
 
-#define BSIZE 1024
-#define MAX_REQUEST_SIZE 2047
+# define BSIZE 1024
+# define MAX_REQUEST_SIZE 2047
 
 // #define ISVALIDSOCKET(s) ((s) >= 0)
 #define GETSOCKETERRNO() (errno)
 
-#include "Location.hpp"
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include "../Response/Response.hpp"
-#include "Request.hpp"
-#include "ServerConfig.hpp"
+# include "Location.hpp"
+# include <iostream>
+# include <fstream>
+# include <vector>
+# include <map>
+# include "../Response/Response.hpp"
+# include "Request.hpp"
+# include "Config.hpp"
+# include "ServerConfig.hpp"
 
 
 struct ClientInfo {
@@ -37,9 +38,10 @@ struct ClientInfo {
 	int						socket;
 	char					request[MAX_REQUEST_SIZE + 1];
 	int						received;
+	
 };
 
-class ServerConfig;
+struct ServerConfig;
 
 class Server {
 	private:
@@ -47,7 +49,8 @@ class Server {
 		ServerConfig						_config;
 
 	public:
-		Server();
+		// Server();
+		Server(ServerConfig const &config);
 		~Server();
 		Server(const Server & server);
 		Server & operator=(const Server & server);
@@ -78,6 +81,9 @@ class Server {
 
 		std::vector<ClientInfo> &get_clients();
 		void					insert_client(ClientInfo &client);
+
+
+		ServerConfig	& get_config();
 
 
 		// a functor, so we can use some algorithm functions.

@@ -30,6 +30,8 @@ class Request {
 		~Request();
 
 		void	parse_request(const char *);
+		void    print_request() const;
+
 
 
 };
