@@ -73,7 +73,7 @@ class Server {
 		void		send_404(ClientInfo &client);
 
 		// transfer a file to a connected client
-		void		serve_resource(ClientInfo &client, Request &request);
+		void		serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs);
 
 		// creates a socket for listening
 		int 		create_socket(const char* host, const char *port);

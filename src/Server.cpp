@@ -131,8 +131,7 @@ const std::string get_content_type(const char* path) {
 	return "application/octet-stream";
 }
 
-
-void		Server::serve_resource(ClientInfo &client, Request &request)
+void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;\
 	if (request._path == "/")

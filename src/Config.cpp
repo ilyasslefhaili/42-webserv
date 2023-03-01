@@ -289,3 +289,8 @@ const char * Config::ConfigFileException::what() const throw()
 {
 	return "Config file is not formatted properly, or not set properly";
 }
+
+std::vector<ServerConfig> &Config::get_configs()
+{
+	return _configs;
+}

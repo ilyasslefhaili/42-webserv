@@ -107,7 +107,7 @@ int	main(int argc, char **argv)
 				if (q)
 				{
 					Request request(it->request);
-					server.serve_resource(*it, request);
+					server.serve_resource(*it, request, config.get_configs());
 				}
 			}
 			++it;
