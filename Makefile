@@ -10,7 +10,6 @@ SRC  = main.cpp 	\
 		Response/Response.cpp \
 		Response/response_utils.cpp	\
 		src/Config.cpp			\
-		src/ServerConfig.cpp	\
 
 OBJ = $(SRC:.cpp=.o)
 
