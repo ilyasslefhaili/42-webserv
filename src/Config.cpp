@@ -257,6 +257,24 @@ void Config::generate_servers(std::vector<Server> &servers)
 	std::cout << std::endl;
 }
 
+bool	Config::is_port_valid(const std::string &port)
+{
+	// if (port == "")
+	// 	return false;
+	int len = port.length();
+	if (len == 0 || len > 5)
+		return false ;
+	for (int i = 0; i < len; i++)
+	{
+		if (!isdigit(port[i]))
+			return false;
+	}
+	int num = std::stoi(port);
+	if (num < 1 || num > 65535)
+		return false;
+	return true;
+}
+
 // parameters that should be default
 // host
 // error page
@@ -264,12 +282,13 @@ void Config::generate_servers(std::vector<Server> &servers)
 // max request size
 // index
 // also throw exception if some mandatory parameters are not set
+// should also check if port ranges from 1 to 65535
 void	Config::init_if_not_set()
 {
 	int i = 0;
 	while (i < _configs.size())
 	{
-		if (_configs[i]._port == "" || _configs[i]._root == "")
+		if (is_port_valid(_configs[i]._port) || _configs[i]._root == "")
 			throw ConfigFileException();
 		if (_configs[i]._host == "")
 			_configs[i]._host = "127.0.0.1";
