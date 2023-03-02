@@ -255,3 +255,13 @@ ServerConfig	& Server::get_config()
 {
 	return _config;
 }
+
+int				Server::get_socket()
+{
+	return _socket;
+}
+
+void			Server::set_socket(int socket)
+{
+	_socket = socket;
+}

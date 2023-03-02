@@ -47,6 +47,7 @@ class Server {
 	private:
 		std::vector<ClientInfo> 			_clients;
 		ServerConfig						_config;
+		int									_socket; // socket used for listening
 
 	public:
 		// Server();
@@ -84,6 +85,8 @@ class Server {
 
 
 		ServerConfig	& get_config();
+		int				get_socket();
+		void			set_socket(int socket);
 
 
 		// a functor, so we can use some algorithm functions.
