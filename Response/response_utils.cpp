@@ -87,7 +87,7 @@ std::string content_from_path(std::string& path){
 //find the matching location
 // Location find_loction()
 
-//find the matching config
+
 std::vector<std::string> split_host_port(std::string host_port){
     size_t pos = 0;
     std::vector<std::string> to_ret;
@@ -95,11 +95,10 @@ std::vector<std::string> split_host_port(std::string host_port){
         to_ret.push_back(host_port.substr(0, pos));
         host_port.erase(0, pos + 1);
     }
-
     to_ret.push_back(host_port);
     return (to_ret);
 }
-
+//find the matching config
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
 

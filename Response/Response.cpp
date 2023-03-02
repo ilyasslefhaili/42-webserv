@@ -18,6 +18,7 @@ void Response::fill_attributes(Request& re_st){
         if (!(this->_file.is_open()))
         {
             this->_status = 404;
+            this->get_error_page();
         }
         else
         {
@@ -38,8 +39,23 @@ void Response::fill_attributes(Request& re_st){
         this->_file.close();
     }
 }
+
 void Response::get_error_page(){
-    
+   this->_error_page = this->_configs._root;
+   this->_error_page += this->_configs._error_pages[std::to_string(this->_status)];
+   std::fstream error;
+   error.open(this->_error_page);
+   if (error.is_open())
+   {
+        std::string str;
+        while (!error.eof())
+        {
+            std::getline(error, str);
+            this->_body += str;
+            if (!error.eof())
+                this->_body += "\n";
+        }
+   }
 }
 
 std::string Response::get_body(){
@@ -65,7 +81,6 @@ int Response::get_status(){
 void Response::link_root_path(Request& re_st){
     _path = this->_configs._root;
     _path += re_st._path;
-    std::cout<<"                    "<<_path<<std::endl;
 }
 
 void   Response::set_config(ServerConfig& conf){

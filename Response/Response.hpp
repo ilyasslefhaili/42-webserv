@@ -30,6 +30,7 @@ class Response
         std::fstream    _file;
         std::string     _path;
         std::string     _body;
+        std::string     _error_page;
     public:
         std::string get_body();
         void set_body(std::string body);
