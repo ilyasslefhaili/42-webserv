@@ -146,8 +146,8 @@ void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 		send_404(client);
 		return ;
 	}
-	char full_path[128];
- 	sprintf(full_path, "public%s", request._path.c_str());
+	// char full_path[128];
+ 	// sprintf(full_path, "public%s", request._path.c_str());
 
 	// FILE *fp = fopen(full_path, "rb");
  	// if (!fp) {
@@ -157,9 +157,9 @@ void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// fseek(fp, 0L, SEEK_END);
 	// size_t cl = ftell(fp);
 	// rewind(fp);
-	request._path = full_path;
-	std::cout<<request._body<<std::endl;
-	std::string response = get_response(request);
+	// request._path = full_path;
+	// std::cout<<request._body<<std::endl;
+	std::string response = get_response(request, configs);
 	send(client.socket, response.c_str(), response.size(), 0);
 	// std::string ct = get_content_type(full_path);
 // 
