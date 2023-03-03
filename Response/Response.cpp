@@ -58,6 +58,31 @@ void Response::get_error_page(){
    }
 }
 
+int     compare_str(std::string a, std::string b){
+    int i = 0;
+    while (a[i] == b[i] && a[i] && b[i])
+        i++;
+    return (i);
+}
+
+void    Response::get_location(){
+    int a;
+    int b;
+
+    b = 0;
+    for (size_t i = 0; i < _configs._locations.size(); i++){
+        a = compare_str(_request._path, _configs._locations[i]._path);
+        std::cout<<_request._path<<"     "<<_configs._locations[i]._path<<std::endl;
+        if (a > b)
+        {
+            this->_location = _configs._locations[i];
+            b = a;
+        }
+    }
+    std::cout<<"-------"<<_location._path<<std::endl;
+}
+
+
 std::string Response::get_body(){
     return _body;
 }
@@ -90,9 +115,7 @@ void   Response::set_config(ServerConfig& conf){
 ServerConfig& Response::get_config(){
     return (this->_configs);
 }
-
-Response::Response(/* args */)
-{
+Response::Response(Request& re_st) : _request(re_st){
 }
 
 Response::~Response()

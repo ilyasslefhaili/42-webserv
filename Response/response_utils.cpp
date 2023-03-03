@@ -39,9 +39,10 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
 }
 
 Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
-    Response *a = new Response();
+    Response *a = new Response(re_st);
 
     a->set_config(get_server(re_st, configs));
+    a->get_location();
     a->link_root_path(re_st);
     a->set_content_type(content_from_path(re_st._path));
     a->fill_attributes(re_st);
@@ -84,10 +85,7 @@ std::string content_from_path(std::string& path){
     return "Content-Type: application/octet-stream\r\n";
 }
 
-//find the matching location
-// Location find_loction()
-
-
+//split the host and the port
 std::vector<std::string> split_host_port(std::string host_port){
     size_t pos = 0;
     std::vector<std::string> to_ret;
@@ -101,10 +99,11 @@ std::vector<std::string> split_host_port(std::string host_port){
 //find the matching config
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
-
     for (size_t i = 0; i < configs.size();i++){
-        if (configs[i]._port == host_vec.at(1) && configs[i]._server_name == configs[i]._server_name)
+        if (configs[i]._port == host_vec.at(1) && host_vec.at(0) == configs[i]._server_name)
             return (configs[i]);
     }
+    for (size_t i = 0;i < configs[0]._locations.size(); i++)
+        std::cout<<"fslfkdjj"<<configs[0]._locations[i]._path<<std::endl;
     return (configs[0]);
 }

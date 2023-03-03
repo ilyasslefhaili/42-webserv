@@ -30,7 +30,9 @@ class Response
         std::fstream    _file;
         std::string     _path;
         std::string     _body;
+        Request&        _request;
         std::string     _error_page;
+        Location       _location;
     public:
         std::string get_body();
         void set_body(std::string body);
@@ -43,7 +45,8 @@ class Response
         int get_status();
         void set_config(ServerConfig& conf);
         ServerConfig& get_config();
-        Response(/* args */);
+        void    get_location();
+        Response(Request& re_st);
         ~Response();
         
 };
