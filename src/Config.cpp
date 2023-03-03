@@ -49,7 +49,7 @@ void	Config::print()
 			std::cout << "location: " << lo->_path << std::endl;
 			std::cout << "	" << "_root: " << lo->_root << std::endl;
 			std::cout << "	" << "_ret: " << lo->_ret << std::endl;
-			// std::cout << "	" << "_path: " << lo->_path << std::endl;
+			std::cout << "	" << "_path: " << lo->_path << std::endl;
 			std::cout << "	" << "_index: " << lo->_index << std::endl;
 			std::cout << "	" << "auto_index: " << lo->_autoindex << std::endl;
 
@@ -175,9 +175,8 @@ void    Config::parse()
 			}
 			else if (key == "location" && !location_bracket_open)
 			{
-				// current._locations.clear();
-				ss >> current_location._path;
 				current_location = Location();
+				ss >> current_location._path;
 			}
 			else if (parsing_location)	// we are inside the location block now
 			{
@@ -288,12 +287,12 @@ void	Config::init_if_not_set()
 	int i = 0;
 	while (i < _configs.size())
 	{
-		if (is_port_valid(_configs[i]._port) || _configs[i]._root == "")
+		if (!is_port_valid(_configs[i]._port) || _configs[i]._root == "")
 			throw ConfigFileException();
 		if (_configs[i]._host == "")
 			_configs[i]._host = "127.0.0.1";
 		if (_configs[i]._server_name == "")
-			_configs[i]._server_name = ""; // idk what to set here
+			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hotname
 		if (_configs[i]._index == "")
 			_configs[i]._index = "index.html";
 		if (_configs[i]._error_pages.empty())

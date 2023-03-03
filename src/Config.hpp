@@ -47,6 +47,8 @@ class Config {
         // there are some parameters that are set if not stated in the config file
         // example host : 127.0.0.1 by default
         void                init_if_not_set();
+
+        
         std::vector<ServerConfig> &get_configs();
 
         class ConfigFileException : public std::exception
