@@ -279,7 +279,7 @@ void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// }
 
 	// fclose(fp);
- 	// drop_client(client);
+ 	drop_client(client);
 
 	/*
 	Note that send() may block on large files. In a truly robust, production-ready server, you
