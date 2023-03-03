@@ -45,6 +45,8 @@ int	main(int argc, char **argv)
 	std::vector<Server> servers;
 	config.generate_servers(servers);
 
+	// first thing we loop through our servers and create socket for each one 
+
 
 	// we test with one server first
 	Server	server = servers[0];

@@ -67,9 +67,9 @@ void    Request::print_request() const
 // Host: 127.0.0.1:8080
 // Accept-Encoding: gzip, deflate, br
 // Connection: keep-alive
+
 void    Request::parse_request(const char *request)
 {
-
     std::string req(request);
     int pos = req.find("\r\n\r\n");
     if (pos == std::string::npos)
