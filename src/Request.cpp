@@ -40,6 +40,7 @@ void    Request::get_method_and_path(std::string &line)
     if (pos == std::string::npos)
         return ;
     this->_path = temp.substr(0, pos);
+    // std::cout << "get_method_and_path " << this->_path << std::endl;
     this->_protocol_ver = temp.substr(pos + 1);
     this->_protocol_ver = _protocol_ver.substr(0, _protocol_ver.size() - 1);
     

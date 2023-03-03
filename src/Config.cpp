@@ -293,8 +293,8 @@ void	Config::init_if_not_set()
 			_configs[i]._host = "127.0.0.1";
 		if (_configs[i]._server_name == "")
 			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hotname
-		if (_configs[i]._index == "")
-			_configs[i]._index = "index.html";
+		// if (_configs[i]._index == "")
+		// 	_configs[i]._index = "index.html";
 		if (_configs[i]._error_pages.empty())
 			_configs[i]._error_pages["404"] = "public/error/404.html";
 		if (_configs[i]._max_body == 0)

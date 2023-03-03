@@ -230,7 +230,7 @@ const std::string get_content_type(const char* path) {
 // returns whether the connection should be open or not
 bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
 {
-	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;\
+	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;
 	if (request._path == "/")
 		request._path = "/index.html";
 	
@@ -255,12 +255,13 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// if (request._header["Connection"] == "keep-alive")
 	// {
 	// 	std::cout << "keeping the connection alive" << std::endl;
-	// 	return true;
+		// bzero(client.request, sizeof(client.request)); // we clear request in case connection is alive
+		return false;
 	// }
 	// else
 	// {
 		// std::cout << "closing the connection " << std::endl;
-		return true;
+		// return false;
 	// }
 
 	
