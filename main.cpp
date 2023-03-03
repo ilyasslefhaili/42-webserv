@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define ISVALIDSOCKET(s) ((s) >= 0)
 #define GETSOCKETERRNO() (errno)
 
 
@@ -15,13 +14,13 @@
 #include <time.h>
 #include <cstdlib>
 #include <string>
+#include <set>
 
 #include <vector>
 #include "src/Request.hpp"
 #include "Response/Response.hpp"
 #include "src/Config.hpp"
 #include "src/Server.hpp"
-
 
 
 int	main(int argc, char **argv)
@@ -37,7 +36,8 @@ int	main(int argc, char **argv)
 		config.parse();
 		config.init_if_not_set();
 		// config.print(); 
-	} catch (Config::ConfigFileException &e)
+	}
+	catch (Config::ConfigFileException &e)
 	{
 		std::cout << e.what() << std::endl;
 		exit(1);
@@ -46,78 +46,76 @@ int	main(int argc, char **argv)
 	config.generate_servers(servers);
 
 	// first thing we loop through our servers and create socket for each one 
-
-
-	// we test with one server first
-	Server	server = servers[0];
-
-	int server_socket = server.create_socket(server.get_config()._host.c_str(),
-		server.get_config()._port.c_str());
+	std::set<int> sockets = Server::create_sockets(servers);
 
 	while (1)
 	{
 		fd_set reads;
- 		reads = server.wait_on_clients(server_socket);
-		if (FD_ISSET(server_socket, &reads)) // will return true if file descriptor was flagged by select
+ 		reads = Server::wait_on_clients(sockets, servers);
+		std::set<int>::iterator s = sockets.begin();
+		std::set<int>::iterator ite = sockets.end();
+		while (s != ite)
 		{
-			ClientInfo client;
-			bzero(&client, sizeof(client));
-			client.address_length = sizeof(client.address);
-		
-			// create a new socket for an incoming TCP connection.
-			// accept blocks the program until a new connection is made
-			client.socket = accept(server_socket,
-				(struct sockaddr*) &(client.address),
-				&(client.address_length)); 
-
-			server.insert_client(client);
-			
-			if (!ISVALIDSOCKET(client.socket)) {
-				fprintf(stderr, "accept() failed. (%d)\n",
-					GETSOCKETERRNO());
-				return 1;
+			if (FD_ISSET(*s, &reads)) // will return true if file descriptor was flagged by select
+			{
+				ClientInfo client;
+				bzero(&client, sizeof(client));
+				client.address_length = sizeof(client.address);
+				// create a new socket for an incoming TCP connection.
+				// accept blocks the program until a new connection is made
+				client.socket = accept(*s,
+					(struct sockaddr*) &(client.address),
+					&(client.address_length));
+				
+				Server::ack_client(servers, *s, client);
 			}
-			std::cout << "New connection from " << server.get_client_address(client) << std::endl;
-
+			s++;
 		}
-		std::vector<ClientInfo>::iterator it = server.get_clients().begin();
-		std::vector<ClientInfo>::iterator e = server.get_clients().end();
-		while (it != e)
+		std::vector<Server>::iterator server = servers.begin();
+		std::vector<Server>::iterator end = servers.end();
+		while (server != end)
 		{
-			if (FD_ISSET(it->socket, &reads))
+			std::vector<ClientInfo>::iterator it = server->get_clients().begin();
+			std::vector<ClientInfo>::iterator e = server->get_clients().end();
+			while (it != e)
 			{
-				if (it->received == MAX_REQUEST_SIZE) {
-					server.send_400(*it);
-					continue;
-				}
-			}
-			int r = recv(it->socket,
-				it->request + it->received,
-				MAX_REQUEST_SIZE - it->received, 0);
-			if (r < 1) {
-				std::cout << "Unexpected disconnect from " << server.get_client_address(*it) << std::endl;
-				server.drop_client(*it);
-			}
-			else
-			{
-				it->received += r;
-				it->request[it->received] = 0;
-
-				// http header and body are seperated by a blank line
-				// if q is not null we know tha the header has been received
-				char *q = strstr(it->request, "\r\n\r\n");
-				if (q)
+				if (FD_ISSET(it->socket, &reads))
 				{
-					Request request(it->request);
-					server.serve_resource(*it, request, config.get_configs());
+					if (it->received == MAX_REQUEST_SIZE) {
+						server->send_400(*it);
+						continue;
+					}
+					int r = recv(it->socket,
+						it->request + it->received,
+						MAX_REQUEST_SIZE - it->received, 0);
+					if (r < 1) {
+						std::cout << "Unexpected disconnect from " << server->get_client_address(*it) << std::endl;
+						server->drop_client(*it);
+					}
+					else
+					{
+						it->received += r;
+						it->request[it->received] = 0;
+
+						// http header and body are seperated by a blank line
+						// if q is not null we know tha the header has been received
+						char *q = strstr(it->request, "\r\n\r\n");
+						if (q)
+						{
+							Request request(it->request);
+							server->serve_resource(*it, request, config.get_configs());
+						}
+					}
 				}
+				++it;
 			}
-			++it;
+			++server;
 		}
 	}
-	printf("\nClosing socket...\n");
- 	close(server_socket);
-	printf("Finished.\n");
+
+	// printf("\nClosing socket...\n");
+ 	// close(server.get_socket());
+	// printf("Finished.\n");
 	return 0;
 }
 
