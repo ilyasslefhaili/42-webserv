@@ -256,7 +256,7 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// else
 	// {
 		// std::cout << "closing the connection " << std::endl;
-		return true;
+		return false;
 	// }
 
 	

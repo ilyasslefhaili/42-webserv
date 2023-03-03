@@ -83,6 +83,7 @@ int	main(int argc, char **argv)
 				{
 					if (it->received == MAX_REQUEST_SIZE) {
 						it = server->send_400(*it);
+						e = server->get_clients().end();
 						continue ;
 					}
 					int r = recv(it->socket,
@@ -91,6 +92,7 @@ int	main(int argc, char **argv)
 					if (r < 1) {
 						std::cout << "Unexpected disconnect from " << server->get_client_address(*it) << std::endl;
 						it = server->drop_client(*it);
+						e = server->get_clients().end();
 						continue ;
 					}
 					else
@@ -107,6 +109,7 @@ int	main(int argc, char **argv)
 							if (!server->serve_resource(*it, request, config.get_configs()))
 							{
 						 		it = server->drop_client(*it);
+								e = server->get_clients().end();
 								continue ;
 							}
 						}
