@@ -82,15 +82,16 @@ int	main(int argc, char **argv)
 				if (FD_ISSET(it->socket, &reads))
 				{
 					if (it->received == MAX_REQUEST_SIZE) {
-						server->send_400(*it);
-						continue;
+						it = server->send_400(*it);
+						continue ;
 					}
 					int r = recv(it->socket,
 						it->request + it->received,
 						MAX_REQUEST_SIZE - it->received, 0);
 					if (r < 1) {
 						std::cout << "Unexpected disconnect from " << server->get_client_address(*it) << std::endl;
-						server->drop_client(*it);
+						it = server->drop_client(*it);
+						continue ;
 					}
 					else
 					{
@@ -103,7 +104,11 @@ int	main(int argc, char **argv)
 						if (q)
 						{
 							Request request(it->request);
-							server->serve_resource(*it, request, config.get_configs());
+							if (!server->serve_resource(*it, request, config.get_configs()))
+							{
+						 		it = server->drop_client(*it);
+								continue ;
+							}
 						}
 					}
 				}

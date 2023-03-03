@@ -37,7 +37,7 @@ ClientInfo	Server::get_client(int socket)
 	return (client);
 }
 
-void		Server::drop_client(ClientInfo & client)
+std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
 	close(client.socket);
 
@@ -46,11 +46,11 @@ void		Server::drop_client(ClientInfo & client)
 	{
 		if (&client == it.base())
 		{
-			_clients.erase(it);
-			return ;
+			return (_clients.erase(it));
 		}
 		++it;
 	}
+	return (_clients.end());
 	// throw client not found ?
 }
 
@@ -182,24 +182,24 @@ void	Server::ack_client(std::vector<Server> &servers, int socket, ClientInfo &cl
 	}
 }
 
-void		Server::send_400(ClientInfo &client)
+std::vector<ClientInfo>::iterator Server::send_400(ClientInfo &client)
 {
 	const char *c400 = "HTTP/1.1 400 Bad Request\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 11\r\n\r\nBad Request";
 
 	send(client.socket, c400, strlen(c400), 0);
-	drop_client(client);
+	return drop_client(client);
 }
 
-void		Server::send_404(ClientInfo &client)
+std::vector<ClientInfo>::iterator Server::send_404(ClientInfo &client)
 {
 	const char *c404 = "HTTP/1.1 404 Not Found\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 9\r\n\r\nNot Found";
 
 	send(client.socket, c404, strlen(c404), 0);
-	drop_client(client);
+	return drop_client(client);
 }
 
 const std::string get_content_type(const char* path) {
@@ -223,7 +223,8 @@ const std::string get_content_type(const char* path) {
 	return "application/octet-stream";
 }
 
-void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
+// returns whether the connection should be open or not
+bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;\
 	if (request._path == "/")
@@ -232,18 +233,31 @@ void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	if (request._path.size() > 100)
 	{
 		send_400(client);
-		return ;
+		return false;
 	}
 
 	if (request._path.find("..") != std::string::npos)
 	{
 		send_404(client);
-		return ;
+		return false;
 	}
 
 	std::string response = get_response(request, configs);
 
 	send(client.socket, response.c_str(), response.size(), 0);
+
+
+	// check if keepAlive or close
+	// if (request._header["Connection"] == "keep-alive")
+	// {
+	// 	std::cout << "keeping the connection alive" << std::endl;
+	// 	return true;
+	// }
+	// else
+	// {
+		// std::cout << "closing the connection " << std::endl;
+		return true;
+	// }
 
 	
 	// char full_path[128];
@@ -279,7 +293,6 @@ void		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// }
 
 	// fclose(fp);
- 	drop_client(client);
 
 	/*
 	Note that send() may block on large files. In a truly robust, production-ready server, you

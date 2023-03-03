@@ -61,7 +61,7 @@ class Server {
 		ClientInfo	get_client(int socket);
 
 		// closes the connection to a client and removes it from _clients
-		void		drop_client(ClientInfo & client);
+		std::vector<ClientInfo>::iterator		drop_client(ClientInfo & client);
 
 		// returns a clients' ip address
 		std::string	get_client_address(ClientInfo &client);
@@ -75,11 +75,11 @@ class Server {
 
 
 		// handle http error condition
-		void		send_400(ClientInfo &client);
-		void		send_404(ClientInfo &client);
+		std::vector<ClientInfo>::iterator		send_400(ClientInfo &client);
+		std::vector<ClientInfo>::iterator		send_404(ClientInfo &client);
 
 		// transfer a file to a connected client
-		void		serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs);
+		bool		serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs);
 
 		// creates a socket for listening
 		int 		create_socket(const char* host, const char *port);
