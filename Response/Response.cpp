@@ -79,7 +79,6 @@ void    Response::get_location(){
             b = a;
         }
     }
-    std::cout<<"-------"<<_location._path<<std::endl;
 }
 
 

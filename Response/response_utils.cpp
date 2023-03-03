@@ -103,7 +103,5 @@ ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
         if (configs[i]._port == host_vec.at(1) && host_vec.at(0) == configs[i]._server_name)
             return (configs[i]);
     }
-    for (size_t i = 0;i < configs[0]._locations.size(); i++)
-        std::cout<<"fslfkdjj"<<configs[0]._locations[i]._path<<std::endl;
     return (configs[0]);
 }
