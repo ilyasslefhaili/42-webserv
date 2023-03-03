@@ -39,6 +39,7 @@ struct ClientInfo {
 	int						socket;
 	char					request[MAX_REQUEST_SIZE + 1];
 	int						received;
+	// std::string				buffer; // use this to remplace request
 	
 };
 

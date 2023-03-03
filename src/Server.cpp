@@ -73,6 +73,10 @@ fd_set  Server::wait_on_clients(std::set<int> const &sockets,  std::vector<Serve
 	FD_ZERO(&reads);// Initialize fd_set reads to have zero bits for all file descriptors.
 	int max_socket = -1; // this var will always have the largest socket fd
 
+	struct timeval timeout;
+	timeout.tv_sec = 10; // 10 second timeout
+	timeout.tv_usec = 0;
+
 	// first we add sockets used for listening
 	std::set<int>::iterator s = sockets.begin();
 	while (s != sockets.end())
@@ -97,7 +101,7 @@ fd_set  Server::wait_on_clients(std::set<int> const &sockets,  std::vector<Serve
 	}
 
 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
-	if (select(max_socket + 1, &reads, 0, 0, 0) < 0) {
+	if (select(max_socket + 1, &reads, 0, 0, &timeout) < 0) {
 		// fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
 		// exit(1);
 		// throw ? exceptions to-do
@@ -256,7 +260,7 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	// else
 	// {
 		// std::cout << "closing the connection " << std::endl;
-		return false;
+		return true;
 	// }
 
 	

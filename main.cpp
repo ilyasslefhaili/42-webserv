@@ -22,7 +22,6 @@
 #include "src/Config.hpp"
 #include "src/Server.hpp"
 
-
 int	main(int argc, char **argv)
 {
 	if (argc > 2)
@@ -66,6 +65,12 @@ int	main(int argc, char **argv)
 				client.socket = accept(*s,
 					(struct sockaddr*) &(client.address),
 					&(client.address_length));
+
+				// int timeout_seconds = 10;
+				// struct timeval timeout;
+				// timeout.tv_sec = timeout_seconds;
+				// timeout.tv_usec = 0;
+				// setsockopt(client.socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 				
 				Server::ack_client(servers, *s, client);
 			}
@@ -90,6 +95,7 @@ int	main(int argc, char **argv)
 						it->request + it->received,
 						MAX_REQUEST_SIZE - it->received, 0);
 					if (r < 1) {
+						// and maybe timeout if (errno == EAGAIN || errno == EWOULDBLOCK) but forbidden
 						std::cout << "Unexpected disconnect from " << server->get_client_address(*it) << std::endl;
 						it = server->drop_client(*it);
 						e = server->get_clients().end();
@@ -100,10 +106,7 @@ int	main(int argc, char **argv)
 						it->received += r;
 						it->request[it->received] = 0;
 
-						// http header and body are seperated by a blank line
-						// if q is not null we know tha the header has been received
-						char *q = strstr(it->request, "\r\n\r\n");
-						if (q)
+						if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 						{
 							Request request(it->request);
 							if (!server->serve_resource(*it, request, config.get_configs()))

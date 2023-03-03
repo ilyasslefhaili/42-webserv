@@ -29,8 +29,9 @@ class Request {
 		Request(const char *);
 		~Request();
 
-		void	parse_request(const char *);
-		void    print_request() const;
+		void		parse_request(const char *);
+		void   		print_request() const;
+		static bool request_is_complete(const char* buffer, int length);
 
 
 
