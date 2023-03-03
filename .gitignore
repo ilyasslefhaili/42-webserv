@@ -1,5 +1,6 @@
 a.out
 webserv
-*.dYSM
+webserv.dSYM
+a.out.dSYM
 .DS_Store
 .vscode
