@@ -32,7 +32,10 @@ void	Config::print()
 	{
 		std::cout << "server_name: " << it->_server_name << std::endl;
 		std::cout << "host: " << it->_host << std::endl;
-		std::cout << "index: " << it->_index << std::endl;
+		// std::cout << "index: " << it->_index << std::endl;
+		for (int i = 0; i < it->_index.size(); i++)
+			std::cout << "index: " << it->_index[i] << std::endl;
+			
 		std::cout << "root: " << it->_root << std::endl;
 		std::cout << "max_body: " << it->_max_body << std::endl;
 		std::cout << "return: " << it->_return << std::endl;
@@ -171,7 +174,9 @@ void    Config::parse()
 			}
 			else if (key == "index"  && !location_bracket_open)
 			{
-				ss >> current._index;
+				std::string index;
+				ss >> index;
+				current._index.push_back(index);
 			}
 			else if (key == "location" && !location_bracket_open)
 			{
