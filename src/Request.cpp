@@ -76,7 +76,7 @@ void    Request::parse_request(const char *request)
     if (pos == std::string::npos)
         return ;
     
-    std::string header = req.substr(0, pos);
+    std::string header = req.substr(0, pos + 1);
     this->_body = req.substr(pos + 4);
 
     std::vector < std::string > strings;
@@ -94,6 +94,7 @@ void    Request::parse_request(const char *request)
         {
             std::string value = strings[i].substr(pos + 2);
             _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to rmeove the \r
+
         }
     }
     // print_request();

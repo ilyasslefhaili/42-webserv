@@ -252,17 +252,19 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 
 
 	// check if keepAlive or close
-	// if (request._header["Connection"] == "keep-alive")
-	// {
-	// 	std::cout << "keeping the connection alive" << std::endl;
-		// bzero(client.request, sizeof(client.request)); // we clear request in case connection is alive
+	// std::cout << request._header["Connection"] << std::endl;
+	if (request._header["Connection"] == "keep-alive")
+	{
+		std::cout << "keeping the connection alive" << std::endl;
+		bzero(client.request, sizeof(client.request)); // we clear request in case connection is alive
+		client.received = 0;
+		return true;
+	}
+	else
+	{
+		std::cout << "closing the connection " << std::endl;
 		return false;
-	// }
-	// else
-	// {
-		// std::cout << "closing the connection " << std::endl;
-		// return false;
-	// }
+	}
 
 	
 	// char full_path[128];
