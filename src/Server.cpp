@@ -172,6 +172,7 @@ void	Server::ack_client(std::vector<Server> &servers, int socket, ClientInfo &cl
 	{
 		if (servers[i].get_socket() == socket)
 		{
+			
 			servers[i].insert_client(client);
 			if (client.socket < 0) {
 				fprintf(stderr, "accept() failed. (%d)\n",

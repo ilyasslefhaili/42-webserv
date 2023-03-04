@@ -292,7 +292,7 @@ void	Config::init_if_not_set()
 	int i = 0;
 	while (i < _configs.size())
 	{
-		if (!is_port_valid(_configs[i]._port) || _configs[i]._root == "")
+		if (!is_port_valid(_configs[i]._port))
 			throw ConfigFileException();
 		if (_configs[i]._host == "")
 			_configs[i]._host = "127.0.0.1";

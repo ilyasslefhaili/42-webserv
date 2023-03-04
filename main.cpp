@@ -22,6 +22,8 @@
 #include "src/Config.hpp"
 #include "src/Server.hpp"
 
+# define TIMEOUT 30
+
 int	main(int argc, char **argv)
 {
 	if (argc > 2)
@@ -65,12 +67,14 @@ int	main(int argc, char **argv)
 				client.socket = accept(*s,
 					(struct sockaddr*) &(client.address),
 					&(client.address_length));
-
+				client.last_received = time(NULL);
 				// int timeout_seconds = 10;
 				// struct timeval timeout;
 				// timeout.tv_sec = timeout_seconds;
 				// timeout.tv_usec = 0;
-				// setsockopt(client.socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+				// int res = setsockopt(client.socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+				// if (res == -1) 
+    			// 	perror("setsockopt");
 				
 				Server::ack_client(servers, *s, client);
 			}
@@ -103,6 +107,8 @@ int	main(int argc, char **argv)
 					}
 					else
 					{
+						it->last_received = time(NULL);
+
 						it->received += r;
 						it->request[it->received] = 0;
 
@@ -116,6 +122,15 @@ int	main(int argc, char **argv)
 								continue ;
 							}
 						}
+					}
+				} else {
+					// check timeout
+					if (time(NULL) - it->last_received > TIMEOUT)
+					{
+						std::cout << "timeout; socket " << it->socket << std::endl;
+						it = server->drop_client(*it);
+						e = server->get_clients().end();
+						continue ;
 					}
 				}
 				++it;

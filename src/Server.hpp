@@ -31,7 +31,7 @@
 # include "Config.hpp"
 # include "ServerConfig.hpp"
 # include <set>
-
+#include <ctime>
 
 struct ClientInfo {
 	socklen_t 				address_length;
@@ -39,6 +39,8 @@ struct ClientInfo {
 	int						socket;
 	char					request[MAX_REQUEST_SIZE + 1];
 	int						received;
+	time_t 					last_received;
+
 	// std::string				buffer; // use this to remplace request
 	
 };
