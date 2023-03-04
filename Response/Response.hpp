@@ -20,12 +20,14 @@
 #include "../src/Location.hpp"
 #include "../src/ServerConfig.hpp"
 #include "../src/Config.hpp"
+#include <dirent.h>
 class Response
 {
     private:
         std::string     _content_type;
         int             _status;
         //size_t          _cl;
+        bool            _dir_or_file;
         ServerConfig    _configs;
         std::fstream    _file;
         std::string     _path;
@@ -35,6 +37,8 @@ class Response
         Location       _location;
     public:
         std::string get_body();
+        std::string &get_path();
+        void    get_index();
         void set_body(std::string body);
         std::string get_content_type();
         void set_content_type(std::string type);
@@ -45,6 +49,7 @@ class Response
         int get_status();
         void set_config(ServerConfig& conf);
         ServerConfig& get_config();
+        void    get_the_absolute_path();
         void    get_location();
         Response(Request& re_st);
         ~Response();
@@ -59,6 +64,7 @@ std::string get_content_lenght(Response &a);
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs);
 Response&   get_response_object(Request& re_st, std::vector<ServerConfig> &configs);
 std::vector<std::string> split_host_port(std::string host_port);
+bool        isDirectory(std::string& path);
 
 
 

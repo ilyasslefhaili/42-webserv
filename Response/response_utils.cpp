@@ -13,11 +13,22 @@
 
 #include "Response.hpp"
 
+bool isDirectory(std::string& path){
+    DIR*  dir = opendir(path.c_str());
+    if (dir != NULL){
+        closedir(dir);
+        return true;
+    }
+    return false;
+}
+
 std::string create_status_line(int status, Request&re_st){
     if (status == 404)
         return (re_st._protocol_ver + " 404 Not Found\r\n");
     else if (status == 200)
         return (re_st._protocol_ver + " 200 OK\r\n");
+    else if (status == 301)
+        return (re_st._protocol_ver + " 301 Moved Permanently\r\n");
     return "";
 }
 
@@ -31,7 +42,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
 
     response += create_status_line(a.get_status(), re_st);
-    response += content_from_path(re_st._path);
+    response += content_from_path(a.get_path());
     response += get_content_lenght(a);
     response += "\r\n";
     response += a.get_body();
@@ -41,14 +52,17 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
 Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response(re_st);
 
-    a->set_config(get_server(re_st, configs));
-    a->get_location();
-    a->link_root_path(re_st);
-    a->set_content_type(content_from_path(re_st._path));
-    a->fill_attributes(re_st);
+    if (re_st._method == "GET"){
+        a->set_config(get_server(re_st, configs));
+        a->get_location();
+        a->link_root_path(re_st);
+        a->get_the_absolute_path();
+        a->set_content_type(content_from_path(re_st._path));
+        a->fill_attributes(re_st);
+    }
     return *a;
 }
-
+//get content type 
 std::string content_from_path(std::string& path){
     size_t pos = path.rfind('.');
     if (pos != std::string::npos) {

@@ -232,8 +232,8 @@ const std::string get_content_type(const char* path) {
 bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;
-	if (request._path == "/")
-		request._path = "/index.html";
+	// if (request._path == "/")
+		// request._path = "/index.html";
 	
 	if (request._path.size() > 100)
 	{
@@ -248,7 +248,6 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	}
 
 	std::string response = get_response(request, configs);
-
 	send(client.socket, response.c_str(), response.size(), 0);
 
 
