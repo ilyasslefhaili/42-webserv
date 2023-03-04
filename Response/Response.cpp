@@ -12,17 +12,33 @@
 
 #include "Response.hpp"
 
+void    Response::get_index(){
+    if (this->_configs._index.size() > 0){
+        this->_file.open(this->_path + _configs._index[0]);
+        size_t i = 0;
+        while (i < this->_configs._index.size()&& this->_file.fail()){
+            this->_file.open(this->_path + _configs._index[i]);
+        }
+        if (!this->_file.fail())
+            this->_file.close();
+        this->_path += _configs._index[i];
+    }
+}
+std::string& Response::get_path(){
+    return (_path);
+}
+
 void Response::fill_attributes(Request& re_st){
     if (re_st._method == "GET"){
+        if (this->_dir_or_file)
+            this->get_index();
         this->_file.open(this->_path);
-        if (!(this->_file.is_open()))
-        {
+        if (!(this->_file.is_open())){
             this->_status = 404;
             this->get_error_page();
         }
         else
         {
-            this->_status = 200;
             std::string str;
             while (!this->_file.eof()){
                 std::getline(this->_file, str);
@@ -31,12 +47,6 @@ void Response::fill_attributes(Request& re_st){
                     this->_body += "\n";
             }
         }
-    }
-    else if (re_st._method == "POST"){
-        this->_status = 200;
-        this->_file.open(re_st._path, std::ios::out);
-        this->_file<<re_st._body;
-        this->_file.close();
     }
 }
 
@@ -72,7 +82,6 @@ void    Response::get_location(){
     b = 0;
     for (size_t i = 0; i < _configs._locations.size(); i++){
         a = compare_str(_request._path, _configs._locations[i]._path);
-        std::cout<<_request._path<<"     "<<_configs._locations[i]._path<<std::endl;
         if (a > b)
         {
             this->_location = _configs._locations[i];
@@ -81,6 +90,18 @@ void    Response::get_location(){
     }
 }
 
+void    Response::get_the_absolute_path(){
+    if (isDirectory(this->_path)){
+        if (this->_path[_path.size() - 1] != '/'){
+            this->_path += "/";
+            this->_status = 301;
+            this->_dir_or_file = true;
+            return ;
+        }
+        this->_dir_or_file = true;
+    }
+    this->_status = 200;
+}
 
 std::string Response::get_body(){
     return _body;
@@ -104,6 +125,7 @@ int Response::get_status(){
 
 void Response::link_root_path(Request& re_st){
     _path = this->_configs._root;
+    _path += this->_location._root;
     _path += re_st._path;
 }
 
