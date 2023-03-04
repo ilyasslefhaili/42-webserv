@@ -68,14 +68,6 @@ int	main(int argc, char **argv)
 					(struct sockaddr*) &(client.address),
 					&(client.address_length));
 				client.last_received = time(NULL);
-				// int timeout_seconds = 10;
-				// struct timeval timeout;
-				// timeout.tv_sec = timeout_seconds;
-				// timeout.tv_usec = 0;
-				// int res = setsockopt(client.socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-				// if (res == -1) 
-    			// 	perror("setsockopt");
-				
 				Server::ack_client(servers, *s, client);
 			}
 			s++;
@@ -99,7 +91,6 @@ int	main(int argc, char **argv)
 						it->request + it->received,
 						MAX_REQUEST_SIZE - it->received, 0);
 					if (r < 1) {
-						// and maybe timeout if (errno == EAGAIN || errno == EWOULDBLOCK) but forbidden
 						std::cout << "Unexpected disconnect from " << server->get_client_address(*it) << std::endl;
 						it = server->drop_client(*it);
 						e = server->get_clients().end();
@@ -108,7 +99,6 @@ int	main(int argc, char **argv)
 					else
 					{
 						it->last_received = time(NULL);
-
 						it->received += r;
 						it->request[it->received] = 0;
 
