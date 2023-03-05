@@ -24,29 +24,43 @@ void    Response::get_index(){
         this->_path += _configs._index[i];
     }
 }
+
 std::string& Response::get_path(){
     return (_path);
 }
 
+void check_the_file_permissions(std::string& path, int *status){
+    int reslt = access(path.c_str(), F_OK);
+    if (reslt == 0){
+        reslt = access(path.c_str(), R_OK);
+        std::cout<<"--------"<<std::endl;
+        if (reslt != 0){
+            *status = 401;
+        }
+    }
+    else
+        throw (std::exception());
+}
+
 void Response::fill_attributes(Request& re_st){
-    if (re_st._method == "GET"){
-        if (this->_dir_or_file)
-            this->get_index();
-        this->_file.open(this->_path);
-        if (!(this->_file.is_open())){
-            this->_status = 404;
-            this->get_error_page();
-        }
-        else
-        {
-            std::string str;
-            while (!this->_file.eof()){
-                std::getline(this->_file, str);
-                this->_body += str;
-                if (!this->_file.eof())
-                    this->_body += "\n";
-            }
-        }
+    if (this->_dir_or_file)
+        this->get_index();
+    try{
+        check_the_file_permissions(this->_path, &this->_status);
+    }
+    catch(const std::exception& e){
+        std::cout<<"file not found"<<std::endl;
+        this->_status = 404;
+        return ;
+    }
+    this->_file.open(this->_path);
+    std::string str;
+    while (!this->_file.fail() && !this->_file.eof()){
+        std::getline(this->_file, str);
+        this->_status = 200;
+        this->_body += str;
+        if (!this->_file.eof())
+            this->_body += "\n";
     }
 }
 
@@ -100,7 +114,6 @@ void    Response::get_the_absolute_path(){
         }
         this->_dir_or_file = true;
     }
-    this->_status = 200;
 }
 
 std::string Response::get_body(){

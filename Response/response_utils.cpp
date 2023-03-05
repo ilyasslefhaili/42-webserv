@@ -29,6 +29,8 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 200 OK\r\n");
     else if (status == 301)
         return (re_st._protocol_ver + " 301 Moved Permanently\r\n");
+    else if (status == 401)
+        return (re_st._protocol_ver + " 401 Unauthorized\r\n");
     return "";
 }
 
@@ -57,9 +59,9 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
         a->get_location();
         a->link_root_path(re_st);
         a->get_the_absolute_path();
-        a->set_content_type(content_from_path(re_st._path));
+        a->set_content_type(content_from_path(re_st._path));  
         a->fill_attributes(re_st);
-    }
+    } 
     return *a;
 }
 //get content type 
