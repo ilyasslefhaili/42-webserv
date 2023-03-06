@@ -6,14 +6,15 @@
 # define LOCATION_HPP
 
 # include <string>
-# include <string>
+# include <vector>
 
 
 class Location {
     public:
         std::string                 _path; 
         std::string                 _root;
-        std::string                 _index;
+        // std::string                 _index;
+        std::vector<std::string>     _index;
         bool                        _autoindex;
         std::string                 _ret;
         // char                        _allowed_methds[4];
