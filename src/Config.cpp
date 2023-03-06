@@ -54,7 +54,8 @@ void	Config::print()
 			std::cout << "	" << "_root: " << lo->_root << std::endl;
 			std::cout << "	" << "_ret: " << lo->_ret << std::endl;
 			std::cout << "	" << "_path: " << lo->_path << std::endl;
-			std::cout << "	" << "_index: " << lo->_index << std::endl;
+			for (int i = 0; i < lo->_index.size(); i++)
+				std::cout << "	" << "index: " << lo->_index[i] << std::endl;
 			std::cout << "	" << "auto_index: " << lo->_autoindex << std::endl;
 
 			int i = 0;
@@ -212,7 +213,11 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 		ss >> current_location._root;
 	}
 	else if (key == "index")
-		ss >> current_location._index;
+	{
+		std::string temp;
+		ss >> temp;
+		current_location._index.push_back(temp);
+	}
 	else if (key == "return")
 		ss >> current_location._ret;
 	else if (key == "allow_methods")
