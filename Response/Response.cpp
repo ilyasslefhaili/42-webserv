@@ -17,7 +17,7 @@ void Response::fill_directive(){
     _root = _configs._root;
     _root = _location._root.size() > 0 ? _location._root : _configs._root;
     _index = _configs._index;
-    // _index = _location._index.size() > 0 ? _location._index : _configs._index;
+    _index = _location._index.size() > 0 ? _location._index : _configs._index;
     _allowed_methods = _location._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
