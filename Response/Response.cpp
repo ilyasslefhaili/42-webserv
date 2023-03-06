@@ -12,8 +12,34 @@
 
 #include "Response.hpp"
 
+void  Response::get_files_in_dir(){
+    DIR*            dir;
+    struct dirent*  to_incriment;
+
+    dir = opendir(this->_path.c_str());
+    to_incriment = readdir(dir);
+    _body = "<html>\n";
+    _body += "<head>Index ";
+    _body += this->_path;
+    _body += "</head>\n";
+    while (to_incriment != NULL){
+        _body += "<a href= \"";
+        _body += _request._path;
+        _body += "/";
+        _body += to_incriment->d_name;
+        _body += "\"> ";
+        _body += to_incriment->d_name;
+        _body += "</a>";
+        to_incriment = readdir(dir);
+        _body += "\n";
+    }
+    _body += "</html>\n";
+}
+
 void    Response::get_index(){
+    this->_configs._auto_index = true;
     if (this->_configs._index.size() > 0){
+       
         this->_file.open(this->_path + _configs._index[0]);
         size_t i = 0;
         while (i < this->_configs._index.size()&& this->_file.fail()){
@@ -22,6 +48,12 @@ void    Response::get_index(){
         if (!this->_file.fail())
             this->_file.close();
         this->_path += _configs._index[i];
+    }
+    else if (this->_configs._auto_index || this->_location._autoindex)
+    {
+        this->get_files_in_dir();
+        this->_path += "i.html";
+        throw (std::exception());
     }
 }
 
@@ -33,7 +65,6 @@ void check_the_file_permissions(std::string& path, int *status){
     int reslt = access(path.c_str(), F_OK);
     if (reslt == 0){
         reslt = access(path.c_str(), R_OK);
-        std::cout<<"--------"<<std::endl;
         if (reslt != 0){
             *status = 401;
         }
@@ -44,7 +75,13 @@ void check_the_file_permissions(std::string& path, int *status){
 
 void Response::fill_attributes(Request& re_st){
     if (this->_dir_or_file)
-        this->get_index();
+    {
+        try{
+            this->get_index();
+        }catch(std::exception& e){
+            return ;
+        }
+    }
     try{
         check_the_file_permissions(this->_path, &this->_status);
     }
@@ -55,9 +92,10 @@ void Response::fill_attributes(Request& re_st){
     }
     this->_file.open(this->_path);
     std::string str;
+    if (this->_status == 0)
+        this->_status = 200;
     while (!this->_file.fail() && !this->_file.eof()){
         std::getline(this->_file, str);
-        this->_status = 200;
         this->_body += str;
         if (!this->_file.eof())
             this->_body += "\n";
@@ -99,6 +137,7 @@ void    Response::get_location(){
         if (a > b)
         {
             this->_location = _configs._locations[i];
+            this->_check_location = true;
             b = a;
         }
     }
@@ -150,6 +189,8 @@ ServerConfig& Response::get_config(){
     return (this->_configs);
 }
 Response::Response(Request& re_st) : _request(re_st){
+    this->_status = 0;
+    this->_check_location = false;
 }
 
 Response::~Response()

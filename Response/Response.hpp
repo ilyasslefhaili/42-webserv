@@ -34,6 +34,7 @@ class Response
         bool            _dir_or_file;
         ServerConfig    _configs;
         std::fstream    _file;
+        bool            _check_location;
         std::string     _path;
         std::string     _body;
         Request&        _request;
@@ -44,6 +45,7 @@ class Response
         std::string &get_path();
         void    get_index();
         void set_body(std::string body);
+        void get_files_in_dir();
         std::string get_content_type();
         void set_content_type(std::string type);
         void fill_attributes(Request& re_st);
