@@ -39,6 +39,7 @@ void	Config::print()
 		std::cout << "root: " << it->_root << std::endl;
 		std::cout << "max_body: " << it->_max_body << std::endl;
 		std::cout << "return: " << it->_return << std::endl;
+		std::cout << "auto_index: " << it->_auto_index << std::endl;
 
 		std::map<std::string, std::string>::iterator err = it->_error_pages.begin();
 		while (err != it->_error_pages.end())
@@ -105,10 +106,7 @@ void    Config::parse()
 		{
 			if (key == "server" && !server_bracket_open)
 			{
-				// if (already_constructed)
-				// 	_configs.push_back(current);
 				current = ServerConfig();
-				// already_constructed = true;
 			}
 			else if (key == "{")
 			{
@@ -146,6 +144,12 @@ void    Config::parse()
 			else if (key == "server_name")
 			{
 				ss >> current._server_name;
+			}
+			else if (key == "autoindex" && !location_bracket_open)
+			{
+				std::string temp;
+				ss >> temp;
+				current._auto_index = temp == "on" ? true : false;
 			}
 			else if (key == "error_page")
 			{
