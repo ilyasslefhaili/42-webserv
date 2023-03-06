@@ -21,6 +21,10 @@
 #include "../src/ServerConfig.hpp"
 #include "../src/Config.hpp"
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 class Response
 {
     private:
