@@ -12,6 +12,18 @@
 
 #include "Response.hpp"
 
+
+void Response::fill_directive(){
+    _root = _configs._root;
+    _root = _location._root.size() > 0 ? _location._root : _configs._root;
+    _index = _configs._index;
+    // _index = _location._index.size() > 0 ? _location._index : _configs._index;
+    _allowed_methods = _location._allowed_methods;
+    _ret = _location._ret;
+    _autoindex = _configs._auto_index;
+    _autoindex = _location._autoindex;
+}
+
 void  Response::get_files_in_dir(){
     DIR*            dir;
     struct dirent*  to_incriment;
@@ -33,23 +45,23 @@ void  Response::get_files_in_dir(){
         to_incriment = readdir(dir);
         _body += "\n";
     }
+    if (this->_status == 0)
+        this->_status = 200;
     _body += "</html>\n";
 }
 
 void    Response::get_index(){
-    this->_configs._auto_index = true;
-    if (this->_configs._index.size() > 0){
-       
-        this->_file.open(this->_path + _configs._index[0]);
+    if (this->_index.size() > 0){
+        this->_file.open(this->_path + this->_index[0]);
         size_t i = 0;
-        while (i < this->_configs._index.size()&& this->_file.fail()){
-            this->_file.open(this->_path + _configs._index[i]);
+        while (i < this->_index.size()&& this->_file.fail()){
+            this->_file.open(this->_path + this->_index[i]);
         }
         if (!this->_file.fail())
             this->_file.close();
-        this->_path += _configs._index[i];
+        this->_path += this->_index[i];
     }
-    else if (this->_configs._auto_index || this->_location._autoindex)
+    else if (this->_autoindex)
     {
         this->get_files_in_dir();
         this->_path += "i.html";
@@ -176,8 +188,7 @@ int Response::get_status(){
 }
 
 void Response::link_root_path(Request& re_st){
-    _path = this->_configs._root;
-    _path += this->_location._root;
+    _path = this->_root;
     _path += re_st._path;
 }
 

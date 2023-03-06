@@ -28,21 +28,30 @@
 class Response
 {
     private:
-        std::string     _content_type;
-        int             _status;
+        std::string                 _content_type;
+        int                         _status;
         //size_t          _cl;
-        bool            _dir_or_file;
-        ServerConfig    _configs;
-        std::fstream    _file;
-        bool            _check_location;
-        std::string     _path;
-        std::string     _body;
-        Request&        _request;
-        std::string     _error_page;
-        Location       _location;
+        bool                        _dir_or_file;
+        ServerConfig                _configs;
+        std::fstream                _file;
+        bool                        _check_location;
+        std::string                 _path;
+        std::string                 _body;
+        Request&                    _request;
+        Location                    _location;
+        std::string                 _error_page;
+        std::string                 _root;
+        std::vector<std::string>     _index;
+        bool                         _autoindex;
+        std::vector<std::string>    _allowed_methods;
+        std::vector<std::string>    _cgi_path;
+        std::vector<std::string>    _cgi_ext;
+        std::string                 _ret;
+
     public:
         std::string get_body();
         std::string &get_path();
+        void    fill_directive();
         void    get_index();
         void set_body(std::string body);
         void get_files_in_dir();

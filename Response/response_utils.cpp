@@ -57,6 +57,7 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     if (re_st._method == "GET"){
         a->set_config(get_server(re_st, configs));
         a->get_location();
+        a->fill_directive();
         a->link_root_path(re_st);
         a->get_the_absolute_path();
         a->set_content_type(content_from_path(re_st._path));  

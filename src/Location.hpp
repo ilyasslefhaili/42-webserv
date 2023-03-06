@@ -20,8 +20,6 @@ class Location {
         std::vector<std::string>    _allowed_methods;
         std::vector<std::string>    _cgi_path;
         std::vector<std::string>    _cgi_ext;
-
-
 };
 
 #endif
