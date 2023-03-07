@@ -21,7 +21,7 @@ void Response::fill_directive(){
     _allowed_methods = _location._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
-    _autoindex = _location._autoindex;
+    // _autoindex = _location._autoindex;
 }
 
 void  Response::get_files_in_dir(){
@@ -33,7 +33,6 @@ void  Response::get_files_in_dir(){
     _body = "<html>\n";
     _body += "<head>Index ";
     _body += this->_path;
-    _body += "</head>\n";
     while (to_incriment != NULL){
         _body += "<a href= \"";
         _body += _request._path;
@@ -59,6 +58,8 @@ void    Response::get_index(){
         }
         if (!this->_file.fail())
             this->_file.close();
+        else 
+            this->_status = 404;
         this->_path += this->_index[i];
     }
     else if (this->_autoindex)
@@ -67,6 +68,8 @@ void    Response::get_index(){
         this->_path += "i.html";
         throw (std::exception());
     }
+    else
+        this->_status = 404;
 }
 
 std::string& Response::get_path(){

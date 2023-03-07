@@ -48,6 +48,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(a);
     response += "\r\n";
     response += a.get_body();
+    std::cout<<response<<std::endl;
     return response;
 }
 
