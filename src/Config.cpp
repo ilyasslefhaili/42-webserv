@@ -38,9 +38,7 @@ void	Config::print()
 			
 		std::cout << "root: " << it->_root << std::endl;
 		std::cout << "max_body: " << it->_max_body << std::endl;
-		std::cout << "return: " << it->_return << std::endl;
 		std::cout << "auto_index: " << it->_auto_index << std::endl;
-
 		std::map<std::string, std::string>::iterator err = it->_error_pages.begin();
 		while (err != it->_error_pages.end())
 		{
@@ -52,7 +50,7 @@ void	Config::print()
 		{
 			std::cout << "location: " << lo->_path << std::endl;
 			std::cout << "	" << "_root: " << lo->_root << std::endl;
-			std::cout << "	" << "_ret: " << lo->_ret << std::endl;
+			std::cout << "	" << "_ret: " << lo->_ret.first << " " << lo->_ret.second << std::endl;
 			std::cout << "	" << "_path: " << lo->_path << std::endl;
 			for (int i = 0; i < lo->_index.size(); i++)
 				std::cout << "	" << "index: " << lo->_index[i] << std::endl;
@@ -70,7 +68,7 @@ void	Config::print()
 			++lo;
 		}
 
-		std::cout << "==============" << std::endl;
+		std::cout << "==========================================" << std::endl;
 		++it;
 	}
 }
@@ -79,21 +77,16 @@ void	Config::print()
 // the parse will work
 void    Config::parse()
 {
-   	std::ifstream file(_file_path);
+   	std::ifstream 	file(_file_path);
 	ServerConfig	current;
 	std::string		line;
 
-	current._port = "-1";
-
-	bool parsing_location = false; // set to true when we are parsing the location block
-
-	// int current_location_index = 0; // each server may have multiple locations; we use this so see which location in the list we are in
-
+	bool	 parsing_location = false; // set to true when we are parsing the location block
 	bool	server_bracket_open = false;
 	bool	location_bracket_open = false;
 
 	Location	current_location;
-	std::string		last_key;
+	std::string	last_key;
 	std::string key;
 
 
@@ -132,20 +125,13 @@ void    Config::parse()
 					_configs.push_back(current);
 					server_bracket_open = false;
 				}
-
 			}
 			else if (key == "listen")
-			{
 				ss >> current._port;
-			}
 			else if (key ==  "host")
-			{
 				ss >> current._host;
-			}
 			else if (key == "server_name")
-			{
 				ss >> current._server_name;
-			}
 			else if (key == "autoindex" && !location_bracket_open)
 			{
 				std::string temp;
@@ -158,30 +144,19 @@ void    Config::parse()
 				std::vector<std::string> temp;
 				while (ss >> code)
 					temp.push_back(code);
-				int i = 0;
-				while (i < temp.size() - 1)
-				{
+				for (int i = 0; i < temp.size() - 1; i++)
 					current._error_pages[temp[i]] = temp.back();
-					i++;
-				}
 			}
 			else if (key == "client_max_body_size")
-			{
 				ss >> current._max_body;
-			}
-			else if (key == "return" && !location_bracket_open)
-			{
-				ss >> current._return;
-			}
 			else if (key == "root" && !location_bracket_open)
-			{
 				ss >> current._root;
-			}
 			else if (key == "index"  && !location_bracket_open)
 			{
+				current._index.clear();
 				std::string index;
-				ss >> index;
-				current._index.push_back(index);
+				while (ss >> index)
+					current._index.push_back(index);
 			}
 			else if (key == "location" && !location_bracket_open)
 			{
@@ -189,21 +164,13 @@ void    Config::parse()
 				ss >> current_location._path;
 			}
 			else if (parsing_location)	// we are inside the location block now
-			{
-				parse_location(key, ss, current_location); // 
-			}
+				parse_location(key, ss, current_location);
 			last_key = key;
 		}
 	}
 
 	if (server_bracket_open || location_bracket_open)
-	{
-		// error 
-		// brackets are not properly formatted
-		throw ConfigFileException();
-	}
-
-	
+		throw ConfigFileException();	
 }
 
 void	Config::parse_location(std::string &key, std::istringstream &ss, Location &current_location)
@@ -214,19 +181,22 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 	}
 	else if (key == "index")
 	{
+		current_location._index.clear();
 		std::string temp;
-		ss >> temp;
-		current_location._index.push_back(temp);
+		while (ss >> temp)
+			current_location._index.push_back(temp);
 	}
 	else if (key == "return")
-		ss >> current_location._ret;
+	{
+		ss >> current_location._ret.first;
+		ss >> current_location._ret.second;
+	}
 	else if (key == "allow_methods")
 	{
+		current_location._allowed_methods.clear();
 		std::string method;
 		while (ss >> method)
-		{
 			current_location._allowed_methods.push_back(method);
-		}
 	}
 	else if (key == "autoindex")
 	{
@@ -236,19 +206,17 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 	}
 	else if (key == "cgi_path")
 	{
+		current_location._cgi_path.clear();
 		std::string path;
 		while (ss >> path)
-		{
 			current_location._cgi_path.push_back(path);
-		}
 	}
 	else if (key == "cgi_ext")
 	{
+		current_location._cgi_ext.clear();
 		std::string ext;
 		while (ss >> ext)
-		{
 			current_location._cgi_ext.push_back(ext);
-		}
 	}
 }
 
@@ -306,7 +274,7 @@ void	Config::init_if_not_set()
 		if (_configs[i]._host == "")
 			_configs[i]._host = "127.0.0.1";
 		if (_configs[i]._server_name == "")
-			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hotname
+			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hostname
 		// if (_configs[i]._index == "")
 		// 	_configs[i]._index = "index.html";
 		if (_configs[i]._error_pages.empty())

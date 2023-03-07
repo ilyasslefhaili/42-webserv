@@ -128,10 +128,6 @@ int	main(int argc, char **argv)
 			++server;
 		}
 	}
-
-	// printf("\nClosing socket...\n");
- 	// close(server.get_socket());
-	// printf("Finished.\n");
 	return 0;
 }
 

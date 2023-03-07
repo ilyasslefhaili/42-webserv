@@ -16,7 +16,8 @@ class Location {
         // std::string                 _index;
         std::vector<std::string>     _index;
         bool                        _autoindex;
-        std::string                 _ret;
+        // std::string                 _ret;
+		std::pair<std::string, std::string>	_ret;
         // char                        _allowed_methds[4];
         std::vector<std::string>    _allowed_methods;
         std::vector<std::string>    _cgi_path;
