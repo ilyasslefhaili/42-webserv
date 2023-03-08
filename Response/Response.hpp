@@ -50,6 +50,8 @@ class Response
 
     public:
         std::string get_body();
+        void file_body();
+        void in_case_of_return();
         std::string &get_path();
         void    fill_directive();
         void    get_index();

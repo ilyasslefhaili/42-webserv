@@ -88,6 +88,47 @@ void check_the_file_permissions(std::string& path, int *status){
         throw (std::exception());
 }
 
+void Response::file_body(){
+    this->_file.open(this->_path);
+    std::string str;
+    while (!this->_file.fail() && !this->_file.eof()){
+     std::getline(this->_file, str);
+     this->_body += str;
+     if (!this->_file.eof())
+         this->_body += "\n";
+    }
+}
+
+void Response::in_case_of_return(){
+    if (this->_ret.first != "" || this->_ret.second != ""){
+        if (this->_ret.first != ""){
+            this->_status = atoi(this->_ret.first.c_str());
+            if (this->_status < 400 && this->_status >= 300 && this->_ret.second != "")
+            {
+                this->_path = this->_ret.second;
+                try
+                {
+                    check_the_file_permissions(this->_path, &this->_status);
+                }
+                catch(const std::exception& e)
+                {
+                    this->_status = 404;
+                }
+                this->set_content_type(content_from_path(this->_path));  
+                this->file_body();    
+            }
+            else{
+                this->_status = atoi(this->_ret.first.c_str());
+                this->_body = this->_ret.second;
+            }
+        }
+        else
+            this->_body = this->_ret.second;
+        throw(std::exception());
+    }
+
+}
+
 void Response::fill_attributes(Request& re_st){
     if (this->_dir_or_file)
     {
@@ -105,16 +146,9 @@ void Response::fill_attributes(Request& re_st){
         this->_status = 404;
         return ;
     }
-    this->_file.open(this->_path);
-    std::string str;
     if (this->_status == 0)
         this->_status = 200;
-    while (!this->_file.fail() && !this->_file.eof()){
-        std::getline(this->_file, str);
-        this->_body += str;
-        if (!this->_file.eof())
-            this->_body += "\n";
-    }
+    this->file_body();
 }
 
 void Response::get_error_page(){
@@ -139,6 +173,8 @@ int     compare_str(std::string a, std::string b){
     int i = 0;
     while (a[i] == b[i] && a[i] && b[i])
         i++;
+    if (b[i] != '\0')
+        i = 0;
     return (i);
 }
 

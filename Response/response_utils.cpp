@@ -40,8 +40,8 @@ std::string get_content_lenght(Response &a){
 }
 
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
-    Response &a = get_response_object(re_st, configs);
     std::string response;
+    Response &a = get_response_object(re_st, configs);
 
     response += create_status_line(a.get_status(), re_st);
     response += content_from_path(a.get_path());
@@ -59,6 +59,14 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
         a->set_config(get_server(re_st, configs));
         a->get_location();
         a->fill_directive();
+        try
+        {
+            a->in_case_of_return();
+        }
+        catch(const std::exception& e)
+        {
+            return (*a);
+        }
         a->link_root_path(re_st);
         a->get_the_absolute_path();
         a->set_content_type(content_from_path(re_st._path));  
