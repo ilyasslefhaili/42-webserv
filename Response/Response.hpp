@@ -46,7 +46,7 @@ class Response
         std::vector<std::string>                            _allowed_methods;
         std::vector<std::string>                            _cgi_path;
         std::vector<std::string>                            _cgi_ext;
-        std::pair<std::string, std::string>                 _ret;
+        std::pair<int, std::string>                 _ret;
 
     public:
         std::string get_body();
