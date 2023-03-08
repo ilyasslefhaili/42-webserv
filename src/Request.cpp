@@ -2,6 +2,23 @@
 
 #include "Request.hpp"
 
+Request::Request(const Request &src)
+{
+	*this = src;
+}
+
+Request & Request::operator=(const Request &rhs)
+{
+	this->_raw = rhs._raw;
+	this->_method = rhs._method;
+	this->_protocol_ver = rhs._protocol_ver;
+	this->_header = rhs._header;
+	this->_body = rhs._body;
+	this->_path = rhs._path;
+	return (*this);
+}
+
+
 void customSplit(std::string str, std::vector<std::string> &strings)
 {
     int startIndex = 0, endIndex = 0;

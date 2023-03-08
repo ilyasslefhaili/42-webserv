@@ -27,6 +27,8 @@ class Request {
 
 	public:
 		Request(const char *);
+		Request(const Request &src);
+		Request & operator=(const Request &rhs);
 		~Request();
 
 		void		parse_request(const char *);

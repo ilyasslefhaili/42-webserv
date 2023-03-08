@@ -14,6 +14,7 @@ struct Location {
 	std::string							_root;
 	std::vector<std::string>			_index;
 	bool								_autoindex;
+	bool								_is_autoindex_set;
 	std::pair<int, std::string>			_ret;
 	std::vector<std::string>			_allowed_methods;
 	std::vector<std::string>			_cgi_path;

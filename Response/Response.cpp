@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ilefhail <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/02/26 00:54:53 by ilefhail         ###   ########.fr       */
+/*   Updated: 2023/03/08 20:24:23 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,7 @@ void Response::fill_attributes(Request& re_st){
 
 void Response::get_error_page(){
    this->_error_page = this->_configs._root;
-   this->_error_page += this->_configs._error_pages[std::to_string(this->_status)];
+   this->_error_page += this->_configs._error_pages[this->_status];
    std::fstream error;
    error.open(this->_error_page);
    if (error.is_open())

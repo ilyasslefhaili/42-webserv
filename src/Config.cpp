@@ -39,7 +39,7 @@ void	Config::print()
 		std::cout << "root: " << it->_root << std::endl;
 		std::cout << "max_body: " << it->_max_body << std::endl;
 		std::cout << "auto_index: " << it->_auto_index << std::endl;
-		std::map<std::string, std::string>::iterator err = it->_error_pages.begin();
+		std::map<int, std::string>::iterator err = it->_error_pages.begin();
 		while (err != it->_error_pages.end())
 		{
 			std::cout << err->first << " " << err->second << std::endl;
@@ -101,6 +101,7 @@ void    Config::parse()
 			if (key == "server" && !server_bracket_open)
 			{
 				current = ServerConfig();
+				current._auto_index = false;
 			}
 			else if (key == "{")
 			{
@@ -140,12 +141,19 @@ void    Config::parse()
 			}
 			else if (key == "error_page")
 			{
-				std::string code;
-				std::vector<std::string> temp;
+				int 		code;
+				std::string	page;
+				std::set<int> temp;
 				while (ss >> code)
-					temp.push_back(code);
-				for (int i = 0; i < temp.size() - 1; i++)
-					current._error_pages[temp[i]] = temp.back();
+					temp.insert(code);
+				ss.clear();
+				ss >> page;
+				std::set<int>::iterator it = temp.begin();
+				while (it != temp.end())
+				{
+					current._error_pages[*it] = page;
+					++it;
+				}
 			}
 			else if (key == "client_max_body_size")
 				ss >> current._max_body;
@@ -161,10 +169,20 @@ void    Config::parse()
 			else if (key == "location" && !location_bracket_open)
 			{
 				current_location = Location();
+				current_location._is_autoindex_set = false;
 				ss >> current_location._path;
 			}
 			else if (parsing_location)	// we are inside the location block now
 				parse_location(key, ss, current_location);
+			else
+			{
+				if (!parsing_location)
+				{
+					std::cout << "invalid id " << key << std::endl;
+					throw ConfigFileException();
+				}
+
+			}
 			last_key = key;
 		}
 	}
@@ -190,6 +208,7 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 	{
 		if (!(ss >> current_location._ret.first))
 			current_location._ret.first = -1;
+		ss.clear();
 		ss >> current_location._ret.second;
 	}
 	else if (key == "allow_methods")
@@ -204,6 +223,7 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 		std::string temp;
 		ss >> temp;
 		current_location._autoindex = temp == "on" ? true : false;
+		current_location._is_autoindex_set = true;
 	}
 	else if (key == "cgi_path")
 	{
@@ -219,6 +239,11 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 		while (ss >> ext)
 			current_location._cgi_ext.push_back(ext);
 	}
+	else
+	{
+		std::cout << "invalid id " << key << std::endl;
+		throw ConfigFileException();
+	}
 }
 
 void Config::generate_servers(std::vector<Server> &servers)
@@ -226,23 +251,29 @@ void Config::generate_servers(std::vector<Server> &servers)
 	int i = 0;
 	while (i < _configs.size())
 	{
+		std::vector<Server>::iterator it
+			= std::find_if(servers.begin(), servers.begin() + i, Server::MatchPort(_configs[i]._port));
+		if (it != servers.begin() + i)
+		{
+			it->add_config(_configs[i]);
+			i++;
+			continue ;
+		}
 		Server server(_configs[i]);
-		std::cout << "################################################################################" << std::endl;
-		std::cout << "server " << i
-		<< ": host: " << server.get_config()._host
-		<< ", port: " << server.get_config()._port
-		<<" generated."<< std::endl;
+		// std::cout << "################################################################################" << std::endl;
+		// std::cout << "server " << i
+		// << ": host: " << server.get_config()._host
+		// << ", port: " << server.get_port()
+		// <<" generated."<< std::endl;
 		servers.push_back(server);
 		i++;
 	}
-	std::cout << "################################################################################" << std::endl;
+	// std::cout << "################################################################################" << std::endl;
 	std::cout << std::endl;
 }
 
 bool	Config::is_port_valid(const std::string &port)
 {
-	// if (port == "")
-	// 	return false;
 	int len = port.length();
 	if (len == 0 || len > 5)
 		return false ;
@@ -257,13 +288,6 @@ bool	Config::is_port_valid(const std::string &port)
 	return true;
 }
 
-// parameters that should be default
-// host
-// error page
-// server name
-// max request size
-// index
-// also throw exception if some mandatory parameters are not set
 // should also check if port ranges from 1 to 65535
 void	Config::init_if_not_set()
 {
@@ -276,12 +300,15 @@ void	Config::init_if_not_set()
 			_configs[i]._host = "127.0.0.1";
 		if (_configs[i]._server_name == "")
 			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hostname
-		// if (_configs[i]._index == "")
-		// 	_configs[i]._index = "index.html";
 		if (_configs[i]._error_pages.empty())
-			_configs[i]._error_pages["404"] = "public/error/404.html";
+			_configs[i]._error_pages[404] = "public/error/404.html";
 		if (_configs[i]._max_body == 0)
 			_configs[i]._max_body = 1024;
+		for (int j = 0; j < _configs[i]._locations.size(); j++)
+		{
+			if (!_configs[i]._locations[j]._is_autoindex_set)
+				_configs[i]._locations[j]._autoindex = _configs[i]._auto_index;
+		}
 		i++;
 	}
 }
