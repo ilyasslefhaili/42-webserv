@@ -100,9 +100,9 @@ void Response::file_body(){
 }
 
 void Response::in_case_of_return(){
-    if (this->_ret.first != "" || this->_ret.second != ""){
-        if (this->_ret.first != ""){
-            this->_status = atoi(this->_ret.first.c_str());
+    if (this->_ret.first != -1 || this->_ret.second != ""){
+        if (this->_ret.first != -1){
+            this->_status = this->_ret.first;
             if (this->_status < 400 && this->_status >= 300 && this->_ret.second != "")
             {
                 this->_path = this->_ret.second;
@@ -118,7 +118,7 @@ void Response::in_case_of_return(){
                 this->file_body();    
             }
             else{
-                this->_status = atoi(this->_ret.first.c_str());
+                this->_status = this->_ret.first;
                 this->_body = this->_ret.second;
             }
         }
