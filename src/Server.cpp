@@ -40,7 +40,6 @@ ClientInfo	Server::get_client(int socket)
 std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
 	close(client.socket);
-
 	std::vector<ClientInfo>::iterator it = _clients.begin();
 	while (it != _clients.end())
 	{
@@ -179,8 +178,10 @@ void	Server::ack_client(std::vector<Server> &servers, int socket, ClientInfo &cl
 					GETSOCKETERRNO());
 				exit(1);
 			}
+			std::cout << "###############################" << std::endl;
 			std::cout << "New connection from " << servers[i].get_client_address(client)
-				<< " : " << servers[i].get_config()._port << std::endl;
+				<< " : " << servers[i].get_config()._port << " using socket " << client.socket << std::endl;
+
 			return ;
 		}
 		i++;
@@ -232,6 +233,20 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;
 	// if (request._path == "/")
 		// request._path = "/index.html";
+
+	// if (request._method == "OPTIONS" && request._header["access-control-request-method"] != "" && request._header["access-control-request-headers"] != "")
+	// {
+	// 	// preflight request ?
+	// 	const char *response_headers =
+    //     "HTTP/1.1 204 No Content\r\n"
+    //     "Access-Control-Allow-Origin: *\r\n"
+    //     "Access-Control-Allow-Methods: GET, POST\r\n"
+    //     "Access-Control-Allow-Headers: Content-Type\r\n"
+    //     "Access-Control-Max-Age: 86400\r\n"
+    //     "\r\n";
+    //   send(client.socket, response_headers, strlen(response_headers), 0);
+	//   return false;
+	// }
 	
 	if (request._path.size() > 100)
 	{
@@ -249,8 +264,6 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 	send(client.socket, response.c_str(), response.size(), 0);
 
 
-	// check if keepAlive or close
-	// std::cout << request._header["Connection"] << std::endl;
 	if (request._header["Connection"] == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
@@ -263,48 +276,9 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 		std::cout << "closing the connection " << std::endl;
 		return false;
 	}
+	return false;
 
-	
-	// char full_path[128];
- 	// sprintf(full_path, "public%s", request._path.c_str());
-	// std::cout << full_path << std::endl;
 
-	// FILE *fp = fopen(full_path, "rb");
- 	// if (!fp) {
-	// 	send_404(client);
-	// 	return;
- 	// }
-	// fseek(fp, 0L, SEEK_END);
-	// size_t cl = ftell(fp);
-	// rewind(fp);
-	// std::string ct = get_content_type(full_path);
-
- 	// char buffer[BSIZE];
-	// sprintf(buffer, "HTTP/1.1 200 OK\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Connection: close\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Content-Length: %lu\r\n", cl);
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-
-	// int r = fread(buffer, 1, BSIZE, fp);
-	// while (r) {
-	// 	send(client.socket, buffer, r, 0);
-	// 	r = fread(buffer, 1, BSIZE, fp);
-	// }
-
-	// fclose(fp);
-
-	/*
-	Note that send() may block on large files. In a truly robust, production-ready server, you
-	would need to handle this case. It could be done by using select() to determine when
-	each socket is ready to read. Another common method is to use fork() or similar APIs to
-	create separate threads/processes for each connected client.
-	*/
 
 }
 
@@ -337,7 +311,6 @@ int Server::create_socket(const char* host, const char *port)
 		exit(1);
 	}
 	freeaddrinfo(bind_address);
-
 	std::cout << "Listening to port " << port << std::endl;	
 	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
@@ -381,4 +354,38 @@ int				Server::get_socket()
 void			Server::set_socket(int socket)
 {
 	_socket = socket;
+}
+
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, Config &config)
+{
+	if (it->received == MAX_REQUEST_SIZE)
+	{
+		it = this->send_400(*it);
+		return true;
+    }
+	int r = recv(it->socket,
+	it->request + it->received,
+	MAX_REQUEST_SIZE - it->received, 0);
+	if (r < 1)
+	{
+		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
+		it = this->drop_client(*it);
+		return true ;
+	}
+	else
+	{
+		it->last_received = time(NULL);
+		it->received += r;
+		it->request[it->received] = 0;
+		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
+		{
+			Request request(it->request);
+			if (!this->serve_resource(*it, request, config.get_configs()))
+			{
+			    it = this->drop_client(*it);
+			    return true ;
+			}
+		}
+	}
+	return false ;
 }

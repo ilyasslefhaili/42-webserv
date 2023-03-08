@@ -188,7 +188,8 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 	}
 	else if (key == "return")
 	{
-		ss >> current_location._ret.first;
+		if (!(ss >> current_location._ret.first))
+			current_location._ret.first = -1;
 		ss >> current_location._ret.second;
 	}
 	else if (key == "allow_methods")

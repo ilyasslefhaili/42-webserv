@@ -45,7 +45,8 @@ struct ClientInfo {
 	
 };
 
-struct ServerConfig;
+struct	ServerConfig;
+class	Config;
 
 class Server {
 	private:
@@ -61,19 +62,19 @@ class Server {
 		Server & operator=(const Server & server);
 
 		// takes a socket and search _clients
-		ClientInfo	get_client(int socket);
+		ClientInfo								get_client(int socket);
 
 		// closes the connection to a client and removes it from _clients
 		std::vector<ClientInfo>::iterator		drop_client(ClientInfo & client);
 
 		// returns a clients' ip address
-		std::string	get_client_address(ClientInfo &client);
+		std::string								get_client_address(ClientInfo &client);
 
 		// wait until either a client has data available or a new client is attempting to connect
 		// using the function select		
-		static fd_set		wait_on_clients(std::set<int> const &sockets,  std::vector<Server>  &servers);
-		static std::set<int>	create_sockets(std::vector<Server> &servers);
-		static void	ack_client(std::vector<Server> &servers, int socket, ClientInfo &client);
+		static fd_set							wait_on_clients(std::set<int> const &sockets,  std::vector<Server>  &servers);
+		static std::set<int>					create_sockets(std::vector<Server> &servers);
+		static void								ack_client(std::vector<Server> &servers, int socket, ClientInfo &client);
 		// fd_set				wait_on_clients(int server);
 
 
@@ -82,19 +83,20 @@ class Server {
 		std::vector<ClientInfo>::iterator		send_404(ClientInfo &client);
 
 		// transfer a file to a connected client
-		bool		serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs);
+		bool									serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs);
 
 		// creates a socket for listening
-		int 		create_socket(const char* host, const char *port);
+		int 									create_socket(const char* host, const char *port);
 
 
-		std::vector<ClientInfo> &get_clients();
-		void					insert_client(ClientInfo &client);
+		std::vector<ClientInfo> 				&get_clients();
+		void									insert_client(ClientInfo &client);
 
 
-		ServerConfig	& get_config();
-		int				get_socket();
-		void			set_socket(int socket);
+		ServerConfig							& get_config();
+		int										get_socket();
+		void									set_socket(int socket);
+		bool									receive_request(std::vector<ClientInfo>::iterator &it, Config &config);
 
 
 		// a functor, so we can use some algorithm functions.
