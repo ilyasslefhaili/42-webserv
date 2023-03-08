@@ -6,9 +6,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define GETSOCKETERRNO() (errno)
-
-
 #include <cstdio>
 #include <string.h>
 #include <time.h>
@@ -22,31 +19,41 @@
 #include "src/Config.hpp"
 #include "src/Server.hpp"
 
-# define TIMEOUT 5
 
-void    check_incoming_connections(fd_set &reads, std::set<int> &sockets, std::vector<Server> &servers)
+void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
 {
-    reads = Server::wait_on_clients(sockets, servers);
-    std::set<int>::iterator s = sockets.begin();
-    std::set<int>::iterator ite = sockets.end();
+    reads = Server::wait_on_clients(servers);
+    std::vector<Server>::iterator s = servers.begin();
+    std::vector<Server>::iterator ite = servers.end();
     while (s != ite)
     {
-        if (FD_ISSET(*s, &reads)) // will return true if file descriptor was flagged by select
+        if (FD_ISSET(s->get_socket(), &reads)) // will return true if file descriptor was flagged by select
         {
             ClientInfo client;
-            bzero(&client, sizeof(client));
+            bzero(&client, sizeof(ClientInfo));
             client.address_length = sizeof(client.address);
-            client.socket = accept(*s,
+            client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
+			int reuseaddr = 1;
+			setsockopt(s->get_socket(), SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(int));
+
             client.last_received = time(NULL);
-            Server::ack_client(servers, *s, client);
+			s->insert_client(client);
+			if (client.socket < 0) {
+				fprintf(stderr, "accept() failed. (%d)\n",
+					errno);
+				exit(1);
+			}
+			std::cout << "###############################" << std::endl;
+			std::cout << "New connection from " << s->get_client_address(client)
+				<< " : " << s->get_port() << " using socket " << client.socket << std::endl;
         }
         s++;
     }
 }
 
-void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, Config &config)
+void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
 {
     std::vector<Server>::iterator server = servers.begin();
     std::vector<Server>::iterator end = servers.end();
@@ -58,7 +65,11 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, Con
         {
             if (FD_ISSET(it->socket, &reads))
             {
-                if (server->receive_request(it, config))
+				for(int i = 0; i < server->get_clients().size(); i++)
+				{
+					std::cout << " client " << i << " socket : " << server->get_clients()[i].socket << std::endl;
+				}
+                if (server->receive_request(it))
                 {
                     e = server->get_clients().end();
                     continue ;
@@ -69,7 +80,7 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, Con
                 // check timeout
                 if (time(NULL) - it->last_received > TIMEOUT)
                 {
-                    std::cout << "timeout; socket " << it->socket << std::endl;
+                    std::cout << "timeout; socket with fd " << it->socket << std::endl;
                     it = server->drop_client(*it);
                     e = server->get_clients().end();
                     continue ;
@@ -95,30 +106,27 @@ int	main(int argc, char **argv)
 		config.init_if_not_set();
 		// config.print();
 	}
-	catch (Config::ConfigFileException &e)
+	catch (std::exception &e)
 	{
 		std::cout << e.what() << std::endl;
 		exit(1);
 	}
 	std::vector<Server> servers;
 	config.generate_servers(servers);
-	std::set<int> sockets = Server::create_sockets(servers);
+	Server::create_sockets(servers);
+
+	// for (int i = 0; i < servers.size(); i++)
+	// {
+	// 	std::cout << "server " << i << " was generated : " << std::endl;
+	// 	std::cout << "		" << servers[i].get_configs().size() << " configs " << std::endl;
+	// 	std::cout << "		 socket: " << servers[i].get_socket() << std::endl;
+	// }
 
 	while (1)
 	{
 		fd_set reads;
-		check_incoming_connections(reads, sockets, servers);
-		check_incoming_requests(reads, servers, config);
+		check_incoming_connections(reads, servers);
+		check_incoming_requests(reads, servers);
 	}
 	return 0;
 }
-
-
-
-//dual sockets ?
-// int option = 0;
-// if (setsockopt(socket_listen, IPPROTO_IPV6, IPV6_V6ONLY,
-// 	(void*)&option, sizeof(option))) {
-// 		fprintf(stderr, "setsockopt() failed. (%d)\n", GETSOCKETERRNO());
-// 		return 1;
-// }
