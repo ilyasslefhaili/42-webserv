@@ -249,23 +249,24 @@ void	Config::parse_location(std::string &key, std::istringstream &ss, Location &
 void Config::generate_servers(std::vector<Server> &servers)
 {
 	int i = 0;
+	bool is_set;
 	while (i < _configs.size())
 	{
-		std::vector<Server>::iterator it
-			= std::find_if(servers.begin(), servers.begin() + i, Server::MatchPort(_configs[i]._port));
-		if (it != servers.begin() + i)
+		is_set = false;
+		for (int j = 0; j < i; j++)
 		{
-			it->add_config(_configs[i]);
-			i++;
-			continue ;
+			if (servers[j].get_port() == _configs[i]._port)
+			{
+				servers[j].add_config(_configs[i]);
+				is_set = true;
+				break ;
+			}
 		}
-		Server server(_configs[i]);
-		// std::cout << "################################################################################" << std::endl;
-		// std::cout << "server " << i
-		// << ": host: " << server.get_config()._host
-		// << ", port: " << server.get_port()
-		// <<" generated."<< std::endl;
-		servers.push_back(server);
+		if (!is_set)
+		{
+			Server server(_configs[i]);
+			servers.push_back(server);	
+		}
 		i++;
 	}
 	// std::cout << "################################################################################" << std::endl;
