@@ -109,19 +109,13 @@ int	main(int argc, char **argv)
 	catch (std::exception &e)
 	{
 		std::cout << e.what() << std::endl;
+		if (config.get_key() != "")
+			std::cout << "invalid id " << config.get_key() << std::endl;
 		exit(1);
 	}
 	std::vector<Server> servers;
 	config.generate_servers(servers);
 	Server::create_sockets(servers);
-
-	// for (int i = 0; i < servers.size(); i++)
-	// {
-	// 	std::cout << "server " << i << " was generated : " << std::endl;
-	// 	std::cout << "		" << servers[i].get_configs().size() << " configs " << std::endl;
-	// 	std::cout << "		 socket: " << servers[i].get_socket() << std::endl;
-	// }
-
 	while (1)
 	{
 		fd_set reads;
