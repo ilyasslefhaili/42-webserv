@@ -281,6 +281,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 		it->last_received = time(NULL);
 		it->received += r;
 		std::cout << it->received << std::endl;
+		
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
 			it->request[it->received] = 0;

@@ -190,8 +190,11 @@ void    Response::post_method(){
         // std::ofstream to_upload;
         // to_upload.open(Upload_file);
         // to_upload<<this->_request._body;
-        int fd = open(Upload_file.c_str(), O_CREAT);
-        write(fd, this->_request._body.c_str(), atoi(this->_request._header["Content-Length"].c_str()));
+        int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
+        for (int i = 0; i < this->_request._body_len;i++)
+            std::cout<<this->_request._body[i];
+        std::cout<<std::endl;
+        write(fd, this->_request._body, this->_request._body_len);
         this->_status = 201;
     }
 }
