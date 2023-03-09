@@ -51,7 +51,6 @@ class Config {
 		void						parse_cgi_ext( std::istringstream &ss );
 		void						parse_upload( std::istringstream &ss );
 		void						parse_upload_dir( std::istringstream &ss );
-		void						parse_content_type( std::istringstream &ss );
 
 
 
