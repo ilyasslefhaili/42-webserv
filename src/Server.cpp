@@ -165,9 +165,9 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		send_400(client);
 		return false;
 	}
-	if (  request._path == "/favicon.ico" )
+	if ( request._path == "/favicon.ico" ) // to remove ?
 	{
-		std::cout << "fav icon detected" << std::endl;
+		std::cout << "handle fav icon" << std::endl;
 		send_404(client);
 		return false;
 	}
