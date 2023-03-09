@@ -5,6 +5,7 @@ Server::Server(ServerConfig const &config)
 {
 	_configs.push_back(config);
 	_port = config._port;
+	_host = config._host;
 }
 
 Server::~Server()
@@ -23,6 +24,7 @@ Server & Server::operator=(const Server & server)
 	this->_configs = server._configs;
 	this->_socket = server._socket;
 	this->_port = server._port;
+	this->_host = server._host;
 	return *this;
 }
 
@@ -111,7 +113,7 @@ void	Server::create_sockets(std::vector<Server> &servers)
 
 	while (i < servers.size())
 	{
-		servers[i].create_socket(servers[i].get_configs().front()._host.c_str(),
+		servers[i].create_socket(servers[i].get_host().c_str(),
 				servers[i].get_port().c_str());
 		i++;
 	}
@@ -225,13 +227,6 @@ bool Server::MatchSocket::operator()(const ClientInfo& obj) const
 	return obj.socket == socket;
 }
 
-Server::MatchPort::MatchPort(std::string p) : port(p) {}
-
-bool Server::MatchPort::operator()(const Server& obj) const
-{
-	return obj._port == port;
-}
-
 std::vector<ClientInfo> &Server::get_clients()
 {
 	return _clients;
@@ -254,7 +249,7 @@ void	Server::add_config(ServerConfig const &config)
 }
 
 
-int				Server::get_socket()
+int		Server::get_socket() const
 {
 	return _socket;
 }
@@ -299,7 +294,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 	return false ;
 }
 
-std::string			Server::get_port()
+std::string			Server::get_port() const
 {
 	return _port;
 }
@@ -307,4 +302,14 @@ std::string			Server::get_port()
 void				Server::set_port(std::string &port)
 {
 	_port = port;
+}
+
+std::string			Server::get_host() const
+{
+	return this->_host;
+}
+
+void				Server::set_host(std::string &host)
+{
+	this->_host = host;
 }

@@ -41,13 +41,13 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
             client.last_received = time(NULL);
 			s->insert_client(client);
 			if (client.socket < 0) {
-				fprintf(stderr, "accept() failed. (%d)\n",
-					errno);
+				std::cerr << "accept() failed. (" << errno << ") " << strerror(errno) << std::endl;
 				exit(1);
 			}
-			std::cout << "###############################" << std::endl;
+			std::cout << "######################################################" << std::endl;
 			std::cout << "New connection from " << s->get_client_address(client)
 				<< " : " << s->get_port() << " using socket " << client.socket << std::endl;
+			std::cout << "####################################################" << std::endl;
         }
         s++;
     }
@@ -65,10 +65,6 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
         {
             if (FD_ISSET(it->socket, &reads))
             {
-				for(int i = 0; i < server->get_clients().size(); i++)
-				{
-					std::cout << " client " << i << " socket : " << server->get_clients()[i].socket << std::endl;
-				}
                 if (server->receive_request(it))
                 {
                     e = server->get_clients().end();
@@ -80,7 +76,7 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
                 // check timeout
                 if (time(NULL) - it->last_received > TIMEOUT)
                 {
-                    std::cout << "timeout; socket with fd " << it->socket << std::endl;
+                    std::cout << "timeout; socket fd :" << it->socket << std::endl;
                     it = server->drop_client(*it);
                     e = server->get_clients().end();
                     continue ;

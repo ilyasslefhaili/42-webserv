@@ -54,8 +54,9 @@ class Server {
 	private:
 		std::vector<ClientInfo> 			_clients;
 		std::vector<ServerConfig>			_configs;
-		int									_socket; // socket used for listening
+		int									_socket;
 		std::string							_port;
+		std::string							_host;
 
 	public:
 		// Server();
@@ -97,10 +98,13 @@ class Server {
 
 		void									add_config(ServerConfig const &config);
 		std::vector<ServerConfig>				&get_configs();
-		int										get_socket();
+		int										get_socket() const;
 		void									set_socket(int socket);
-		std::string								get_port();
+		std::string								get_port() const;
 		void									set_port(std::string &port);
+		std::string								get_host() const;
+		void									set_host(std::string &host);
+
 		bool									receive_request(std::vector<ClientInfo>::iterator &it);
 
 
@@ -112,15 +116,6 @@ class Server {
 			public:
 				MatchSocket(int s);
 				bool operator()(const ClientInfo& obj) const;
-		};
-
-		class MatchPort
-		{
-			private:
-				std::string port;
-			public:
-				MatchPort(std::string p);
-				bool operator()(const Server& obj) const;
 		};
 
 };

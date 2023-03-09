@@ -334,7 +334,7 @@ void Config::generate_servers(std::vector<Server> &servers)
 		is_set = false;
 		for (int j = 0; j < i; j++)
 		{
-			if (servers[j].get_port() == _configs[i]._port)
+			if (servers[j].get_port() == _configs[i]._port && servers[j].get_host() == _configs[i]._host)
 			{
 				servers[j].add_config(_configs[i]);
 				is_set = true;
