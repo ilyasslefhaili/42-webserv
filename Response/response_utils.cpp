@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/08 14:44:30 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/09 16:58:32 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(a);
     response += "\r\n";
     response += a.get_body();
-    // std::cout<<response<<std::endl;
+    std::cout<<response<<std::endl;
     return response;
 }
 
@@ -126,7 +126,7 @@ std::vector<std::string> split_host_port(std::string host_port){
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
     for (size_t i = 0; i < configs.size();i++){
-        if (configs[i]._port == host_vec.at(1) && host_vec.at(0) == configs[i]._server_name)
+        if (host_vec.at(0) == configs[i]._server_name)
             return (configs[i]);
     }
     return (configs[0]);

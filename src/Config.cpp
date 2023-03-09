@@ -60,6 +60,8 @@ void	Config::print()
 			std::cout << "location: 			" << lo->_path << std::endl;
 			std::cout << "	" << "_root: " << lo->_root << std::endl;
 			std::cout << "	" << "_ret: " << lo->_ret.first << " " << lo->_ret.second << std::endl;
+			std::cout << "	" << "_upload: " << std::boolalpha << lo->_upload << std::endl;
+			std::cout << "	" << "_upload_dir: " << lo->_upload_dir << std::endl;
 			std::cout << "	" << "_path: " << lo->_path << std::endl;
 			for (int i = 0; i < lo->_index.size(); i++)
 				std::cout << "	" << "index: " << lo->_index[i] << std::endl;
@@ -278,14 +280,6 @@ void	Config::parse_upload_dir( std::istringstream &ss )
 	ss >> _current_location._upload_dir;
 }
 
-void	Config::parse_content_type( std::istringstream &ss )
-{
-	if (!_location_bracket_open)
-		throw ConfigFileException();
-	ss >> _current_location._content_type;
-}
-
-
 void    Config::parse()
 {
    	std::ifstream 	file(_file_path);
@@ -311,7 +305,6 @@ void    Config::parse()
 	handlers["cgi_ext"]					= &Config::parse_cgi_ext;
 	handlers["upload"]					= &Config::parse_upload;
 	handlers["upload_dir"]				= &Config::parse_upload_dir;
-	handlers["content_type"]			= &Config::parse_content_type;
 
 	while (std::getline(file, line))
 	{

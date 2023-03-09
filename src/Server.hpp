@@ -14,6 +14,7 @@
 # include <errno.h>
 # include <cstdio>
 # include <string>
+# include <cstring>
 
 # define BSIZE 1024
 # define MAX_REQUEST_SIZE 4096

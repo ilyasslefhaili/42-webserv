@@ -41,14 +41,13 @@ ClientInfo	Server::get_client(int socket)
 
 std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
+	std::cout << "closing socket: " << client.socket << std::endl;
 	close(client.socket);
 	std::vector<ClientInfo>::iterator it = _clients.begin();
 	while (it != _clients.end())
 	{
 		if (client.socket == it->socket)
-		{
 			return (_clients.erase(it));
-		}
 		++it;
 	}
 	return (_clients.end());
@@ -93,13 +92,14 @@ fd_set  Server::wait_on_clients(std::vector<Server>  &servers)
 	}
 
 	struct timeval timeout;
-	timeout.tv_sec = TIMEOUT; // 10 second timeout
+	timeout.tv_sec = TIMEOUT - 1;
 	timeout.tv_usec = 0;
 
 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
 	if (select(max_socket + 1, &reads, 0, 0, &timeout) < 0) {
-		// fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
-		// exit(1);
+		std::cerr << "select() failed. (" << errno << ") " << strerror(errno) << std::endl;
+		
+		exit(1);
 		// throw ? exceptions to-do
 	}
 	return reads;
@@ -133,27 +133,6 @@ std::vector<ClientInfo>::iterator Server::send_404(ClientInfo &client)
 		"Content-Length: 9\r\n\r\nNot Found";
 	send(client.socket, c404, strlen(c404), 0);
 	return drop_client(client);
-}
-
-const std::string get_content_type(const char* path) {
-	const char *last_dot = strrchr(path, '.');
-	if (last_dot) {
-		if (strcmp(last_dot, ".css") == 0) return "text/css";
-		if (strcmp(last_dot, ".csv") == 0) return "text/csv";
-		if (strcmp(last_dot, ".gif") == 0) return "image/gif";
-		if (strcmp(last_dot, ".htm") == 0) return "text/html";
-		if (strcmp(last_dot, ".html") == 0) return "text/html";
-		if (strcmp(last_dot, ".ico") == 0) return "image/x-icon";
-		if (strcmp(last_dot, ".jpeg") == 0) return "image/jpeg";
-		if (strcmp(last_dot, ".jpg") == 0) return "image/jpeg";
-		if (strcmp(last_dot, ".js") == 0) return "application/javascript";
-		if (strcmp(last_dot, ".json") == 0) return "application/json";
-		if (strcmp(last_dot, ".png") == 0) return "image/png";
-		if (strcmp(last_dot, ".pdf") == 0) return "application/pdf";
-		if (strcmp(last_dot, ".svg") == 0) return "image/svg+xml";
-		if (strcmp(last_dot, ".txt") == 0) return "text/plain";
-	}
-	return "application/octet-stream";
 }
 
 // returns whether the connection should be open or not
@@ -197,37 +176,40 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 
 int Server::create_socket(const char* host, const char *port)
 {
-	// std::cout << "Configuring local address......" << std::endl;
-
+	std::cout << "Configuring local address......" << std::endl;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo(host, port, &hints, &bind_address);
-
+	int status = getaddrinfo(host, port, &hints, &bind_address);
+	if (status != 0)
+	{
+		std::cerr << "getaddrinfo() failed. (" << errno << ")" << gai_strerror(errno) << std::endl;
+		return 1;
+	}
 	std::cout << "Creating socket... " << host << " : " << port << std::endl;
 	int socket_listen;
 	socket_listen = socket(bind_address->ai_family,
 	bind_address->ai_socktype, bind_address->ai_protocol);
 	if (socket_listen < 0)
 	{
-		fprintf(stderr, "socket() failed. (%d)\n", errno);
+		std::cerr << "socket() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	std::cout << "Binding socket to local address..." << std::endl;
 	if (bind(socket_listen,
 		bind_address->ai_addr, bind_address->ai_addrlen))
 	{
-		fprintf(stderr, "bind() failed. (%d)\n", errno);
+		std::cerr << "bind() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	freeaddrinfo(bind_address);
 	std::cout << "Listening to port " << port << std::endl;	
 	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
-		fprintf(stderr, "listen() to %s failed. (%d)\n", port, errno);
+		std::cerr << "listen() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	std::cout << std::endl;
