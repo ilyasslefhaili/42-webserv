@@ -17,6 +17,8 @@
 #include "../src/Server.hpp"
 #include "../src/Request.hpp"
 #include <fstream>
+#include <unistd.h>
+#include <fcntl.h>
 #include "../src/Location.hpp"
 #include "../src/ServerConfig.hpp"
 #include "../src/Config.hpp"
@@ -52,6 +54,7 @@ class Response
         std::pair<int, std::string>                 _ret;
 
     public:
+        MimeTypes   types;
         std::string get_body();
         void file_body();
         void in_case_of_return();

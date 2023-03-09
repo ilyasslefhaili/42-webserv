@@ -123,8 +123,6 @@ MimeTypes::MimeTypes(){
     this->_ex_type.insert(std::make_pair("jade", "text/jade"));
     this->_ex_type.insert(std::make_pair("jar", "application/java-archive"));
     this->_ex_type.insert(std::make_pair("jls", "image/jls"));
-    this->_ex_type.insert(std::make_pair("jp2", "image/jp2"));
-    this->_ex_type.insert(std::make_pair("jpe", "image/jpeg"));
     this->_ex_type.insert(std::make_pair("jpeg", "image/jpeg"));
     this->_ex_type.insert(std::make_pair("jpf", "image/jpx"));
     this->_ex_type.insert(std::make_pair("jpg", "image/jpeg"));
@@ -362,10 +360,10 @@ MimeTypes::MimeTypes(){
 }
 
 std::string MimeTypes::get_extention(std::string type){
-     std::map<std::string , std::string>::iterator it;
+     std::map<std::string , std::string>::iterator it = this->_ex_type.begin();
      while (it != this->_ex_type.end()){
         if (it->second == type)
-            return it->second;
+            return it->first;
         it++;
     }
     return type;

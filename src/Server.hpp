@@ -17,8 +17,8 @@
 # include <cstring>
 
 # define BSIZE 1024
-# define MAX_REQUEST_SIZE 4096
-# define TIMEOUT 10
+# define MAX_REQUEST_SIZE 3000000
+# define TIMEOUT 30
 
 // #define ISVALIDSOCKET(s) ((s) >= 0)
 #define GETSOCKETERRNO() (errno)

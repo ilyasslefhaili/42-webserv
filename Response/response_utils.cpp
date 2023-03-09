@@ -25,6 +25,8 @@ bool isDirectory(std::string& path){
 std::string create_status_line(int status, Request&re_st){
     if (status == 404)
         return (re_st._protocol_ver + " 404 Not Found\r\n");
+    else if (status == 201)
+        return (re_st._protocol_ver + " 201 Created\r\n");
     else if (status == 200)
         return (re_st._protocol_ver + " 200 OK\r\n");
     else if (status == 301)
@@ -35,17 +37,16 @@ std::string create_status_line(int status, Request&re_st){
 }
 
 std::string get_content_lenght(Response &a){
-    std::string str = "content-length: " + std::to_string(a.get_body().size());
+    std::string str = "Content-Length: " + std::to_string(a.get_body().size());
     return (str + "\r\n");
 }
 
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
-    MimeTypes   types;
     Response &a = get_response_object(re_st, configs);
-
     response += create_status_line(a.get_status(), re_st);
-    response += types.get_type(a.get_path());
+    response += "Content-Type: ";
+    response += a.types.get_type(a.get_path());
     response += get_content_lenght(a);
     response += "\r\n";
     response += a.get_body();
@@ -56,25 +57,28 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
 Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response(re_st);
 
+    
     a->set_config(get_server(re_st, configs));
     a->get_location();
     a->fill_directive();
-    try
-    {
-        a->in_case_of_return();
-    }
-    catch(const std::exception& e)
-    {
-        return (*a);
-    }
+    // std::cout<<"-----------"<<re_st._method<<std::endl;
+    // try
+    // {
+        // a->in_case_of_return();
+    // }
+    // catch(const std::exception& e)
+    // {
+        // return (*a);
+    // }
     a->link_root_path(re_st);
     a->get_the_absolute_path();
+   
     if (re_st._method == "GET"){
         a->set_content_type(content_from_path(re_st._path));  
         a->fill_attributes(re_st);
     }
     else if (re_st._method == "POST"){
-        
+        a->post_method();
     }
     return *a;
 }

@@ -24,7 +24,7 @@ void Response::fill_directive(){
     _autoindex = _location._autoindex;
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
-    _content_type = _request._header["content-type"];
+    _content_type = _request._header["Content-Type"];
 }
 
 void  Response::get_files_in_dir(){
@@ -129,7 +129,6 @@ void Response::in_case_of_return(){
             this->_body = this->_ret.second;
         throw(std::exception());
     }
-
 }
 
 void Response::fill_attributes(Request& re_st){
@@ -185,7 +184,15 @@ void    Response::post_method(){
         }
     }
     else{
-        std::string Upload_file
+        std::string Upload_file = this->_upload_dir;
+        Upload_file += "/upload.";
+        Upload_file += this->types.get_extention(this->_content_type);
+        // std::ofstream to_upload;
+        // to_upload.open(Upload_file);
+        // to_upload<<this->_request._body;
+        int fd = open(Upload_file.c_str(), O_CREAT);
+        write(fd, this->_request._body.c_str(), atoi(this->_request._header["Content-Length"].c_str()));
+        this->_status = 201;
     }
 }
 

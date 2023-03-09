@@ -6,5 +6,5 @@ int main()
 {  
     MimeTypes l;
 
-    
+    std::cout<<l.get_extention("image/jpeg");
 }

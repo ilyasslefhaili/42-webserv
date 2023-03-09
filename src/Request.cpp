@@ -114,6 +114,8 @@ void    Request::parse_request(const char *request)
 
         }
     }
+    this->_body = this->_body.substr(0, _body.size() - 2 );
+    
     // print_request();
 
 }
