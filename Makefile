@@ -10,6 +10,7 @@ SRC  = main.cpp 	\
 		Response/Response.cpp \
 		Response/response_utils.cpp	\
 		src/Config.cpp			\
+		Response/Mimetypes.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

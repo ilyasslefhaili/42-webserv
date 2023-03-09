@@ -22,6 +22,7 @@
 #include "../src/Config.hpp"
 #include <dirent.h>
 #include <sys/types.h>
+#include "Mimetypes.hpp"
 #include <sys/stat.h>
 
 
@@ -45,6 +46,8 @@ class Response
         bool                                                 _autoindex;
         std::vector<std::string>                            _allowed_methods;
         std::vector<std::string>                            _cgi_path;
+        bool                                                _upload;
+        std::string                                         _upload_dir;
         std::vector<std::string>                            _cgi_ext;
         std::pair<int, std::string>                 _ret;
 
@@ -56,6 +59,8 @@ class Response
         void    fill_directive();
         void    get_index();
         void set_body(std::string body);
+        void    post_method();
+        void    get_index_in_post();
         void get_files_in_dir();
         std::string get_content_type();
         void set_content_type(std::string type);

@@ -21,7 +21,10 @@ void Response::fill_directive(){
     _allowed_methods = _location._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
-    // _autoindex = _location._autoindex;
+    _autoindex = _location._autoindex;
+    _upload    = _location._upload;
+    _upload_dir = _location._upload_dir;
+    _content_type = _request._header["content-type"];
 }
 
 void  Response::get_files_in_dir(){
@@ -149,6 +152,41 @@ void Response::fill_attributes(Request& re_st){
     if (this->_status == 0)
         this->_status = 200;
     this->file_body();
+}
+
+void    Response::get_index_in_post(){
+    if (this->_index.size() > 0){
+        this->_file.open(this->_path + this->_index[0]);
+        size_t i = 0;
+        while (i < this->_index.size()&& this->_file.fail()){
+            this->_file.open(this->_path + this->_index[i]);
+        }
+        if (!this->_file.fail())
+            this->_file.close();
+        else 
+            this->_status = 404;
+        this->_path += this->_index[i];
+    }
+    else
+        this->_status = 404;
+}
+
+void    Response::post_method(){
+    if (!this->_upload)
+    {
+        if (this->_dir_or_file)
+            this->get_index_in_post();
+        try{
+            check_the_file_permissions(this->_path, &this->_status);
+        }catch(std::exception& e){
+            std::cout<<"file not found"<<std::endl;
+            this->_status = 404;
+            return ;
+        }
+    }
+    else{
+        std::string Upload_file
+    }
 }
 
 void Response::get_error_page(){
