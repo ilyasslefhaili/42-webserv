@@ -22,7 +22,7 @@
 #include "src/Config.hpp"
 #include "src/Server.hpp"
 
-# define TIMEOUT 30
+# define TIMEOUT 5
 
 int	main(int argc, char **argv)
 {

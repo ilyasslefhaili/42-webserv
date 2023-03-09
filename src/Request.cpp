@@ -69,6 +69,8 @@ void    Request::print_request() const
 // Accept-Encoding: gzip, deflate, br
 // Connection: keep-alive
 
+# include <cstring>
+
 void    Request::parse_request(const char *request)
 {
     std::string req(request);
@@ -77,7 +79,9 @@ void    Request::parse_request(const char *request)
         return ;
     
     std::string header = req.substr(0, pos + 1);
-    this->_body = req.substr(pos + 4);
+    // this->_body = req.substr(pos + 4);
+	const char *s = strstr(request, "\r\n\r\n");
+	_body = (char *) s + 4;
 
     std::vector < std::string > strings;
     customSplit(std::string(header), strings);
@@ -97,6 +101,8 @@ void    Request::parse_request(const char *request)
 
         }
     }
+
+	_body_len = atoi(_header["Content-Length"].c_str());
     // print_request();
 
 }
