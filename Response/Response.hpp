@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/02/27 20:08:08 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/08 15:48:23 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,14 @@
 #include "../src/Server.hpp"
 #include "../src/Request.hpp"
 #include <fstream>
+#include <unistd.h>
+#include <fcntl.h>
 #include "../src/Location.hpp"
 #include "../src/ServerConfig.hpp"
 #include "../src/Config.hpp"
 #include <dirent.h>
 #include <sys/types.h>
+#include "Mimetypes.hpp"
 #include <sys/stat.h>
 
 
@@ -45,10 +48,13 @@ class Response
         bool                                                 _autoindex;
         std::vector<std::string>                            _allowed_methods;
         std::vector<std::string>                            _cgi_path;
+        bool                                                _upload;
+        std::string                                         _upload_dir;
         std::vector<std::string>                            _cgi_ext;
-        std::pair<std::string, std::string>                 _ret;
+        std::pair<int, std::string>                 _ret;
 
     public:
+        MimeTypes   types;
         std::string get_body();
         void file_body();
         void in_case_of_return();
@@ -56,6 +62,8 @@ class Response
         void    fill_directive();
         void    get_index();
         void set_body(std::string body);
+        void    post_method();
+        void    get_index_in_post();
         void get_files_in_dir();
         std::string get_content_type();
         void set_content_type(std::string type);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ilefhail <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/02/26 00:54:53 by ilefhail         ###   ########.fr       */
+/*   Updated: 2023/03/09 17:00:00 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,10 @@ void Response::fill_directive(){
     _allowed_methods = _location._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
-    // _autoindex = _location._autoindex;
+    _autoindex = _location._autoindex;
+    _upload    = _location._upload;
+    _upload_dir = _location._upload_dir;
+    _content_type = _request._header["Content-Type"];
 }
 
 void  Response::get_files_in_dir(){
@@ -100,9 +103,9 @@ void Response::file_body(){
 }
 
 void Response::in_case_of_return(){
-    if (this->_ret.first != "" || this->_ret.second != ""){
-        if (this->_ret.first != ""){
-            this->_status = atoi(this->_ret.first.c_str());
+    if (this->_ret.first != -1 || this->_ret.second != ""){
+        if (this->_ret.first != -1){
+            this->_status = this->_ret.first;
             if (this->_status < 400 && this->_status >= 300 && this->_ret.second != "")
             {
                 this->_path = this->_ret.second;
@@ -118,7 +121,7 @@ void Response::in_case_of_return(){
                 this->file_body();    
             }
             else{
-                this->_status = atoi(this->_ret.first.c_str());
+                this->_status = this->_ret.first;
                 this->_body = this->_ret.second;
             }
         }
@@ -126,7 +129,6 @@ void Response::in_case_of_return(){
             this->_body = this->_ret.second;
         throw(std::exception());
     }
-
 }
 
 void Response::fill_attributes(Request& re_st){
@@ -151,9 +153,52 @@ void Response::fill_attributes(Request& re_st){
     this->file_body();
 }
 
+void    Response::get_index_in_post(){
+    if (this->_index.size() > 0){
+        this->_file.open(this->_path + this->_index[0]);
+        size_t i = 0;
+        while (i < this->_index.size()&& this->_file.fail()){
+            this->_file.open(this->_path + this->_index[i]);
+        }
+        if (!this->_file.fail())
+            this->_file.close();
+        else 
+            this->_status = 404;
+        this->_path += this->_index[i];
+    }
+    else
+        this->_status = 404;
+}
+
+void    Response::post_method(){
+    if (!this->_upload)
+    {
+        if (this->_dir_or_file)
+            this->get_index_in_post();
+        try{
+            check_the_file_permissions(this->_path, &this->_status);
+        }catch(std::exception& e){
+            std::cout<<"file not found"<<std::endl;
+            this->_status = 404;
+            return ;
+        }
+    }
+    else{
+        std::string Upload_file = this->_upload_dir;
+        Upload_file += "/upload.";
+        Upload_file += this->types.get_extention(this->_content_type);
+        // std::ofstream to_upload;
+        // to_upload.open(Upload_file);
+        // to_upload<<this->_request._body;
+        int fd = open(Upload_file.c_str(), O_CREAT);
+        write(fd, this->_request._body.c_str(), atoi(this->_request._header["Content-Length"].c_str()));
+        this->_status = 201;
+    }
+}
+
 void Response::get_error_page(){
-   this->_error_page = this->_configs._root;
-   this->_error_page += this->_configs._error_pages[std::to_string(this->_status)];
+   this->_error_page = _root;
+   this->_error_page += this->_configs._error_pages[this->_status];
    std::fstream error;
    error.open(this->_error_page);
    if (error.is_open())

@@ -25,10 +25,12 @@ class Request {
 
 
 	private:
-		void	get_method_and_path(std::string &line);
+		void		get_method_and_path(std::string &line);
 
 	public:
 		Request(const char *);
+		Request(const Request &src);
+		Request & operator=(const Request &rhs);
 		~Request();
 
 		void		parse_request(const char *);

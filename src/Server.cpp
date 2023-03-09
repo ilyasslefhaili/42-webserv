@@ -2,8 +2,10 @@
 #include "Server.hpp"
 
 Server::Server(ServerConfig const &config)
-	: _config(config)
 {
+	_configs.push_back(config);
+	_port = config._port;
+	_host = config._host;
 }
 
 Server::~Server()
@@ -19,8 +21,10 @@ Server::Server(const Server & server)
 Server & Server::operator=(const Server & server)
 {
 	this->_clients = server._clients;
-	this->_config = server._config;
+	this->_configs = server._configs;
 	this->_socket = server._socket;
+	this->_port = server._port;
+	this->_host = server._host;
 	return *this;
 }
 
@@ -39,15 +43,13 @@ ClientInfo	Server::get_client(int socket)
 
 std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
+	std::cout << "closing socket: " << client.socket << std::endl;
 	close(client.socket);
-
 	std::vector<ClientInfo>::iterator it = _clients.begin();
 	while (it != _clients.end())
 	{
-		if (&client == it.base())
-		{
+		if (client.socket == it->socket)
 			return (_clients.erase(it));
-		}
 		++it;
 	}
 	return (_clients.end());
@@ -67,28 +69,19 @@ std::string	Server::get_client_address(ClientInfo &client)
 }
 
 // static 
-fd_set  Server::wait_on_clients(std::set<int> const &sockets,  std::vector<Server>  &servers)
+fd_set  Server::wait_on_clients(std::vector<Server>  &servers)
 {
 	fd_set	reads;// a struct which will hold all our active sockets
 	FD_ZERO(&reads);// Initialize fd_set reads to have zero bits for all file descriptors.
 	int max_socket = -1; // this var will always have the largest socket fd
 
-	struct timeval timeout;
-	timeout.tv_sec = 10; // 10 second timeout
-	timeout.tv_usec = 0;
 
-	// first we add sockets used for listening
-	std::set<int>::iterator s = sockets.begin();
-	while (s != sockets.end())
-	{
-		FD_SET(*s, &reads);
-		if (*s > max_socket)
-			max_socket = *s;
-		++s;
-	}
 	std::vector<Server>::iterator serv = servers.begin();
 	while (serv != servers.end())
 	{
+		FD_SET(serv->_socket, &reads);
+		if (serv->get_socket() > max_socket)
+			max_socket = serv->get_socket();
 		std::vector<ClientInfo>::iterator cl = serv->get_clients().begin();
 		while (cl != serv->get_clients().end())
 		{
@@ -100,89 +93,28 @@ fd_set  Server::wait_on_clients(std::set<int> const &sockets,  std::vector<Serve
 		++serv;
 	}
 
+	struct timeval timeout;
+	timeout.tv_sec = TIMEOUT - 1;
+	timeout.tv_usec = 0;
+
 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
 	if (select(max_socket + 1, &reads, 0, 0, &timeout) < 0) {
-		// fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
-		// exit(1);
+		std::cerr << "select() failed. (" << errno << ") " << strerror(errno) << std::endl;
+		
+		exit(1);
 		// throw ? exceptions to-do
 	}
 	return reads;
 }
 
-std::set<int>	Server::create_sockets(std::vector<Server> &servers)
+void	Server::create_sockets(std::vector<Server> &servers)
 {
-	std::set<int> sockets;
-	bool		is_set ;
 	int i = 0;
 
 	while (i < servers.size())
 	{
-		is_set = false;
-		// we check if there are there is a server with the same port
- 		int j = 0;
-		while (j < i)
-		{
-			if (servers[j].get_config()._port == servers[i].get_config()._port)
-			{
-				servers[i].set_socket(servers[j].get_socket());
-				is_set = true;
-			}
-			j++;
-		}
-		if (!is_set)
-		{
-			servers[i].create_socket(servers[i].get_config()._host.c_str(),
-				servers[i].get_config()._port.c_str());
-			sockets.insert(servers[i].get_socket());
-		}
-		i++;
-	}
-	return sockets;
-}
-
-// fd_set		Server::wait_on_clients(int server)
-// {
-// 	fd_set reads;		// a struct which will hold all our active sockets
-// 	FD_ZERO(&reads);	// Initialize fd_set reads to have zero bits for all file descriptors.
-// 	FD_SET(server, &reads);	// set the bit for the server fd in reads
-// 	int max_socket = server; // this var will always have the largest socket fd
-
-// 	std::vector<ClientInfo>::iterator it = _clients.begin();
-// 	while (it != _clients.end())
-// 	{
-// 		FD_SET(it->socket, &reads);
-// 		if (it->socket > max_socket)
-// 			max_socket = it->socket;
-// 		++it;
-// 	}
-// 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
-// 	if (select(max_socket+1, &reads, 0, 0, 0) < 0) {
-// 		// fprintf(stderr, "select() failed. (%d)\n", GETSOCKETERRNO());
-// 		// exit(1);
-// 		// throw ? exceptions to-do
-// 	}
-// 	return reads;
-// }
-
-// can be one or multiple
-void	Server::ack_client(std::vector<Server> &servers, int socket, ClientInfo &client)
-{
-	int i = 0;
-	while (i < servers.size())
-	{
-		if (servers[i].get_socket() == socket)
-		{
-			
-			servers[i].insert_client(client);
-			if (client.socket < 0) {
-				fprintf(stderr, "accept() failed. (%d)\n",
-					GETSOCKETERRNO());
-				exit(1);
-			}
-			std::cout << "New connection from " << servers[i].get_client_address(client)
-				<< " : " << servers[i].get_config()._port << std::endl;
-			return ;
-		}
+		servers[i].create_socket(servers[i].get_host().c_str(),
+				servers[i].get_port().c_str());
 		i++;
 	}
 }
@@ -205,52 +137,29 @@ std::vector<ClientInfo>::iterator Server::send_404(ClientInfo &client)
 	return drop_client(client);
 }
 
-const std::string get_content_type(const char* path) {
-	const char *last_dot = strrchr(path, '.');
-	if (last_dot) {
-		if (strcmp(last_dot, ".css") == 0) return "text/css";
-		if (strcmp(last_dot, ".csv") == 0) return "text/csv";
-		if (strcmp(last_dot, ".gif") == 0) return "image/gif";
-		if (strcmp(last_dot, ".htm") == 0) return "text/html";
-		if (strcmp(last_dot, ".html") == 0) return "text/html";
-		if (strcmp(last_dot, ".ico") == 0) return "image/x-icon";
-		if (strcmp(last_dot, ".jpeg") == 0) return "image/jpeg";
-		if (strcmp(last_dot, ".jpg") == 0) return "image/jpeg";
-		if (strcmp(last_dot, ".js") == 0) return "application/javascript";
-		if (strcmp(last_dot, ".json") == 0) return "application/json";
-		if (strcmp(last_dot, ".png") == 0) return "image/png";
-		if (strcmp(last_dot, ".pdf") == 0) return "application/pdf";
-		if (strcmp(last_dot, ".svg") == 0) return "image/svg+xml";
-		if (strcmp(last_dot, ".txt") == 0) return "text/plain";
-	}
-	return "application/octet-stream";
-}
-
 // returns whether the connection should be open or not
-bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<ServerConfig> &configs)
+bool		Server::serve_resource(ClientInfo &client, Request &request)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;
-	// if (request._path == "/")
-		// request._path = "/index.html";
-	
 	if (request._path.size() > 100)
 	{
 		send_400(client);
 		return false;
 	}
-
+	if ( request._path == "/favicon.ico" ) // to remove ?
+	{
+		std::cout << "handle fav icon" << std::endl;
+		send_404(client);
+		return false;
+	}
 	if (request._path.find("..") != std::string::npos)
 	{
 		send_404(client);
 		return false;
 	}
 
-	std::string response = get_response(request, configs);
+	std::string response = get_response(request, _configs);
 	send(client.socket, response.c_str(), response.size(), 0);
-
-
-	// check if keepAlive or close
-	// std::cout << request._header["Connection"] << std::endl;
 	if (request._header["Connection"] == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
@@ -263,85 +172,46 @@ bool		Server::serve_resource(ClientInfo &client, Request &request, std::vector<S
 		std::cout << "closing the connection " << std::endl;
 		return false;
 	}
-
-	
-	// char full_path[128];
- 	// sprintf(full_path, "public%s", request._path.c_str());
-	// std::cout << full_path << std::endl;
-
-	// FILE *fp = fopen(full_path, "rb");
- 	// if (!fp) {
-	// 	send_404(client);
-	// 	return;
- 	// }
-	// fseek(fp, 0L, SEEK_END);
-	// size_t cl = ftell(fp);
-	// rewind(fp);
-	// std::string ct = get_content_type(full_path);
-
- 	// char buffer[BSIZE];
-	// sprintf(buffer, "HTTP/1.1 200 OK\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Connection: close\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Content-Length: %lu\r\n", cl);
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "Content-Type: %s\r\n", ct.c_str());
-	// send(client.socket, buffer, strlen(buffer), 0);
-	// sprintf(buffer, "\r\n");
-	// send(client.socket, buffer, strlen(buffer), 0);
-
-	// int r = fread(buffer, 1, BSIZE, fp);
-	// while (r) {
-	// 	send(client.socket, buffer, r, 0);
-	// 	r = fread(buffer, 1, BSIZE, fp);
-	// }
-
-	// fclose(fp);
-
-	/*
-	Note that send() may block on large files. In a truly robust, production-ready server, you
-	would need to handle this case. It could be done by using select() to determine when
-	each socket is ready to read. Another common method is to use fork() or similar APIs to
-	create separate threads/processes for each connected client.
-	*/
+	return false;
 
 }
 
 int Server::create_socket(const char* host, const char *port)
 {
-	// std::cout << "Configuring local address......" << std::endl;
-
+	std::cout << "Configuring local address......" << std::endl;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo(host, port, &hints, &bind_address);
-
+	int status = getaddrinfo(host, port, &hints, &bind_address);
+	if (status != 0)
+	{
+		std::cerr << "getaddrinfo() failed. (" << errno << ")" << gai_strerror(errno) << std::endl;
+		return 1;
+	}
 	std::cout << "Creating socket... " << host << " : " << port << std::endl;
 	int socket_listen;
 	socket_listen = socket(bind_address->ai_family,
 	bind_address->ai_socktype, bind_address->ai_protocol);
 	if (socket_listen < 0)
 	{
-		fprintf(stderr, "socket() failed. (%d)\n", errno);
+		std::cerr << "socket() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	std::cout << "Binding socket to local address..." << std::endl;
 	if (bind(socket_listen,
 		bind_address->ai_addr, bind_address->ai_addrlen))
 	{
-		fprintf(stderr, "bind() failed. (%d)\n", errno);
+		std::cerr << "bind() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	freeaddrinfo(bind_address);
-
 	std::cout << "Listening to port " << port << std::endl;	
 	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
-		fprintf(stderr, "listen() to %s failed. (%d)\n", port, errno);
+		std::cerr << "listen() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	std::cout << std::endl;
@@ -364,16 +234,22 @@ std::vector<ClientInfo> &Server::get_clients()
 
 void	Server::insert_client(ClientInfo &client)
 {
-	_clients.insert(_clients.begin(), client);
+	_clients.push_back(client);
 }
 
 
-ServerConfig	& Server::get_config()
+std::vector<ServerConfig>	&Server::get_configs()
 {
-	return _config;
+	return _configs;
 }
 
-int				Server::get_socket()
+void	Server::add_config(ServerConfig const &config)
+{
+	_configs.push_back(config);
+}
+
+
+int		Server::get_socket() const
 {
 	return _socket;
 }
@@ -381,4 +257,61 @@ int				Server::get_socket()
 void			Server::set_socket(int socket)
 {
 	_socket = socket;
+}
+
+// returns true if clients dropped
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
+{
+	if (it->received == MAX_REQUEST_SIZE)
+	{
+		it = this->send_400(*it);
+		return true;
+    }
+	int r = recv(it->socket,
+	it->request + it->received,
+	MAX_REQUEST_SIZE - it->received, 0);
+	if (r < 1)
+	{
+		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
+		it = this->drop_client(*it);
+		return true ;
+	}
+	else
+	{
+		it->last_received = time(NULL);
+		it->received += r;
+		std::cout << it->received << std::endl;
+		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
+		{
+			it->request[it->received] = 0;
+			std::cout << strlen(it->request) << std::endl;
+			Request request(it->request);
+			if (!this->serve_resource(*it, request))
+			{
+			    it = this->drop_client(*it);
+			    return true ;
+			}
+		}
+	}
+	return false ;
+}
+
+std::string			Server::get_port() const
+{
+	return _port;
+}
+
+void				Server::set_port(std::string &port)
+{
+	_port = port;
+}
+
+std::string			Server::get_host() const
+{
+	return this->_host;
+}
+
+void				Server::set_host(std::string &host)
+{
+	this->_host = host;
 }

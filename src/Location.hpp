@@ -8,20 +8,18 @@
 # include <string>
 # include <vector>
 
-
-class Location {
-    public:
-        std::string                 _path; 
-        std::string                 _root;
-        // std::string                 _index;
-        std::vector<std::string>     _index;
-        bool                        _autoindex;
-        // std::string                 _ret;
-		std::pair<std::string, std::string>	_ret;
-        // char                        _allowed_methds[4];
-        std::vector<std::string>    _allowed_methods;
-        std::vector<std::string>    _cgi_path;
-        std::vector<std::string>    _cgi_ext;
+struct Location {
+	std::string							_path; 
+	std::string							_root;
+	std::vector<std::string>			_index;
+	bool								_autoindex;
+	bool								_is_autoindex_set;
+	std::pair<int, std::string>			_ret;
+	std::vector<std::string>			_allowed_methods;
+	std::vector<std::string>			_cgi_path;
+	std::vector<std::string>			_cgi_ext;
+	bool								_upload;
+	std::string							_upload_dir;
 };
 
 #endif
