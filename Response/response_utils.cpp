@@ -80,6 +80,37 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     }
     return *a;
 }
+
+std::string cgi_execute(std::string cgi_path, std::string file, char **env){
+    int fd[2];
+    int for_k;
+    std::string buff;
+    char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
+
+    pipe(fd);
+    for_k = fork(); 
+    if (for_k == 0){
+        dup2(fd[1], 1);
+        close(fd[1]);
+        close(fd[0]);
+        execve(cgi_path.c_str(), argv, env);
+        exit(1);
+    }
+    wait(NULL);
+    char c[2];
+    int r = 1;
+    close(fd[1]);
+    while (r != 0){
+        r = read(fd[0], c, 1);
+        if (r == -1)
+            break ;
+        c[1] = '\0';
+        buff += c;
+    }
+    close(fd[1]);
+    close(fd[0]);
+    return buff;
+}
 //get content type 
 // std::string content_from_path(std::string& path){
 //     size_t pos = path.rfind('.');

@@ -95,10 +95,10 @@ void Response::file_body(){
     this->_file.open(this->_path);
     std::string str;
     while (!this->_file.fail() && !this->_file.eof()){
-     std::getline(this->_file, str);
-     this->_body += str;
-     if (!this->_file.eof())
-         this->_body += "\n";
+        std::getline(this->_file, str);
+        this->_body += str;
+        if (!this->_file.eof())
+            this->_body += "\n";
     }
 }
 
@@ -133,6 +133,7 @@ void Response::in_case_of_return(){
 }
 
 void Response::fill_attributes(Request& re_st){
+    (void)re_st;
     if (this->_dir_or_file)
     {
         try{
