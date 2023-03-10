@@ -281,7 +281,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 		it->last_received = time(NULL);
 		it->received += r;
 		std::cout << it->received << std::endl;
-		
+
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
 			it->request[it->received] = 0;
@@ -312,7 +312,7 @@ std::string			Server::get_host() const
 	return this->_host;
 }
 
-void				Server::set_host(std::string &host)
+void	Server::set_host(std::string &host)
 {
 	this->_host = host;
 }
