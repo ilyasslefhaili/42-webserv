@@ -321,7 +321,7 @@ std::string			Server::get_host() const
 	return this->_host;
 }
 
-void				Server::set_host(std::string &host)
+void	Server::set_host(std::string &host)
 {
 	this->_host = host;
 }
