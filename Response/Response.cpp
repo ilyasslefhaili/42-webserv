@@ -25,6 +25,7 @@ void Response::fill_directive(){
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
     _content_type = _request._header["Content-Type"];
+    _cgi_path = _location._cgi_path;
 }
 
 void  Response::get_files_in_dir(){
@@ -91,14 +92,25 @@ void check_the_file_permissions(std::string& path, int *status){
         throw (std::exception());
 }
 
-void Response::file_body(){
-    this->_file.open(this->_path);
-    std::string str;
-    while (!this->_file.fail() && !this->_file.eof()){
-        std::getline(this->_file, str);
-        this->_body += str;
-        if (!this->_file.eof())
-            this->_body += "\n";
+void Response::fill_body(){
+    if (_cgi_path.size()  == 0){
+        this->_file.open(this->_path);
+        std::string str;
+        while (!this->_file.fail() && !this->_file.eof()){
+            std::getline(this->_file, str);
+            this->_body += str;
+            if (!this->_file.eof())
+                this->_body += "\n";
+        }
+    }
+    else if (this->_status == 200){
+        std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+        size_t pos = str.find("\n");
+        str.erase(0, pos + 1);
+        std::cout<< "----"<<str<<std::endl;
+        pos = str.find("\n");
+        this->_body = str.substr(pos + 1, str.size());
+        std::cout<<this->_body<<std::endl;
     }
 }
 
@@ -119,7 +131,7 @@ void Response::in_case_of_return(){
                     this->_status = 404;
                 }
                 this->set_content_type(types.get_type(this->_path));  
-                this->file_body();    
+                this->fill_body();    
             }
             else{
                 this->_status = this->_ret.first;
@@ -152,9 +164,7 @@ void Response::fill_attributes(Request& re_st){
     }
     if (this->_status == 0)
         this->_status = 200;
-    this->file_body();
-
-
+    this->fill_body();
 }
 
 void    Response::get_index_in_post(){
@@ -248,7 +258,6 @@ void    Response::get_location(){
 }
 
 void    Response::get_the_absolute_path(){
-	std::cout << this->_path << std::endl;
     if (isDirectory(this->_path)){
         if (this->_path[_path.size() - 1] != '/'){
             this->_path += "/";
@@ -273,6 +282,8 @@ std::string Response::get_content_type(){
     return (_content_type);
 }
 void Response::set_content_type(std::string type){
+    if (_cgi_path.size() == 0)
+        this->_content_type += "Content-Type: ";
     this->_content_type = type;
 }
 void Response::set_status(int status){
@@ -287,8 +298,6 @@ void Response::link_root_path(Request& re_st){
 
     _path = this->_root;
     _path += re_st._path;
-	// std::cout << _path << std::endl;
-
 }
 
 void   Response::set_config(ServerConfig& conf){

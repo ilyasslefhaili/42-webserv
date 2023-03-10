@@ -31,7 +31,6 @@
 class Response
 {
     private:
-        std::string                                         _content_type;
         int                                                 _status;
         // char**                                              _env;                
         bool                                                _dir_or_file;
@@ -46,17 +45,18 @@ class Response
         std::string                                         _root;
         std::vector<std::string>                             _index;
         bool                                                 _autoindex;
+        std::string                                          _content_type;
         std::vector<std::string>                            _allowed_methods;
-        std::vector<std::string>                            _cgi_path;
+        std::string                                         _cgi_path;
+        std::string                                         _cgi_header;
         bool                                                _upload;
         std::string                                         _upload_dir;
-        std::vector<std::string>                            _cgi_ext;
         std::pair<int, std::string>                 _ret;
 
     public:
         MimeTypes   types;
         std::string get_body();
-        void file_body();
+        void fill_body();
         void in_case_of_return();
         std::string &get_path();
         void    fill_directive();

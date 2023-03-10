@@ -14,6 +14,7 @@ class Request {
 
 	public:
 		char								*_raw;
+		char**								_env;
 		std::string							_method;
 		std::string							_protocol_ver;	//ver of HTTP protocol
 		std::map<std::string, std::string>	_header;

@@ -176,7 +176,7 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 }
 
 // returns true if clients dropped
-bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env)
 {
 	if (it->received == it->capacity)
 	{
@@ -207,6 +207,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 		{
 			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			Request request(it->request, it->received);
+			request._env = env;
 			if (!this->serve_resource(*it, request))
 			{
 			    it = this->drop_client(*it);

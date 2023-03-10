@@ -100,7 +100,7 @@ class Server {
 		std::string								get_host() const;
 		void									set_host(std::string &host);
 
-		bool									receive_request(std::vector<ClientInfo>::iterator &it);
+		bool									receive_request(std::vector<ClientInfo>::iterator &it, char **env);
 
 };
 

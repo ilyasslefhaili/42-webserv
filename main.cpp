@@ -54,7 +54,7 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
     }
 }
 
-void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
+void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, char** env)
 {
     std::vector<Server>::iterator server = servers.begin();
     std::vector<Server>::iterator end = servers.end();
@@ -66,7 +66,7 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
         {
             if (FD_ISSET(it->socket, &reads))
             {
-                if (server->receive_request(it))
+                if (server->receive_request(it, env))
                 {
                     e = server->get_clients().end();
                     continue ;
@@ -89,7 +89,7 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers)
     }
 }
 
-int	main(int argc, char **argv)
+int	main(int argc, char **argv, char **env)
 {
 	if (argc > 2)
 	{
@@ -117,7 +117,7 @@ int	main(int argc, char **argv)
 	{
 		fd_set reads;
 		check_incoming_connections(reads, servers);
-		check_incoming_requests(reads, servers);
+		check_incoming_requests(reads, servers, env);
 	}
 	return 0;
 }

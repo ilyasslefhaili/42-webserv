@@ -44,16 +44,15 @@ std::string get_content_lenght(Response &a){
 
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
+    std::cout<<"get_response"<<std::endl;
     Response &a = get_response_object(re_st, configs);
 
     response += create_status_line(a.get_status(), re_st);
-    response += "Content-Type: ";
-    response += a.types.get_type(a.get_path());
+    response += a.get_content_type();
     response += get_content_lenght(a);
     response += "\r\n";
-
     response += a.get_body();
-    // std::cout<<response<<std::endl;
+    std::cout<<response<<std::endl;
     return response;
 }
 
@@ -66,8 +65,8 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     a->fill_directive();
     a->link_root_path(re_st);
     a->get_the_absolute_path();
-
     if (re_st._method == "GET"){
+        std::cout<<"GET"<<std::endl;
         a->set_content_type(a->types.get_type(re_st._path));  
         a->fill_attributes(re_st);
     }
