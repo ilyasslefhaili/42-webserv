@@ -160,7 +160,7 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		send_404(client);
 		return false;
 	}
-
+	
 	std::string response = get_response(request, _configs);
 	std::cout<<"-------"<<std::endl;
 	send(client.socket, response.c_str(), response.size(), 0);
@@ -170,6 +170,7 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		std::cout << "keeping the connection alive" << std::endl;
 		free(client.request);
 		client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
+		// bzero(client.request, sizeof(char) * BASE_REQUEST_SIZE);
 		client.capacity = BASE_REQUEST_SIZE;
 		client.received = 0;
 		return true;
@@ -296,8 +297,8 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
 			std::cout << it->received << std::endl;
-			it->request[it->received] = 0;
-			Request request(it->request);
+
+			Request request(it->request, it->received);
 			if (!this->serve_resource(*it, request))
 			{
 			    it = this->drop_client(*it);

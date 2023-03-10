@@ -34,6 +34,7 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
             bzero(&client, sizeof(ClientInfo));
             client.address_length = sizeof(client.address);
 			client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
+			bzero(client.request, sizeof(char) * BASE_REQUEST_SIZE);
 			client.capacity = BASE_REQUEST_SIZE;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),

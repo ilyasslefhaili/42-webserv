@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/09 18:45:14 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/10 14:09:38 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Response.hpp"
 
 bool isDirectory(std::string& path){
+	// std::cout << path << std::endl;
     DIR*  dir = opendir(path.c_str());
     if (dir != NULL){
         closedir(dir);
@@ -44,11 +45,13 @@ std::string get_content_lenght(Response &a){
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
     Response &a = get_response_object(re_st, configs);
+
     response += create_status_line(a.get_status(), re_st);
     response += "Content-Type: ";
     response += a.types.get_type(a.get_path());
     response += get_content_lenght(a);
     response += "\r\n";
+
     response += a.get_body();
     // std::cout<<response<<std::endl;
     return response;
@@ -59,10 +62,11 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 
     
     a->set_config(get_server(re_st, configs));
-    a->get_the_absolute_path();
     a->get_location();
     a->fill_directive();
     a->link_root_path(re_st);
+    a->get_the_absolute_path();
+
     if (re_st._method == "GET"){
         a->set_content_type(a->types.get_type(re_st._path));  
         a->fill_attributes(re_st);

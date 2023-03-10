@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/10 11:59:53 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/10 14:16:12 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void Response::file_body(){
 }
 
 void Response::in_case_of_return(){
-    std::cout<<this->_ret.first<<std::endl;
+    // std::cout<<this->_ret.first<<std::endl;
     if (this->_ret.first != -1 || this->_ret.second != ""){
         if (this->_ret.first != -1){
             this->_status = this->_ret.first;
@@ -134,8 +134,11 @@ void Response::in_case_of_return(){
 
 void Response::fill_attributes(Request& re_st){
     (void)re_st;
+	// std::cout << this->_dir_or_file << std::endl;
     if (this->_dir_or_file)
     {
+		std::cout <<"dir or file" << std::endl;
+
         try{
             this->get_index();
         }catch(std::exception& e){
@@ -143,7 +146,12 @@ void Response::fill_attributes(Request& re_st){
         }
     }
     try{
+	// std::cout <<"asdfadsf" << std::endl;
+
         check_the_file_permissions(this->_path, &this->_status);
+	// std::cout <<"asdfadsf 2" << std::endl;
+
+
     }
     catch(const std::exception& e){
         std::cout<<"file not found"<<std::endl;
@@ -153,6 +161,8 @@ void Response::fill_attributes(Request& re_st){
     if (this->_status == 0)
         this->_status = 200;
     this->file_body();
+
+
 }
 
 void    Response::get_index_in_post(){
@@ -180,7 +190,7 @@ void    Response::post_method(){
         try{
             check_the_file_permissions(this->_path, &this->_status);
         }catch(std::exception& e){
-            std::cout<<"file not found"<<std::endl;
+            std::cout <<"file not found"<<std::endl;
             this->_status = 404;
             return ;
         }
@@ -246,6 +256,7 @@ void    Response::get_location(){
 }
 
 void    Response::get_the_absolute_path(){
+	std::cout << this->_path << std::endl;
     if (isDirectory(this->_path)){
         if (this->_path[_path.size() - 1] != '/'){
             this->_path += "/";
@@ -256,6 +267,8 @@ void    Response::get_the_absolute_path(){
         }
         this->_dir_or_file = true;
     }
+	else
+        this->_dir_or_file = false;
 }
 
 std::string Response::get_body(){
@@ -279,8 +292,10 @@ int Response::get_status(){
 }
 
 void Response::link_root_path(Request& re_st){
+
     _path = this->_root;
     _path += re_st._path;
+	// std::cout << _path << std::endl;
 
 }
 
