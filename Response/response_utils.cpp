@@ -72,6 +72,7 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
         a->fill_attributes(re_st);
     }
     else if (re_st._method == "POST"){
+        std::cout<<"POST"<<std::endl;
         a->post_method();
     }
     try

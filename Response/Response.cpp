@@ -146,12 +146,7 @@ void Response::fill_attributes(Request& re_st){
         }
     }
     try{
-	// std::cout <<"asdfadsf" << std::endl;
-
         check_the_file_permissions(this->_path, &this->_status);
-	// std::cout <<"asdfadsf 2" << std::endl;
-
-
     }
     catch(const std::exception& e){
         std::cout<<"file not found"<<std::endl;
