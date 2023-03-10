@@ -17,11 +17,8 @@
 # include <cstring>
 
 # define BSIZE 1024
-# define MAX_REQUEST_SIZE 3000000
+# define BASE_REQUEST_SIZE 4096 // 4MB
 # define TIMEOUT 30
-
-// #define ISVALIDSOCKET(s) ((s) >= 0)
-#define GETSOCKETERRNO() (errno)
 
 # include "Location.hpp"
 # include <iostream>
@@ -39,7 +36,8 @@ struct ClientInfo {
 	socklen_t 				address_length;
 	struct sockaddr_storage address;
 	int						socket;
-	char					request[MAX_REQUEST_SIZE + 1];
+	char					*request;
+	int						capacity;
 	int						received;
 	time_t 					last_received;
 

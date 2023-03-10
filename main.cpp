@@ -7,9 +7,9 @@
 #include <errno.h>
 
 #include <cstdio>
-#include <string.h>
-#include <time.h>
 #include <cstdlib>
+#include <cstring>
+#include <time.h>
 #include <string>
 #include <set>
 
@@ -33,12 +33,13 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
             ClientInfo client;
             bzero(&client, sizeof(ClientInfo));
             client.address_length = sizeof(client.address);
+			client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
+			client.capacity = BASE_REQUEST_SIZE;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
 			int reuseaddr = 1;
 			setsockopt(s->get_socket(), SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(int));
-
             client.last_received = time(NULL);
 			s->insert_client(client);
 			if (client.socket < 0) {
@@ -101,7 +102,7 @@ int	main(int argc, char **argv)
 	{
 		config.parse();
 		config.init_if_not_set();
-		// config.print();
+		config.print();
 	}
 	catch (std::exception &e)
 	{

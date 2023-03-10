@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/09 17:00:00 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/10 11:59:53 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,8 +191,8 @@ void    Response::post_method(){
         // to_upload.open(Upload_file);
         // to_upload<<this->_request._body;
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-        for (int i = 0; i < this->_request._body_len;i++)
-            std::cout<<this->_request._body[i];
+        // for (int i = 0; i < this->_request._body_len;i++)
+        //     std::cout<<this->_request._body[i];
         std::cout<<std::endl;
         write(fd, this->_request._body, this->_request._body_len);
         this->_status = 201;

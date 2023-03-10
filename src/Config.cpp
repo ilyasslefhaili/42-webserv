@@ -71,11 +71,8 @@ void	Config::print()
 			std::cout << "	allowed methods: " << std::endl;
 			for (int i = 0; i < lo->_allowed_methods.size(); i++)
 				std::cout << "	" << lo->_allowed_methods[i] << std::endl;
-			std::cout << "	cgi_path: " << std::endl;
-			for (int i = 0; i < lo->_cgi_path.size(); i++)
-				std::cout << "	" << "_cgi_path: " << lo->_cgi_path[i] << std::endl;
-			for (int i = 0; i < lo->_cgi_ext.size(); i++)
-				std::cout << "	" << "_cgi_ext: " << lo->_cgi_ext[i] << std::endl;
+			std::cout << "	" << "_cgi_path: " << lo->_cgi_path << std::endl;
+			std::cout << "	" << "_cgi_ext: " << lo->_cgi_ext << std::endl;
 			++lo;
 		}
 
@@ -213,8 +210,6 @@ void	Config::parse_location( std::istringstream &ss)
 	if (_location_bracket_open)
 		throw ConfigFileException();	
 	_current_location = Location();
-	_current_location._upload = false;
-	_current_location._is_autoindex_set = false;
 	ss >> _current_location._path;
 }
 
@@ -223,8 +218,7 @@ void	Config::parse_return( std::istringstream &ss)
 	if (!_location_bracket_open)
 		throw ConfigFileException();
 	if (!(ss >> _current_location._ret.first))
-		_current_location._ret.first = -1;
-	ss.clear();
+		throw ConfigFileException();
 	ss >> _current_location._ret.second;
 }
 
@@ -242,20 +236,15 @@ void	Config::parse_cgi_path( std::istringstream &ss)
 {
 	if (!_location_bracket_open)
 		throw ConfigFileException();
-	_current_location._cgi_path.clear();
-	std::string path;
-	while (ss >> path)
-		_current_location._cgi_path.push_back(path);
+	ss >> _current_location._cgi_path;
 }
 
 void	Config::parse_cgi_ext( std::istringstream &ss)
 {
 	if (!_location_bracket_open)
 		throw ConfigFileException();
-	_current_location._cgi_ext.clear();
-	std::string ext;
-	while (ss >> ext)
-		_current_location._cgi_ext.push_back(ext);
+	ss >> _current_location._cgi_ext;
+
 }
 
 

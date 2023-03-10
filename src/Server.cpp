@@ -49,7 +49,10 @@ std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 	while (it != _clients.end())
 	{
 		if (client.socket == it->socket)
+		{
+			free(it->request);
 			return (_clients.erase(it));
+		}
 		++it;
 	}
 	return (_clients.end());
@@ -163,7 +166,9 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 	if (request._header["Connection"] == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
-		bzero(client.request, sizeof(client.request)); // we clear request in case connection is alive
+		free(client.request);
+		client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
+		client.capacity = BASE_REQUEST_SIZE;
 		client.received = 0;
 		return true;
 	}
@@ -262,14 +267,19 @@ void			Server::set_socket(int socket)
 // returns true if clients dropped
 bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 {
-	if (it->received == MAX_REQUEST_SIZE)
+	if (it->received == it->capacity)
 	{
-		it = this->send_400(*it);
-		return true;
+		// it = this->send_400(*it);
+		// return true;
+		it->capacity *= 2;
+		char *temp = (char *) malloc(sizeof(char) * it->capacity);
+		memcpy(temp, it->request, it->received);
+		free(it->request);
+		it->request = temp;
     }
 	int r = recv(it->socket,
-	it->request + it->received,
-	MAX_REQUEST_SIZE - it->received, 0);
+		it->request + it->received,
+		it->capacity - it->received, 0);
 	if (r < 1)
 	{
 		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
@@ -280,12 +290,11 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
 	{
 		it->last_received = time(NULL);
 		it->received += r;
+		// it->request[it->received] = 0;
 		std::cout << it->received << std::endl;
-		
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
-			it->request[it->received] = 0;
-			std::cout << strlen(it->request) << std::endl;
+			std::cout << it->received << std::endl;
 			Request request(it->request);
 			if (!this->serve_resource(*it, request))
 			{

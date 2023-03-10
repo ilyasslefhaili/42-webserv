@@ -13,20 +13,18 @@ Request & Request::operator=(const Request &rhs)
 	this->_method = rhs._method;
 	this->_protocol_ver = rhs._protocol_ver;
 	this->_header = rhs._header;
-	this->_body = rhs._body;
+	// this->_body = rhs._body;
 	this->_path = rhs._path;
 	return (*this);
 }
 
 
-void customSplit(std::string str, std::vector<std::string> &strings)
+void customSplit(std::string str, std::vector<std::string> &strings, char c)
 {
     int startIndex = 0, endIndex = 0;
     for (int i = 0; i <= str.size(); i++)
     {
-
-        // If we reached the end of the word or the end of the input.
-        if (str[i] == '\n' || i == str.size()) {
+        if (str[i] == c || i == str.size()) {
             endIndex = i;
             std::string temp;
             temp.append(str, startIndex, endIndex - startIndex);
@@ -101,7 +99,7 @@ void    Request::parse_request(const char *request)
 	_body = (char *) s + 4;
 
     std::vector < std::string > strings;
-    customSplit(std::string(header), strings);
+    customSplit(std::string(header), strings, '\n');
     // std::vector<std::string>::iterator it = strings.begin();
 
     std::cout << "currently parsing the request" << std::endl;
@@ -118,9 +116,8 @@ void    Request::parse_request(const char *request)
 
         }
     }
-
 	_body_len = atoi(_header["Content-Length"].c_str());
-    
+	std::cout << "size of body: " << _body_len << std::endl;
     // print_request();
 
 }
