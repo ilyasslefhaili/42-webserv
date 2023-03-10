@@ -34,7 +34,7 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
     }
 }
 
-Request::Request(const char *request) : _raw(std::string(request))
+Request::Request(const char *request)
 {
     parse_request(request);
 }
