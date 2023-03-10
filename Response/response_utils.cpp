@@ -59,65 +59,63 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 
     
     a->set_config(get_server(re_st, configs));
+    a->get_the_absolute_path();
     a->get_location();
     a->fill_directive();
-    // std::cout<<"-----------"<<re_st._method<<std::endl;
-    // try
-    // {
-        // a->in_case_of_return();
-    // }
-    // catch(const std::exception& e)
-    // {
-        // return (*a);
-    // }
     a->link_root_path(re_st);
-    a->get_the_absolute_path();
-   
     if (re_st._method == "GET"){
-        a->set_content_type(content_from_path(re_st._path));  
+        a->set_content_type(a->types.get_type(re_st._path));  
         a->fill_attributes(re_st);
     }
     else if (re_st._method == "POST"){
         a->post_method();
     }
+    try
+    {
+        a->in_case_of_return();
+    }
+    catch(const std::exception& e)
+    {
+        return (*a);
+    }
     return *a;
 }
 //get content type 
-std::string content_from_path(std::string& path){
-    size_t pos = path.rfind('.');
-    if (pos != std::string::npos) {
-        std::string last_dot = path.substr(pos + 1, path.size() - pos);
-        if (last_dot == ".css")
-            return "Content-Type: text/css\r\n";
-        else if (last_dot == ".csv")
-            return "Content-Type: text/csv\r\n";
-        else if (last_dot == ".gif")
-            return "Content-Type: image/gif\r\n";
-        else if (last_dot == ".htm")
-            return "Content-Type: text/html\r\n";
-        else if (last_dot == ".html")
-            return "Content-Type: text/html\r\n";
-        else if (last_dot ==  ".ico")
-            return "Content-Type: image/x-icon\r\n";
-        else if (last_dot == ".jpeg")
-            return "Content-Type: image/jpeg\r\n";
-        else if (last_dot == ".jpg")
-            return ("Content-Type: image/jpeg\r\n");
-        else if (last_dot == ".js")
-            return "Content-Type: application/javascript\r\n";
-        else if (last_dot == ".json")
-            return "Content-Type: application/json\r\n";
-        else if (last_dot == ".png")
-             return "Content-Type: image/png\r\n";
-        else if (last_dot == ".pdf")
-            return "Content-Type: application/pdf\r\n";
-        else if (last_dot == ".svg")
-            return "Content-Type: image/svg+xml\r\n";
-        else if (last_dot == ".txt")
-            return "Content-Type: text/plain\r\n";
-    }
-    return "Content-Type: application/octet-stream\r\n";
-}
+// std::string content_from_path(std::string& path){
+//     size_t pos = path.rfind('.');
+//     if (pos != std::string::npos) {
+//         std::string last_dot = path.substr(pos + 1, path.size() - pos);
+//         if (last_dot == ".css")
+//             return "Content-Type: text/css\r\n";
+//         else if (last_dot == ".csv")
+//             return "Content-Type: text/csv\r\n";
+//         else if (last_dot == ".gif")
+//             return "Content-Type: image/gif\r\n";
+//         else if (last_dot == ".htm")
+//             return "Content-Type: text/html\r\n";
+//         else if (last_dot == ".html")
+//             return "Content-Type: text/html\r\n";
+//         else if (last_dot ==  ".ico")
+//             return "Content-Type: image/x-icon\r\n";
+//         else if (last_dot == ".jpeg")
+//             return "Content-Type: image/jpeg\r\n";
+//         else if (last_dot == ".jpg")
+//             return ("Content-Type: image/jpeg\r\n");
+//         else if (last_dot == ".js")
+//             return "Content-Type: application/javascript\r\n";
+//         else if (last_dot == ".json")
+//             return "Content-Type: application/json\r\n";
+//         else if (last_dot == ".png")
+//              return "Content-Type: image/png\r\n";
+//         else if (last_dot == ".pdf")
+//             return "Content-Type: application/pdf\r\n";
+//         else if (last_dot == ".svg")
+//             return "Content-Type: image/svg+xml\r\n";
+//         else if (last_dot == ".txt")
+//             return "Content-Type: text/plain\r\n";
+//     }
+//     return "Content-Type: application/octet-stream\r\n";
+// }
 
 //split the host and the port
 std::vector<std::string> split_host_port(std::string host_port){

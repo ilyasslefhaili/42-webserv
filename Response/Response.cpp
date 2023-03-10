@@ -103,6 +103,7 @@ void Response::file_body(){
 }
 
 void Response::in_case_of_return(){
+    std::cout<<this->_ret.first<<std::endl;
     if (this->_ret.first != -1 || this->_ret.second != ""){
         if (this->_ret.first != -1){
             this->_status = this->_ret.first;
@@ -117,7 +118,7 @@ void Response::in_case_of_return(){
                 {
                     this->_status = 404;
                 }
-                this->set_content_type(content_from_path(this->_path));  
+                this->set_content_type(types.get_type(this->_path));  
                 this->file_body();    
             }
             else{
@@ -195,7 +196,8 @@ void    Response::post_method(){
         //     std::cout<<this->_request._body[i];
         std::cout<<std::endl;
         write(fd, this->_request._body, this->_request._body_len);
-        this->_status = 201;
+        if (this->_status == 0)
+            this->_status = 201;
     }
 }
 
@@ -246,6 +248,7 @@ void    Response::get_the_absolute_path(){
     if (isDirectory(this->_path)){
         if (this->_path[_path.size() - 1] != '/'){
             this->_path += "/";
+            this->_location._path += "/";
             this->_status = 301;
             this->_dir_or_file = true;
             return ;
@@ -277,6 +280,7 @@ int Response::get_status(){
 void Response::link_root_path(Request& re_st){
     _path = this->_root;
     _path += re_st._path;
+
 }
 
 void   Response::set_config(ServerConfig& conf){

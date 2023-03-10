@@ -82,7 +82,7 @@ class Response
 };
 
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs);
-std::string content_from_path(std::string& path);
+// std::string content_from_path(std::string& path);
 std::string get_response(Request& re_st);
 std::string create_status_line(int status);
 std::string get_content_lenght(Response &a);
