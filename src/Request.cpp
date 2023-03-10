@@ -34,9 +34,9 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
     }
 }
 
-Request::Request(const char *request) : _raw(std::string(request))
+Request::Request(const char *request, size_t length)
 {
-    parse_request(request);
+    parse_request(request, length);
 }
 
 Request::~Request() {}
@@ -86,43 +86,37 @@ void    Request::print_request() const
 
 # include <cstring>
 
-void    Request::parse_request(const char *request)
+void    Request::parse_request(const char *request, size_t length)
 {
-    std::string req(request);
+    std::string req(request, length);
     int pos = req.find("\r\n\r\n");
     if (pos == std::string::npos)
         return ;
-    
     std::string header = req.substr(0, pos + 1);
-    // this->_body = req.substr(pos + 4);
-	const char *s = strstr(request, "\r\n\r\n");
-	_body = (char *) s + 4;
+
+	const char *s = strnstr(request, "\r\n\r\n", length);
+	_body = (char *) (s + 4);
 
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
-    // std::vector<std::string>::iterator it = strings.begin();
 
     std::cout << "currently parsing the request" << std::endl;
     get_method_and_path(strings[0]);
-
-    int i;
-    for (i = 1; i < strings.size(); i++)
+    for (int i = 1; i < strings.size(); i++)
     {
         int pos = strings[i].find(": ");
         if (pos != std::string::npos)
         {
             std::string value = strings[i].substr(pos + 2);
             _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to rmeove the \r
-
         }
     }
 	_body_len = atoi(_header["Content-Length"].c_str());
 	std::cout << "size of body: " << _body_len << std::endl;
     // print_request();
-
 }
 
-bool Request::request_is_complete(const char* buffer, int length)
+bool Request::request_is_complete(const char* buffer, size_t length)
 {
     const char* end = strnstr(buffer, "\r\n\r\n", length); // double CRLF sequence that marks the end of the header
     if (end == nullptr) {

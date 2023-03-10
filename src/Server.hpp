@@ -37,8 +37,8 @@ struct ClientInfo {
 	struct sockaddr_storage address;
 	int						socket;
 	char					*request;
-	int						capacity;
-	int						received;
+	size_t					capacity;
+	size_t					received;
 	time_t 					last_received;
 
 	// std::string				buffer; // use this to remplace request
