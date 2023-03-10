@@ -124,13 +124,13 @@ void    Request::parse_request(const char *request)
 
 bool Request::request_is_complete(const char* buffer, int length)
 {
-    const char* end = strstr(buffer, "\r\n\r\n"); // double CRLF sequence that marks the end of the header
+    const char* end = strnstr(buffer, "\r\n\r\n", length); // double CRLF sequence that marks the end of the header
     if (end == nullptr) {
         return false; // header was not yet received
     }
 
     // Check if the ontent-length is specified
-    const char* content_length_str = strstr(buffer, "Content-Length:");
+    const char* content_length_str = strnstr(buffer, "Content-Length:", length);
     if (content_length_str != nullptr) {
         content_length_str += strlen("Content-Length:");
         int content_length = atoi(content_length_str);

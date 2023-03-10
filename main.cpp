@@ -102,7 +102,7 @@ int	main(int argc, char **argv)
 	{
 		config.parse();
 		config.init_if_not_set();
-		config.print();
+		// config.print();
 	}
 	catch (std::exception &e)
 	{
