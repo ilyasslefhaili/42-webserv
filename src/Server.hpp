@@ -17,8 +17,8 @@
 # include <cstring>
 
 # define BSIZE 1024
-# define BASE_REQUEST_SIZE 4096 // 4MB
-# define TIMEOUT 30
+# define BASE_REQUEST_SIZE 14096 // 4MB
+# define TIMEOUT 1800
 
 # include "Location.hpp"
 # include <iostream>
@@ -63,9 +63,6 @@ class Server {
 		Server(const Server & server);
 		Server & operator=(const Server & server);
 
-		// takes a socket and search _clients
-		ClientInfo								get_client(int socket);
-
 		// closes the connection to a client and removes it from _clients
 		std::vector<ClientInfo>::iterator		drop_client(ClientInfo & client);
 
@@ -104,17 +101,6 @@ class Server {
 		void									set_host(std::string &host);
 
 		bool									receive_request(std::vector<ClientInfo>::iterator &it);
-
-
-		// a functor, so we can use some algorithm functions.
-		class MatchSocket
-		{
-			private:
-				int	socket;
-			public:
-				MatchSocket(int s);
-				bool operator()(const ClientInfo& obj) const;
-		};
 
 };
 
