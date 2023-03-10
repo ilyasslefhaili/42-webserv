@@ -112,7 +112,6 @@ void    Request::parse_request(const char *request, size_t length)
         }
     }
 	_body_len = atoi(_header["Content-Length"].c_str());
-	std::cout << "size of body: " << _body_len << std::endl;
     // print_request();
 }
 

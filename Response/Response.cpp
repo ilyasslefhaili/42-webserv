@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/10 14:16:12 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/10 15:58:12 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,11 +134,8 @@ void Response::in_case_of_return(){
 
 void Response::fill_attributes(Request& re_st){
     (void)re_st;
-	// std::cout << this->_dir_or_file << std::endl;
     if (this->_dir_or_file)
     {
-		std::cout <<"dir or file" << std::endl;
-
         try{
             this->get_index();
         }catch(std::exception& e){
@@ -146,12 +143,7 @@ void Response::fill_attributes(Request& re_st){
         }
     }
     try{
-	// std::cout <<"asdfadsf" << std::endl;
-
         check_the_file_permissions(this->_path, &this->_status);
-	// std::cout <<"asdfadsf 2" << std::endl;
-
-
     }
     catch(const std::exception& e){
         std::cout<<"file not found"<<std::endl;

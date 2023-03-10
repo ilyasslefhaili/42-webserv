@@ -28,19 +28,6 @@ Server & Server::operator=(const Server & server)
 	return *this;
 }
 
-ClientInfo	Server::get_client(int socket)
-{
-	std::vector<ClientInfo>::iterator it
-		= std::find_if(_clients.begin(), _clients.end(), Server::MatchSocket(socket));
-	
-	if (it != _clients.end())
-		return (*it);
-	ClientInfo client;
-	client.address_length = sizeof(client.address);
-	_clients.insert(_clients.begin(), client);
-	return (client);
-}
-
 std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
 	std::cout << "closing socket: " << client.socket << std::endl;
@@ -149,22 +136,26 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		send_400(client);
 		return false;
 	}
-	if ( request._path == "/favicon.ico" ) // to remove ?
-	{
-		std::cout << "handle fav icon" << std::endl;
-		send_404(client);
-		return false;
-	}
 	if (request._path.find("..") != std::string::npos)
 	{
 		send_404(client);
 		return false;
 	}
-	
 	std::string response = get_response(request, _configs);
-	std::cout<<"-------"<<std::endl;
-	send(client.socket, response.c_str(), response.size(), 0);
-	
+	// fcntl(client.socket, F_SETFL, O_NONBLOCK);
+	ssize_t bytes_sent = 0;
+	ssize_t total_bytes_sent = 0;
+	while (total_bytes_sent < response.size())
+	{
+		bytes_sent = send(client.socket, response.c_str() + total_bytes_sent, response.size(), 0);
+		if (bytes_sent < 0)
+		{
+			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
+			return false ;
+		}
+		std::cout << bytes_sent << " bytes were sent " << std::endl;
+		total_bytes_sent += bytes_sent;
+	}
 	if (request._header["Connection"] == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
@@ -183,6 +174,49 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 	return false;
 
 }
+
+// returns true if clients dropped
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
+{
+	if (it->received == it->capacity)
+	{
+		// it = this->send_400(*it);
+		// return true;
+		it->capacity *= 2;
+		char *temp = (char *) malloc(sizeof(char) * it->capacity);
+		memcpy(temp, it->request, it->received);
+		free(it->request);
+		it->request = temp;
+    }
+	int r = recv(it->socket,
+		it->request + it->received,
+		it->capacity - it->received, 0);
+	if (r < 1)
+	{
+		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
+		std::cerr << strerror(errno) << std::endl;
+		it = this->drop_client(*it);
+		return true ;
+	}
+	else
+	{
+		it->last_received = time(NULL);
+		it->received += r;
+		std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
+		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
+		{
+			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			Request request(it->request, it->received);
+			if (!this->serve_resource(*it, request))
+			{
+			    it = this->drop_client(*it);
+			    return true ;
+			}
+		}
+	}
+	return false ;
+}
+
 
 int Server::create_socket(const char* host, const char *port)
 {
@@ -227,14 +261,6 @@ int Server::create_socket(const char* host, const char *port)
 	return socket_listen;
 }
 
-
-Server::MatchSocket::MatchSocket(int s) : socket(s) {}
-
-bool Server::MatchSocket::operator()(const ClientInfo& obj) const
-{
-	return obj.socket == socket;
-}
-
 std::vector<ClientInfo> &Server::get_clients()
 {
 	return _clients;
@@ -267,47 +293,6 @@ void			Server::set_socket(int socket)
 	_socket = socket;
 }
 
-// returns true if clients dropped
-bool			Server::receive_request(std::vector<ClientInfo>::iterator &it)
-{
-	if (it->received == it->capacity)
-	{
-		// it = this->send_400(*it);
-		// return true;
-		it->capacity *= 2;
-		char *temp = (char *) malloc(sizeof(char) * it->capacity);
-		memcpy(temp, it->request, it->received);
-		free(it->request);
-		it->request = temp;
-    }
-	int r = recv(it->socket,
-		it->request + it->received,
-		it->capacity - it->received, 0);
-	if (r < 1)
-	{
-		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
-		it = this->drop_client(*it);
-		return true ;
-	}
-	else
-	{
-		it->last_received = time(NULL);
-		it->received += r;
-		std::cout << it->received << std::endl;
-		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
-		{
-			std::cout << it->received << std::endl;
-
-			Request request(it->request, it->received);
-			if (!this->serve_resource(*it, request))
-			{
-			    it = this->drop_client(*it);
-			    return true ;
-			}
-		}
-	}
-	return false ;
-}
 
 std::string			Server::get_port() const
 {
