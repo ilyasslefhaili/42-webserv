@@ -222,6 +222,7 @@ void    Response::post_method(){
         Upload_file += this->types.get_extention(this->_content_type);
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
         write(fd, this->_request._body, this->_request._body_len);
+        
         if (this->_status == 0)
             this->_status = 201;
     }
@@ -245,7 +246,6 @@ void    Response::post_method(){
                 size_t pos = str.find("\n");
                 str.erase(0, pos + 1);
                 pos = str.find("\r");
-                this->set_content_type(str.substr(0, pos - 1) + "\r\n");
             }
             else
                 this->_status = 502;
@@ -256,6 +256,7 @@ void    Response::post_method(){
     }
     else 
         this->_status = 403;
+    this->_content_type = "";
 
 }
 

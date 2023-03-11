@@ -88,7 +88,7 @@ std::string get_response(Request& re_st);
 std::string create_status_line(int status);
 std::string get_content_lenght(Response &a);
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs);
-Response&   get_response_object(Request& re_st, std::vector<ServerConfig> &configs);
+Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs);
 std::vector<std::string> split_host_port(std::string host_port);
 bool        isDirectory(std::string& path);
 std::string cgi_execute(std::string cgi_path, std::string file, char **env);
