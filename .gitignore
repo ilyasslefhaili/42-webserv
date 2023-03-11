@@ -3,6 +3,5 @@ webserv
 webserv.dSYM
 a.out.dSYM
 *.php
-php-cgi
 .DS_Store
 .vscode
