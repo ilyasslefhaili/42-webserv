@@ -120,7 +120,7 @@ void Response::fill_body(){
                 this->_body += "\n";
         }
     }
-    else if (this->_status == 200){
+    else{
         if (access(this->_cgi_path.c_str(), F_OK) != -1){
             if (access(this->_cgi_path.c_str(), X_OK) != -1){
                 std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
@@ -197,44 +197,66 @@ void Response::fill_attributes(Request& re_st){
 
 void    Response::get_index_in_post(){
     if (this->_index.size() > 0){
-        this->_file.open(this->_path + this->_index[0]);
         size_t i = 0;
-        while (i < this->_index.size()&& this->_file.fail()){
-            this->_file.open(this->_path + this->_index[i]);
-        }
-        if (!this->_file.fail())
-            this->_file.close();
-        else 
-            this->_status = 404;
-        this->_path += this->_index[i];
-    }
-    else
-        this->_status = 404;
-}
-
-void    Response::post_method(){
-    if (!this->_upload)
-    {
-        if (this->_dir_or_file)
-            this->get_index_in_post();
-        try{
-            check_the_file_permissions(this->_path, &this->_status);
-        }catch(std::exception& e){
-            std::cout <<"file not found"<<std::endl;
-            this->_status = 404;
-            return ;
-        }
+        while (i < this->_index.size()){
+            if (access((this->_path + this->_index[0]).c_str(), F_OK) == -1)
+                 this->_status = 404;
+            else{
+                this->_path += this->_index[i];
+                return;
+            }
+            i++;
+        } 
+        throw(std::exception());
     }
     else{
+        this->_status = 403;
+        throw(std::exception());
+    }
+}
+
+void    Response::post_method(){  
+    if (this->_upload){
         std::string Upload_file = this->_upload_dir;
         Upload_file += "/upload.";
         Upload_file += this->types.get_extention(this->_content_type);
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-        std::cout<<std::endl;
         write(fd, this->_request._body, this->_request._body_len);
         if (this->_status == 0)
             this->_status = 201;
     }
+    else if (this->_cgi_path.size() > 0)
+    {
+        if (this->_dir_or_file)
+        {
+            try{
+            this->get_index_in_post();
+            }catch(std::exception& e){
+                return ;
+            }   
+        }
+        if (access(this->_cgi_path.c_str(), F_OK) != -1){
+            if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                std::cout<<str<<std::endl;
+                this->check_status_code(str);
+                if (this->_status == 0)
+                    this->_status = 200;
+                size_t pos = str.find("\n");
+                str.erase(0, pos + 1);
+                pos = str.find("\r");
+                this->set_content_type(str.substr(0, pos - 1) + "\r\n");
+            }
+            else
+                this->_status = 502;
+        }
+        else
+            this->_status = 404;
+        
+    }
+    else 
+        this->_status = 403;
+
 }
 
 void Response::get_error_page(){

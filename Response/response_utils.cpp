@@ -36,6 +36,8 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 401 Unauthorized\r\n");
     else if (status == 502)
         return (re_st._protocol_ver + " 502 Bad Gateway\r\n");
+    else if (status == 403)
+        return (re_st._protocol_ver + " 403 Forbidden\r\n");
     return "";
 }
 
@@ -91,7 +93,6 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     int for_k;
     std::string buff;
     char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
-
     pipe(fd);
     for_k = fork(); 
     if (for_k == 0){
@@ -115,7 +116,6 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     }
     close(fd[1]);
     close(fd[0]);
-    std::cout<<"buff   :::\n"<<buff<<std::endl;
     return buff;
 }
 //get content type 
