@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/11 13:44:44 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/11 17:20:28 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,7 @@ void Response::fill_body(){
         if (access(this->_cgi_path.c_str(), F_OK) != -1){
             if (access(this->_cgi_path.c_str(), X_OK) != -1){
                 std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                std::cout<<str<<std::endl;
+                // std::cout<<str<<std::endl;
                 this->check_status_code(str);
                 if (this->_status == 301 || this->_status == 200){
                     size_t pos = str.find("\n");
@@ -239,7 +239,7 @@ void    Response::post_method(){
         if (access(this->_cgi_path.c_str(), F_OK) != -1){
             if (access(this->_cgi_path.c_str(), X_OK) != -1){
                 std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                std::cout<<str<<std::endl;
+                // std::cout<<str<<std::endl;
                 this->check_status_code(str);
                 if (this->_status == 0)
                     this->_status = 200;

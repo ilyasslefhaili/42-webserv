@@ -59,23 +59,26 @@ std::string	Server::get_client_address(ClientInfo &client)
 }
 
 // static 
-fd_set  Server::wait_on_clients(std::vector<Server>  &servers)
+std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers)
 {
 	fd_set	reads;// a struct which will hold all our active sockets
+	fd_set	writes;
 	FD_ZERO(&reads);// Initialize fd_set reads to have zero bits for all file descriptors.
+	FD_ZERO(&writes);
 	int max_socket = -1; // this var will always have the largest socket fd
-
 
 	std::vector<Server>::iterator serv = servers.begin();
 	while (serv != servers.end())
 	{
 		FD_SET(serv->_socket, &reads);
+		FD_SET(serv->_socket, &writes);
 		if (serv->get_socket() > max_socket)
 			max_socket = serv->get_socket();
 		std::vector<ClientInfo>::iterator cl = serv->clients.begin();
 		while (cl != serv->clients.end())
 		{
 			FD_SET(cl->socket, &reads);
+			FD_SET(cl->socket, &writes);
 			if (cl->socket > max_socket)
 				max_socket = cl->socket;
 			++cl;
@@ -88,13 +91,13 @@ fd_set  Server::wait_on_clients(std::vector<Server>  &servers)
 	timeout.tv_usec = 0;
 
 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
-	if (select(max_socket + 1, &reads, 0, 0, &timeout) < 0) {
+	if (select(max_socket + 1, &reads, &writes, 0, &timeout) < 0) {
 		std::cerr << "select() failed. (" << errno << ") " << strerror(errno) << std::endl;
 		
 		exit(1);
 		// throw ? exceptions to-do
 	}
-	return reads;
+	return std::make_pair(reads, writes);
 }
 
 void	Server::create_sockets(std::vector<Server> &servers)
@@ -126,49 +129,35 @@ std::vector<ClientInfo>::iterator Server::send_404(ClientInfo &client)
 	send(client.socket, c404, strlen(c404), 0);
 	return drop_client(client);
 }
-# define CHUNK_SIZE 4096
-// returns whether the connection should be open or not
-bool		Server::serve_resource(ClientInfo &client, Request &request)
+
+bool		Server::send_data(ClientInfo &client)
 {
-	std::cout << "server_resource " << get_client_address(client) << " " << request._path << std::endl;
-	if (request._path.size() > 100)
-	{
-		send_400(client);
-		return false;
-	}
-	if (request._path.find("..") != std::string::npos)
-	{
-		send_404(client);
-		return false;
-	}
-	client.response = get_response(request, _configs);
-	client.bytes_sent = 0;
-	client.total_bytes_sent = 0;
 	while (client.total_bytes_sent < client.response.size())
 	{
-		int bytes_to_send = client.response.size() - client.total_bytes_sent;
-		if (bytes_to_send > CHUNK_SIZE)
-			bytes_to_send = CHUNK_SIZE;
 		client.bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
-			bytes_to_send, 0);
+			client.response.size() - client.total_bytes_sent, 0);
 		if (client.bytes_sent < 0)
 		{
-			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
-			return false ;
+			// std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
+			client.still_receiving = true;
+			return true ;
 		}
+		client.last_received = time(NULL);
 		std::cout << client.bytes_sent << " bytes were sent " << std::endl;
 		client.total_bytes_sent += client.bytes_sent;
 	}
+	client.still_receiving = false;
 	std::cout << "client " << client.socket << " received " << client.total_bytes_sent << " bytes." << std::endl;
-
-	if (request._header["Connection"] == "keep-alive")
+	std::string connection = client.request_obj->_header["Connection"];
+	free(client.request_obj);
+	client.request_obj = nullptr;
+	free(client.request);
+	client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
+	client.capacity = BASE_REQUEST_SIZE;
+	client.received = 0;
+	if (connection == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
-		free(client.request);
-		client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
-		// bzero(client.request, sizeof(char) * BASE_REQUEST_SIZE);
-		client.capacity = BASE_REQUEST_SIZE;
-		client.received = 0;
 		return true;
 	}
 	else
@@ -176,17 +165,40 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		std::cout << "closing the connection " << std::endl;
 		return false;
 	}
-	return false;
+}
+
+// returns whether the connection should be open or not
+bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
+{
+	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
+	if (client.request_obj->_path.size() > 100)
+	{
+		send_400(client);
+		return false;
+	}
+	if (client.request_obj->_path.find("..") != std::string::npos)
+	{
+		send_404(client);
+		return false;
+	}
+	client.response = get_response(*client.request_obj, _configs);
+	client.bytes_sent = 0;
+	client.total_bytes_sent = 0;
+
+	if (!FD_ISSET(client.socket, &fds.second))
+	{
+		std::cout << "not yet, we shall wait" << std::endl;
+	 	return (true);
+	}
+	return (send_data(client));
 
 }
 
 // returns true if clients dropped
-bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env)
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env, std::pair<fd_set, fd_set> &fds)
 {
 	if (it->received == it->capacity)
 	{
-		// it = this->send_400(*it);
-		// return true;
 		it->capacity *= 2;
 		char *temp = (char *) malloc(sizeof(char) * it->capacity);
 		memcpy(temp, it->request, it->received);
@@ -211,9 +223,9 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
 			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
-			Request request(it->request, it->received);
-			request._env = env;
-			if (!this->serve_resource(*it, request))
+			it->request_obj = new Request(it->request, it->received);
+			it->request_obj->_env = env;
+			if (!this->serve_resource(*it, fds))
 			{
 			    it = this->drop_client(*it);
 			    return true ;

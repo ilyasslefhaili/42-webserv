@@ -19,20 +19,22 @@
 #include "src/Config.hpp"
 #include "src/Server.hpp"
 
-void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
+void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<Server> &servers)
 {
-    reads = Server::wait_on_clients(servers);
+    fds = Server::wait_on_clients(servers);
     std::vector<Server>::iterator s = servers.begin();
     std::vector<Server>::iterator ite = servers.end();
     while (s != ite)
     {
-        if (FD_ISSET(s->get_socket(), &reads)) // will return true if file descriptor was flagged by select
+        if (FD_ISSET(s->get_socket(), &fds.first)) // will return true if file descriptor was flagged by select
         {
             ClientInfo client;
             bzero(&client, sizeof(ClientInfo));
             client.address_length = sizeof(client.address);
 			client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 			client.capacity = BASE_REQUEST_SIZE;
+			client.request_obj = nullptr;
+			client.still_receiving = false;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
@@ -52,7 +54,7 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
     }
 }
 
-void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, char** env)
+void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Server> &servers, char** env)
 {
     std::vector<Server>::iterator server = servers.begin();
     std::vector<Server>::iterator end = servers.end();
@@ -62,14 +64,23 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, cha
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-            if (FD_ISSET(it->socket, &reads))
+            if (FD_ISSET(it->socket, &fds.first))
             {
-                if (server->receive_request(it, env))
+                if (server->receive_request(it, env, fds))
                 {
                     e = server->clients.end();
                     continue ;
                 }
             }
+			else if (FD_ISSET(it->socket, &fds.second))
+			{
+				if (it->still_receiving && !server->send_data(*it))
+				{
+				    it = server->drop_client(*it);
+					e = server->clients.end();
+                    continue ;
+				}
+			}
 			else
 			{
                 // check timeout
@@ -113,9 +124,9 @@ int	main(int argc, char **argv, char **env)
 	Server::create_sockets(servers);
 	while (1)
 	{
-		fd_set reads;
-		check_incoming_connections(reads, servers);
-		check_incoming_requests(reads, servers, env);
+		std::pair<fd_set, fd_set> fds;
+		check_incoming_connections(fds, servers);
+		check_incoming_requests(fds, servers, env);
 	}
 	return 0;
 }

@@ -17,8 +17,9 @@
 # include <cstring>
 
 # define BSIZE 1024
-# define BASE_REQUEST_SIZE 14096 // 4MB
-# define TIMEOUT 1800
+# define BASE_REQUEST_SIZE 14096
+# define TIMEOUT 60
+# define CHUNK_SIZE 4096
 
 # include "Location.hpp"
 # include <iostream>
@@ -30,7 +31,8 @@
 # include "Config.hpp"
 # include "ServerConfig.hpp"
 # include <set>
-#include <ctime>
+# include <ctime>
+# include <utility>
 
 struct ClientInfo {
 	socklen_t 				address_length;
@@ -43,6 +45,8 @@ struct ClientInfo {
 	std::string				response;
 	ssize_t 				bytes_sent;
 	ssize_t 				total_bytes_sent;
+	Request					*request_obj;
+	bool					still_receiving;
 	
 };
 
@@ -74,7 +78,7 @@ class Server {
 
 		// wait until either a client has data available or a new client is attempting to connect
 		// using the function select		
-		static fd_set  							wait_on_clients(std::vector<Server>  &servers);
+		static std::pair<fd_set, fd_set>  		wait_on_clients(std::vector<Server>  &servers);
 		static void								create_sockets(std::vector<Server> &servers);
 		// static void								ack_client(std::vector<Server> &servers, int socket, ClientInfo &client);
 		// fd_set				wait_on_clients(int server);
@@ -85,7 +89,11 @@ class Server {
 		std::vector<ClientInfo>::iterator		send_404(ClientInfo &client);
 
 		// transfer a file to a connected client
-		bool									serve_resource(ClientInfo &client, Request &request);
+		bool									serve_resource(ClientInfo &client,
+												std::pair<fd_set, fd_set> &fds);
+
+		bool									send_data(ClientInfo &client);
+		
 
 		// creates a socket for listening
 		int 									create_socket(const char* host, const char *port);
@@ -100,7 +108,8 @@ class Server {
 		std::string								get_host() const;
 		void									set_host(std::string &host);
 
-		bool									receive_request(std::vector<ClientInfo>::iterator &it, char **env);
+		bool									receive_request(std::vector<ClientInfo>::iterator &it,
+												char **env, std::pair<fd_set, fd_set> &fds);
 };
 
 

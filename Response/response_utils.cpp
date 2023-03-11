@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/11 16:17:42 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/11 17:20:33 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += "\r\n";
     response += a->get_body();
     delete a;
-    std::cout<<response<<std::endl;
+    // std::cout<<response<<std::endl;
     return response;
 }
 
