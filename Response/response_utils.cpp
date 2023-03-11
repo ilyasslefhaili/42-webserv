@@ -34,6 +34,8 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 301 Moved Permanently\r\n");
     else if (status == 401)
         return (re_st._protocol_ver + " 401 Unauthorized\r\n");
+    else if (status == 502)
+        return (re_st._protocol_ver + " 502 Bad Gateway\r\n");
     return "";
 }
 

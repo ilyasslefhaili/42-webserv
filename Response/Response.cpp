@@ -115,16 +115,24 @@ void Response::fill_body(){
         }
     }
     else if (this->_status == 200){
-        std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-        std::cout<<str<<std::endl;
-        this->check_status_code(str);
-        if (this->_status == 301 || this->_status == 200){
-            size_t pos = str.find("\n");
-            str.erase(0, pos + 1);
-            pos = str.find("\r");
-            this->set_content_type(str.substr(0, pos - 1) + "\r\n");
-            this->_body = str.substr(pos + 2, str.size());
+        if (access(this->_cgi_path.c_str(), F_OK) != -1){
+            if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                std::cout<<str<<std::endl;
+                this->check_status_code(str);
+                if (this->_status == 301 || this->_status == 200){
+                    size_t pos = str.find("\n");
+                    str.erase(0, pos + 1);
+                    pos = str.find("\r");
+                    this->set_content_type(str.substr(0, pos - 1) + "\r\n");
+                    this->_body = str.substr(pos + 2, str.size());
+                }
+            }
+            else
+                this->_status = 502;
         }
+        else
+            this->_status = 404;
     }
 }
 
