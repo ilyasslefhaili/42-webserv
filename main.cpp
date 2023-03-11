@@ -31,16 +31,14 @@ void    check_incoming_connections(fd_set &reads, std::vector<Server> &servers)
             ClientInfo client;
             bzero(&client, sizeof(ClientInfo));
             client.address_length = sizeof(client.address);
-			client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
-			// bzero(client.request, sizeof(char) * BASE_REQUEST_SIZE);
+			client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 			client.capacity = BASE_REQUEST_SIZE;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
-			int reuseaddr = 1;
-			setsockopt(s->get_socket(), SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(int));
+			fcntl(client.socket, F_SETFL, O_NONBLOCK);
             client.last_received = time(NULL);
-			s->insert_client(client);
+			s->clients.push_back(client);
 			if (client.socket < 0) {
 				std::cerr << "accept() failed. (" << errno << ") " << strerror(errno) << std::endl;
 				exit(1);
@@ -60,15 +58,15 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, cha
     std::vector<Server>::iterator end = servers.end();
     while (server != end)
     {
-        std::vector<ClientInfo>::iterator it = server->get_clients().begin();
-        std::vector<ClientInfo>::iterator e = server->get_clients().end();
+        std::vector<ClientInfo>::iterator it = server->clients.begin();
+        std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
             if (FD_ISSET(it->socket, &reads))
             {
                 if (server->receive_request(it, env))
                 {
-                    e = server->get_clients().end();
+                    e = server->clients.end();
                     continue ;
                 }
             }
@@ -79,7 +77,7 @@ void    check_incoming_requests(fd_set &reads, std::vector<Server> &servers, cha
                 {
                     std::cout << "timeout; socket fd :" << it->socket << std::endl;
                     it = server->drop_client(*it);
-                    e = server->get_clients().end();
+                    e = server->clients.end();
                     continue ;
                 }
             }

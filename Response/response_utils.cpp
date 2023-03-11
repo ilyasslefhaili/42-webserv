@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/10 14:09:38 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/11 13:44:23 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     }
     close(fd[1]);
     close(fd[0]);
-    std::cout<<"buff   :::\n"<<buff<<std::endl;
+    // std::cout<<"buff   :::\n"<<buff<<std::endl;
     return buff;
 }
 //get content type 

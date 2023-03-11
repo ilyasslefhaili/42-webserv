@@ -40,8 +40,9 @@ struct ClientInfo {
 	size_t					capacity;
 	size_t					received;
 	time_t 					last_received;
-
-	// std::string				buffer; // use this to remplace request
+	std::string				response;
+	ssize_t 				bytes_sent;
+	ssize_t 				total_bytes_sent;
 	
 };
 
@@ -50,13 +51,15 @@ class	Config;
 
 class Server {
 	private:
-		std::vector<ClientInfo> 			_clients;
 		std::vector<ServerConfig>			_configs;
 		int									_socket;
 		std::string							_port;
 		std::string							_host;
 
 	public:
+
+		std::vector<ClientInfo> 			clients;
+
 		// Server();
 		Server(ServerConfig const &config);
 		~Server();
@@ -88,9 +91,6 @@ class Server {
 		int 									create_socket(const char* host, const char *port);
 
 
-		std::vector<ClientInfo> 				&get_clients();
-		void									insert_client(ClientInfo &client);
-
 		void									add_config(ServerConfig const &config);
 		std::vector<ServerConfig>				&get_configs();
 		int										get_socket() const;
@@ -101,7 +101,6 @@ class Server {
 		void									set_host(std::string &host);
 
 		bool									receive_request(std::vector<ClientInfo>::iterator &it, char **env);
-
 };
 
 

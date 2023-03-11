@@ -20,7 +20,7 @@ Server::Server(const Server & server)
 
 Server & Server::operator=(const Server & server)
 {
-	this->_clients = server._clients;
+	this->clients = server.clients;
 	this->_configs = server._configs;
 	this->_socket = server._socket;
 	this->_port = server._port;
@@ -32,17 +32,17 @@ std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 {
 	std::cout << "closing socket: " << client.socket << std::endl;
 	close(client.socket);
-	std::vector<ClientInfo>::iterator it = _clients.begin();
-	while (it != _clients.end())
+	std::vector<ClientInfo>::iterator it = clients.begin();
+	while (it != clients.end())
 	{
 		if (client.socket == it->socket)
 		{
 			free(it->request);
-			return (_clients.erase(it));
+			return (clients.erase(it));
 		}
 		++it;
 	}
-	return (_clients.end());
+	return (clients.end());
 	// throw client not found ?
 }
 
@@ -72,8 +72,8 @@ fd_set  Server::wait_on_clients(std::vector<Server>  &servers)
 		FD_SET(serv->_socket, &reads);
 		if (serv->get_socket() > max_socket)
 			max_socket = serv->get_socket();
-		std::vector<ClientInfo>::iterator cl = serv->get_clients().begin();
-		while (cl != serv->get_clients().end())
+		std::vector<ClientInfo>::iterator cl = serv->clients.begin();
+		while (cl != serv->clients.end())
 		{
 			FD_SET(cl->socket, &reads);
 			if (cl->socket > max_socket)
@@ -126,7 +126,7 @@ std::vector<ClientInfo>::iterator Server::send_404(ClientInfo &client)
 	send(client.socket, c404, strlen(c404), 0);
 	return drop_client(client);
 }
-
+# define CHUNK_SIZE 4096
 // returns whether the connection should be open or not
 bool		Server::serve_resource(ClientInfo &client, Request &request)
 {
@@ -141,26 +141,31 @@ bool		Server::serve_resource(ClientInfo &client, Request &request)
 		send_404(client);
 		return false;
 	}
-	std::string response = get_response(request, _configs);
-	// fcntl(client.socket, F_SETFL, O_NONBLOCK);
-	ssize_t bytes_sent = 0;
-	ssize_t total_bytes_sent = 0;
-	while (total_bytes_sent < response.size())
+	client.response = get_response(request, _configs);
+	client.bytes_sent = 0;
+	client.total_bytes_sent = 0;
+	while (client.total_bytes_sent < client.response.size())
 	{
-		bytes_sent = send(client.socket, response.c_str() + total_bytes_sent, response.size(), 0);
-		if (bytes_sent < 0)
+		int bytes_to_send = client.response.size() - client.total_bytes_sent;
+		if (bytes_to_send > CHUNK_SIZE)
+			bytes_to_send = CHUNK_SIZE;
+		client.bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
+			bytes_to_send, 0);
+		if (client.bytes_sent < 0)
 		{
 			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
 			return false ;
 		}
-		std::cout << bytes_sent << " bytes were sent " << std::endl;
-		total_bytes_sent += bytes_sent;
+		std::cout << client.bytes_sent << " bytes were sent " << std::endl;
+		client.total_bytes_sent += client.bytes_sent;
 	}
+	std::cout << "client " << client.socket << " received " << client.total_bytes_sent << " bytes." << std::endl;
+
 	if (request._header["Connection"] == "keep-alive")
 	{
 		std::cout << "keeping the connection alive" << std::endl;
 		free(client.request);
-		client.request = (char *) malloc(sizeof(char) * BASE_REQUEST_SIZE);
+		client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 		// bzero(client.request, sizeof(char) * BASE_REQUEST_SIZE);
 		client.capacity = BASE_REQUEST_SIZE;
 		client.received = 0;
@@ -261,17 +266,6 @@ int Server::create_socket(const char* host, const char *port)
 	_socket = socket_listen;
 	return socket_listen;
 }
-
-std::vector<ClientInfo> &Server::get_clients()
-{
-	return _clients;
-}
-
-void	Server::insert_client(ClientInfo &client)
-{
-	_clients.push_back(client);
-}
-
 
 std::vector<ServerConfig>	&Server::get_configs()
 {

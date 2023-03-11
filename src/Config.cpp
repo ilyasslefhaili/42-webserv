@@ -304,6 +304,12 @@ void    Config::parse()
 		{
 			if (handlers.count(_key))
 				(this->*(handlers[_key]))(ss);
+			else if (_key[0] == '#')
+			{
+				// ignore
+				while (ss >> _key);
+				_key = "#";
+			}
 			else
 				throw ConfigFileException();
 			_last_key = _key;
