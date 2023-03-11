@@ -48,7 +48,6 @@ class Config {
 		void						parse_return( std::istringstream &ss );
 		void						parse_methods( std::istringstream &ss );
 		void						parse_cgi_path( std::istringstream &ss );
-		void						parse_cgi_ext( std::istringstream &ss );
 		void						parse_upload( std::istringstream &ss );
 		void						parse_upload_dir( std::istringstream &ss );
 

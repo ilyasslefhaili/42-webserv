@@ -239,15 +239,6 @@ void	Config::parse_cgi_path( std::istringstream &ss)
 	ss >> _current_location._cgi_path;
 }
 
-void	Config::parse_cgi_ext( std::istringstream &ss)
-{
-	if (!_location_bracket_open)
-		throw ConfigFileException();
-	ss >> _current_location._cgi_ext;
-
-}
-
-
 void	Config::parse_upload( std::istringstream &ss )
 {
 	if (!_location_bracket_open)
@@ -291,7 +282,6 @@ void    Config::parse()
 	handlers["return"]					= &Config::parse_return;
 	handlers["allow_methods"]			= &Config::parse_methods;
 	handlers["cgi_path"]				= &Config::parse_cgi_path;
-	handlers["cgi_ext"]					= &Config::parse_cgi_ext;
 	handlers["upload"]					= &Config::parse_upload;
 	handlers["upload_dir"]				= &Config::parse_upload_dir;
 
