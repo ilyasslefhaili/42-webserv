@@ -70,6 +70,7 @@ class Response
         void fill_attributes(Request& re_st);
         void link_root_path(Request& re_st);
         void get_error_page();
+        void check_status_code(std::string& str);
         void set_status(int status);
         int get_status();
         void set_config(ServerConfig& conf);

@@ -92,6 +92,17 @@ void check_the_file_permissions(std::string& path, int *status){
         throw (std::exception());
 }
 
+void Response::check_status_code(std::string& str){
+    if (str.compare(0, 6,"Status") == 0){
+        char s[4];
+        int i = 0;
+        for (i = 0; i < 3;i++)
+            s[i] = str[i + 8];
+        s[i] = '\0';
+        this->_status = atoi(s);
+    }
+}
+
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
         this->_file.open(this->_path);
@@ -105,12 +116,15 @@ void Response::fill_body(){
     }
     else if (this->_status == 200){
         std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-        size_t pos = str.find("\n");
-        str.erase(0, pos + 1);
-        std::cout<< "----"<<str<<std::endl;
-        pos = str.find("\n");
-        this->_body = str.substr(pos + 1, str.size());
-        std::cout<<this->_body<<std::endl;
+        std::cout<<str<<std::endl;
+        this->check_status_code(str);
+        if (this->_status == 301 || this->_status == 200){
+            size_t pos = str.find("\n");
+            str.erase(0, pos + 1);
+            pos = str.find("\r");
+            this->set_content_type(str.substr(0, pos - 1) + "\r\n");
+            this->_body = str.substr(pos + 2, str.size());
+        }
     }
 }
 
@@ -282,8 +296,6 @@ std::string Response::get_content_type(){
     return (_content_type);
 }
 void Response::set_content_type(std::string type){
-    if (_cgi_path.size() == 0)
-        this->_content_type += "Content-Type: ";
     this->_content_type = type;
 }
 void Response::set_status(int status){

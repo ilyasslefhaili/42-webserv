@@ -376,8 +376,11 @@ std::string MimeTypes::get_type(std::string path){
         it = this->_ex_type.begin();
         std::string last_dot = path.substr(pos + 1, path.size() - pos);
         while (it != this->_ex_type.end()){
-            if (it->first == last_dot)
-                return it->second + "\r\n";
+            if (it->first == last_dot){
+                std::string str = "Content-Type: ";
+                str += it->second;
+                return str + "\r\n";
+            }
             it++;
         }
     }

@@ -38,8 +38,10 @@ std::string create_status_line(int status, Request&re_st){
 }
 
 std::string get_content_lenght(Response &a){
-    std::string str = "Content-Length: " + std::to_string(a.get_body().size());
-    return (str + "\r\n");
+    std::string str = "Content-Length: ";
+    str += std::to_string(a.get_body().size());
+    str += "\r\n";
+    return (str);
 }
 
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
@@ -52,7 +54,6 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(a);
     response += "\r\n";
     response += a.get_body();
-    std::cout<<response<<std::endl;
     return response;
 }
 
@@ -98,6 +99,7 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
         close(fd[1]);
         close(fd[0]);
         execve(cgi_path.c_str(), argv, env);
+        write(2, "cgi fail()\n", 12);
         exit(1);
     }
     wait(NULL);
@@ -106,13 +108,14 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     close(fd[1]);
     while (r != 0){
         r = read(fd[0], c, 1);
-        if (r == -1)
+        if (r != 1)
             break ;
         c[1] = '\0';
         buff += c;
     }
     close(fd[1]);
     close(fd[0]);
+    std::cout<<"buff   :::\n"<<buff<<std::endl;
     return buff;
 }
 //get content type 
