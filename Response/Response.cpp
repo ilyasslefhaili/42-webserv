@@ -54,26 +54,31 @@ void  Response::get_files_in_dir(){
 }
 
 void    Response::get_index(){
+   
     if (this->_index.size() > 0){
         this->_file.open(this->_path + this->_index[0]);
         size_t i = 0;
-        while (i < this->_index.size()&& this->_file.fail()){
+        while (i < this->_index.size() && this->_file.fail()){
             this->_file.open(this->_path + this->_index[i]);
+            i++;
         }
-        if (!this->_file.fail())
+        if (!this->_file.fail()){
+            this->_path += this->_index[i];
             this->_file.close();
+        }
         else 
             this->_status = 404;
-        this->_path += this->_index[i];
     }
     else if (this->_autoindex)
     {
         this->get_files_in_dir();
         this->_path += "i.html";
+        this->set_content_type(this->types.get_type(this->_path));  
         throw (std::exception());
     }
     else
         this->_status = 404;
+    
 }
 
 std::string& Response::get_path(){
@@ -106,6 +111,7 @@ void Response::check_status_code(std::string& str){
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
         this->_file.open(this->_path);
+        this->set_content_type(this->types.get_type(this->_path));  
         std::string str;
         while (!this->_file.fail() && !this->_file.eof()){
             std::getline(this->_file, str);
@@ -223,12 +229,7 @@ void    Response::post_method(){
         std::string Upload_file = this->_upload_dir;
         Upload_file += "/upload.";
         Upload_file += this->types.get_extention(this->_content_type);
-        // std::ofstream to_upload;
-        // to_upload.open(Upload_file);
-        // to_upload<<this->_request._body;
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-        // for (int i = 0; i < this->_request._body_len;i++)
-        //     std::cout<<this->_request._body[i];
         std::cout<<std::endl;
         write(fd, this->_request._body, this->_request._body_len);
         if (this->_status == 0)

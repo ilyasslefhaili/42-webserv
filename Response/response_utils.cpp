@@ -69,8 +69,6 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     a->link_root_path(re_st);
     a->get_the_absolute_path();
     if (re_st._method == "GET"){
-        std::cout<<"GET"<<std::endl;
-        a->set_content_type(a->types.get_type(re_st._path));  
         a->fill_attributes(re_st);
     }
     else if (re_st._method == "POST"){
