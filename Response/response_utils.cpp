@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/11 15:21:35 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/11 16:17:42 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,10 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 301 Moved Permanently\r\n");
     else if (status == 401)
         return (re_st._protocol_ver + " 401 Unauthorized\r\n");
+    else if (status == 502)
+        return (re_st._protocol_ver + " 502 Bad Gateway\r\n");
+    else if (status == 403)
+        return (re_st._protocol_ver + " 403 Forbidden\r\n");
     return "";
 }
 
@@ -47,17 +51,19 @@ std::string get_content_lenght(Response &a){
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
     std::cout<<"get_response"<<std::endl;
-    Response &a = get_response_object(re_st, configs);
+    Response *a = get_response_object(re_st, configs);
 
-    response += create_status_line(a.get_status(), re_st);
-    response += a.get_content_type();
-    response += get_content_lenght(a);
+    response += create_status_line(a->get_status(), re_st);
+    response += a->get_content_type();
+    response += get_content_lenght(*a);
     response += "\r\n";
-    response += a.get_body();
+    response += a->get_body();
+    delete a;
+    std::cout<<response<<std::endl;
     return response;
 }
 
-Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
+Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response(re_st);
 
     
@@ -67,8 +73,6 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     a->link_root_path(re_st);
     a->get_the_absolute_path();
     if (re_st._method == "GET"){
-        std::cout<<"GET"<<std::endl;
-        a->set_content_type(a->types.get_type(re_st._path));  
         a->fill_attributes(re_st);
     }
     else if (re_st._method == "POST"){
@@ -81,9 +85,9 @@ Response& get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     }
     catch(const std::exception& e)
     {
-        return (*a);
+        return (a);
     }
-    return *a;
+    return a;
 }
 
 std::string cgi_execute(std::string cgi_path, std::string file, char **env){
@@ -91,7 +95,6 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     int for_k;
     std::string buff;
     char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
-
     pipe(fd);
     for_k = fork(); 
     if (for_k == 0){
@@ -115,7 +118,6 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     }
     close(fd[1]);
     close(fd[0]);
-    // std::cout<<"buff   :::\n"<<buff<<std::endl;
     return buff;
 }
 //get content type 
