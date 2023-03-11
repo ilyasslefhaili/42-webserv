@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/11 13:44:23 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/11 15:21:35 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 301 Moved Permanently\r\n");
     else if (status == 401)
         return (re_st._protocol_ver + " 401 Unauthorized\r\n");
-    else if (status == 502)
-        return (re_st._protocol_ver + " 502 Bad Gateway\r\n");
     return "";
 }
 
