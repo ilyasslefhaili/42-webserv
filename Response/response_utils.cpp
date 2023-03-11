@@ -52,14 +52,12 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
     std::cout<<"get_response"<<std::endl;
     Response *a = get_response_object(re_st, configs);
-
     response += create_status_line(a->get_status(), re_st);
     response += a->get_content_type();
     response += get_content_lenght(*a);
     response += "\r\n";
     response += a->get_body();
     delete a;
-    // std::cout<<response<<std::endl;
     return response;
 }
 

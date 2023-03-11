@@ -73,12 +73,10 @@ void    Response::get_index(){
     {
         this->get_files_in_dir();
         this->_path += "i.html";
-        this->set_content_type(this->types.get_type(this->_path));  
         throw (std::exception());
     }
     else
         this->_status = 404;
-    
 }
 
 std::string& Response::get_path(){
@@ -111,7 +109,6 @@ void Response::check_status_code(std::string& str){
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
         this->_file.open(this->_path);
-        this->set_content_type(this->types.get_type(this->_path));  
         std::string str;
         while (!this->_file.fail() && !this->_file.eof()){
             std::getline(this->_file, str);
@@ -130,7 +127,6 @@ void Response::fill_body(){
                     size_t pos = str.find("\n");
                     str.erase(0, pos + 1);
                     pos = str.find("\r");
-                    this->set_content_type(str.substr(0, pos - 1) + "\r\n");
                     this->_body = str.substr(pos + 2, str.size());
                 }
             }
@@ -154,11 +150,9 @@ void Response::in_case_of_return(){
                 {
                     check_the_file_permissions(this->_path, &this->_status);
                 }
-                catch(const std::exception& e)
-                {
+                catch(const std::exception& e){
                     this->_status = 404;
                 }
-                this->set_content_type(types.get_type(this->_path));  
                 this->fill_body();    
             }
             else{
@@ -186,8 +180,9 @@ void Response::fill_attributes(Request& re_st){
         check_the_file_permissions(this->_path, &this->_status);
     }
     catch(const std::exception& e){
-        std::cout<<"file not found"<<std::endl;
+        this->_body = "Not found 404";
         this->_status = 404;
+        this->_content_type = "text/html";
         return ;
     }
     if (this->_status == 0)
@@ -200,7 +195,7 @@ void    Response::get_index_in_post(){
         size_t i = 0;
         while (i < this->_index.size()){
             if (access((this->_path + this->_index[0]).c_str(), F_OK) == -1)
-                 this->_status = 404;
+                    this->_status = 404;
             else{
                 this->_path += this->_index[i];
                 return;
@@ -251,8 +246,7 @@ void    Response::post_method(){
                 this->_status = 502;
         }
         else
-            this->_status = 404;
-        
+            this->_status = 404;  
     }
     else 
         this->_status = 403;
@@ -319,13 +313,19 @@ void    Response::get_the_absolute_path(){
 }
 
 std::string Response::get_body(){
+    if (this->_status >= 400)
+        return std::to_string(this->_status);
     return _body;
 }
 void Response::set_body(std::string body){
     this->_body = body;
 }
 std::string Response::get_content_type(){
-    return (_content_type);
+    if (this->_status >= 400)
+        return ("Content-Type: text/html");
+    else if (this->_request._method == "POST")
+        return ("");
+    return (this->types.get_type(this->_path));
 }
 void Response::set_content_type(std::string type){
     this->_content_type = type;
