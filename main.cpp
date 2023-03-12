@@ -34,6 +34,8 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
 			client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 			client.capacity = BASE_REQUEST_SIZE;
 			client.still_receiving = false;
+			client.still_saving = false;
+			client.fd = -1;
 			client.received = 0;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
@@ -73,7 +75,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
                     continue ;
                 }
             }
-			else if (FD_ISSET(it->socket, &fds.second) && it->still_receiving)
+			else if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
 			{
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
@@ -82,6 +84,35 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 					e = server->clients.end();
                     continue ;
 				}
+			}
+			else if (it->still_saving && FD_ISSET(it->fd, &fds.second))
+			{
+				std::cout << "trying again" << std::endl;
+				ssize_t r;
+				while (it->total_bytes_saved < it->request_obj->_body_len)
+				{
+					size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
+					if (bytes_to_write > CHUNK_SIZE)
+						bytes_to_write = CHUNK_SIZE;
+					r = write(it->fd, it->request_obj->_body.c_str() + it->total_bytes_saved,
+						bytes_to_write);
+					if (r < 0)
+					{
+						it->still_saving = true;
+           				++it;
+						continue;
+					}
+					it->total_bytes_saved += r;
+					std::cout << "bytes were saved: " << r << std::endl;
+				}
+				std::cout << "finished" << std::endl;
+				it->still_saving = false;
+				it->still_receiving = true;
+				it->total_bytes_saved = 0;
+				it->fd = -1;
+
+				// handle if done
+
 			}
 			else
 			{

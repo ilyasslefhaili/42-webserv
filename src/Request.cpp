@@ -2,7 +2,7 @@
 
 #include "Request.hpp"
 
-Request::Request(const Request &src)
+Request::Request(const Request &src) : _client(src._client)
 {
 	*this = src;
 }
@@ -34,7 +34,8 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
     }
 }
 
-Request::Request(const char *request, size_t length)
+Request::Request(const char *request, size_t length, ClientInfo &client)
+	: _client(client)
 {
     parse_request(request, length);
 }

@@ -9,7 +9,8 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-# include <cstring>
+#include <cstring>
+#include "ClientInfo.hpp"
 
 
 class Request {
@@ -24,6 +25,7 @@ class Request {
 		// char								*_body;
 		size_t								_body_len;
 		std::string 						_path;
+		ClientInfo							&_client;
 		// SESSION ?
 
 
@@ -31,7 +33,7 @@ class Request {
 		void		get_method_and_path(std::string &line);
 
 	public:
-		Request(const char *request, size_t length);
+		Request(const char *request, size_t length, ClientInfo &client);
 		Request(const Request &src);
 		Request & operator=(const Request &rhs);
 		~Request();
