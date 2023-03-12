@@ -72,7 +72,6 @@ void	Config::print()
 			for (int i = 0; i < lo->_allowed_methods.size(); i++)
 				std::cout << "	" << lo->_allowed_methods[i] << std::endl;
 			std::cout << "	" << "_cgi_path: " << lo->_cgi_path << std::endl;
-			std::cout << "	" << "_cgi_ext: " << lo->_cgi_ext << std::endl;
 			++lo;
 		}
 
