@@ -180,9 +180,7 @@ void Response::fill_attributes(Request& re_st){
         check_the_file_permissions(this->_path, &this->_status);
     }
     catch(const std::exception& e){
-        this->_body = "Not found 404";
         this->_status = 404;
-        this->_content_type = "text/html";
         return ;
     }
     if (this->_status == 0)
@@ -320,7 +318,7 @@ void    Response::get_the_absolute_path(){
 
 std::string Response::get_body(){
     if (this->_status >= 400)
-        return std::to_string(this->_status);
+        this->_body =  std::to_string(this->_status);
     return _body;
 }
 void Response::set_body(std::string body){
@@ -328,7 +326,7 @@ void Response::set_body(std::string body){
 }
 std::string Response::get_content_type(){
     if (this->_status >= 400)
-        return ("Content-Type: text/html");
+        return ("Content-Type: text/html\r\n");
     else if (this->_request._method == "POST")
         return ("");
     return (this->types.get_type(this->_path));
