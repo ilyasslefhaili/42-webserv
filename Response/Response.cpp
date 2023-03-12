@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/11 17:20:28 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/12 15:57:52 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,8 +215,14 @@ void    Response::post_method(){
         std::string Upload_file = this->_upload_dir;
         Upload_file += "/upload.";
         Upload_file += this->types.get_extention(this->_content_type);
+		std::cout<<"-------"<<Upload_file<<std::endl;
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-        write(fd, this->_request._body, this->_request._body_len);
+		// fcntl(fd, F_SETFL, O_NONBLOCK);
+        ssize_t r = write(fd, this->_request._body.c_str(), this->_request._body_len);
+		// if (r == -1)
+		// {
+			// std::cout << "would block" << std::endl;
+		// }
         
         if (this->_status == 0)
             this->_status = 201;

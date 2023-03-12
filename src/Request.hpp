@@ -8,6 +8,8 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <sstream>
+# include <cstring>
 
 
 class Request {
@@ -18,8 +20,8 @@ class Request {
 		std::string							_method;
 		std::string							_protocol_ver;	//ver of HTTP protocol
 		std::map<std::string, std::string>	_header;
-		// std::string							_body;
-		char								*_body;
+		std::string							_body;
+		// char								*_body;
 		size_t								_body_len;
 		std::string 						_path;
 		// SESSION ?

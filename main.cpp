@@ -33,8 +33,8 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
             client.address_length = sizeof(client.address);
 			client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 			client.capacity = BASE_REQUEST_SIZE;
-			client.request_obj = nullptr;
 			client.still_receiving = false;
+			client.received = 0;
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
@@ -66,15 +66,17 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         {
             if (FD_ISSET(it->socket, &fds.first))
             {
-                if (server->receive_request(it, env, fds))
+                bool r = server->receive_request(it, env, fds); // return whether should close connection or not
+				if (r)
                 {
                     e = server->clients.end();
                     continue ;
                 }
             }
-			else if (FD_ISSET(it->socket, &fds.second))
+			else if (FD_ISSET(it->socket, &fds.second) && it->still_receiving)
 			{
-				if (it->still_receiving && !server->send_data(*it))
+				bool r = server->send_data(*it); // if true keep connection
+				if (!r)
 				{
 				    it = server->drop_client(*it);
 					e = server->clients.end();
@@ -83,7 +85,6 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			}
 			else
 			{
-                // check timeout
                 if (time(NULL) - it->last_received > TIMEOUT)
                 {
                     std::cout << "timeout; socket fd :" << it->socket << std::endl;

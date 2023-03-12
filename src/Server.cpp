@@ -210,8 +210,13 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		it->capacity - it->received, 0);
 	if (r < 1)
 	{
-		std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
-		std::cerr << strerror(errno) << std::endl;
+		if (r == 0)
+			std::cout << "Connection was closed by the other end" << std::endl;
+		else
+		{
+			std::cout << "Unexpected disconnect from " << this->get_client_address(*it) << std::endl;
+			std::cerr << strerror(errno) << std::endl;
+		}
 		it = this->drop_client(*it);
 		return true ;
 	}

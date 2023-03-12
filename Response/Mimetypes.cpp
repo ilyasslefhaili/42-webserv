@@ -366,7 +366,7 @@ std::string MimeTypes::get_extention(std::string type){
             return it->first;
         it++;
     }
-    return type;
+    return "";
 }
 
 std::string MimeTypes::get_type(std::string path){

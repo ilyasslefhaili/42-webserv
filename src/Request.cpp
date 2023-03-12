@@ -84,18 +84,18 @@ void    Request::print_request() const
 // Accept-Encoding: gzip, deflate, br
 // Connection: keep-alive
 
-# include <cstring>
 
 void    Request::parse_request(const char *request, size_t length)
 {
     std::string req(request, length);
     int pos = req.find("\r\n\r\n");
-    if (pos == std::string::npos)
-        return ;
     std::string header = req.substr(0, pos + 1);
 
 	const char *s = strnstr(request, "\r\n\r\n", length);
-	_body = (char *) (s + 4);
+	// _body = (char *) (s + 4);
+	_body = req.substr(pos + 4, req.size());
+	std::cout << "check req size " << req.size() << std::endl;
+	std::cout << "check _body size " << _body.size() << std::endl;
 
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
@@ -108,11 +108,40 @@ void    Request::parse_request(const char *request, size_t length)
         if (pos != std::string::npos)
         {
             std::string value = strings[i].substr(pos + 2);
-            _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to rmeove the \r
+            _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to remove the \r
         }
     }
-	_body_len = atoi(_header["Content-Length"].c_str());
-    // print_request();
+
+	// std::string str_body(_body, _body_len);
+	if (_header["Transfer-Encoding"] == "Chunked")
+	{
+		std::string new_body = "";
+		int pos = _body.find("\r\n");
+		while (pos != std::string::npos)
+		{
+			std::string len_str = _body.substr(0, pos);
+			unsigned int len;
+			std::cout << "len_str " << len_str << std::endl;
+			std::stringstream ss(len_str);
+			ss << std::hex; ss >> len;
+			std::cout << "len_str in decimal " << len << std::endl;
+			if (len == 0)
+				break ;
+			_body = _body.substr(len_str.length() + 2); // skip both length and \r\n
+			new_body += _body.substr(0, len);
+			_body = _body.substr(len + 2);
+			pos = _body.find("\r\n");
+		}
+		// new_body += "\r\n";
+		_body = new_body;
+		_body_len = _body.size();
+		// std::cout  << _body << std::endl;
+	}
+	else
+		_body_len = atoi(_header["Content-Length"].c_str());
+
+
+
 }
 
 bool Request::request_is_complete(const char* buffer, size_t length)
