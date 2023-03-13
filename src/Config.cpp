@@ -168,7 +168,7 @@ void	Config::parse_error_page( std::istringstream &ss)
 		throw ConfigFileException();
 	std::map<int, std::string>	*_error_pages;
 
-	if (_location_bracket_open)
+	if (!_location_bracket_open)
 		_error_pages = &_current._error_pages;
 	else
 		_error_pages = &_current_location._error_pages;

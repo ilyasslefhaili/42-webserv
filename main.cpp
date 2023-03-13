@@ -22,6 +22,7 @@
 void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<Server> &servers)
 {
     fds = Server::wait_on_clients(servers);
+	// std::cout << "select again" << std::endl;
     std::vector<Server>::iterator s = servers.begin();
     std::vector<Server>::iterator ite = servers.end();
     while (s != ite)
@@ -66,16 +67,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-            if (FD_ISSET(it->socket, &fds.first))
-            {
-                bool r = server->receive_request(it, env, fds); // return whether should close connection or not
-				if (r)
-                {
-                    e = server->clients.end();
-                    continue ;
-                }
-            }
-			else if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
+			if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
 			{
 				std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
@@ -90,30 +82,38 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			{
 				std::cout << "savin file" << std::endl;
 				ssize_t r;
-				while (it->total_bytes_saved < it->request_obj->_body_len)
+				bool failed = false;
+				size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
+				if (bytes_to_write > CHUNK_SIZE_SAVE)
+					bytes_to_write = CHUNK_SIZE_SAVE;
+				r = write(it->fd, it->request_obj->_body.c_str() + it->total_bytes_saved,
+					bytes_to_write);
+				if (r < 0)
 				{
-					size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
-					if (bytes_to_write > CHUNK_SIZE)
-						bytes_to_write = CHUNK_SIZE;
-					r = write(it->fd, it->request_obj->_body.c_str() + it->total_bytes_saved,
-						bytes_to_write);
-					if (r < 0)
-					{
-						std::cout << "gonna try later " << std::endl;
-						it->still_saving = true;
-           				++it;
-						continue;
-					}
-					it->total_bytes_saved += r;
-					std::cout << "bytes were saved: " << r << std::endl;
+					server->drop_client(*it);
+					e = server->clients.end();
+                    continue ;
 				}
-				std::cout << "finished" << std::endl;
-				it->still_saving = false;
-				it->still_receiving = true;
-				it->total_bytes_saved = 0;
-				close(it->fd);
-				it->fd = -1;
+				it->total_bytes_saved += r;
+				std::cout << "bytes were saved: " << r << std::endl;
+				if (it->total_bytes_saved == it->request_obj->_body_len)
+				{
+					it->still_saving = false;
+					close(it->fd);
+					it->fd = -1;
+					it->total_bytes_saved = 0;
+					it->still_receiving = true;
+				}
 			}
+			else if (FD_ISSET(it->socket, &fds.first))
+            {
+                bool r = server->receive_request(it, env, fds); // return whether should close connection or not
+				if (r)
+                {
+                    e = server->clients.end();
+                    continue ;
+                }
+            }
 			else
 			{
                 if (time(NULL) - it->last_received > TIMEOUT)

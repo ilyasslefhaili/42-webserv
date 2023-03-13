@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/12 18:25:37 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/13 16:12:11 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ class Response
         bool                                                _upload;
         std::string                                         _upload_dir;
         std::pair<int, std::string>                 		_ret;
-
+		static size_t										_change_name;
     public:
         MimeTypes   types;
         std::string get_body();

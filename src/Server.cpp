@@ -37,7 +37,7 @@ std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 	{
 		if (client.socket == it->socket)
 		{
-			free(it->request_obj);
+			delete it->request_obj;
 			free(it->request);
 			return (clients.erase(it));
 		}
@@ -72,7 +72,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 	while (serv != servers.end())
 	{
 		FD_SET(serv->_socket, &reads);
-		FD_SET(serv->_socket, &writes);
+		// FD_SET(serv->_socket, &writes);
 		if (serv->get_socket() > max_socket)
 			max_socket = serv->get_socket();
 		std::vector<ClientInfo>::iterator cl = serv->clients.begin();
@@ -84,7 +84,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 				max_socket = cl->socket;
 			if (cl->fd != -1)
 			{
-				FD_SET(cl->fd, &reads);
+				// FD_SET(cl->fd, &reads);
 				FD_SET(cl->fd, &writes);
 				if (cl->fd > max_socket)
 					max_socket = cl->fd;
@@ -167,8 +167,8 @@ bool		Server::send_data(ClientInfo &client)
 	while (client.total_bytes_sent < client.response.size())
 	{
 		size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
-		if (bytes_to_send > CHUNK_SIZE)
-			bytes_to_send = CHUNK_SIZE;
+		if (bytes_to_send > CHUNK_SIZE_SEND)
+			bytes_to_send = CHUNK_SIZE_SEND;
 		client.bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
 			bytes_to_send, 0);
 		if (client.bytes_sent < 0)
@@ -271,10 +271,10 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 			send_413(*it);
 			return true;
 		}
-		std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
+		// std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
-			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
 				delete it->request_obj;
 			it->request_obj = new Request(it->request, it->received, *it);

@@ -19,8 +19,9 @@
 # define BSIZE 1024
 # define BASE_REQUEST_SIZE 10000000
 # define TIMEOUT 60
-# define CHUNK_SIZE 10000000
-# define MAX_REQUEST_SIZE 1000000000
+# define CHUNK_SIZE_SEND 1000000
+# define CHUNK_SIZE_SAVE 10000
+# define MAX_REQUEST_SIZE 1000000000 // 1gb
 
 # include "Location.hpp"
 # include <iostream>

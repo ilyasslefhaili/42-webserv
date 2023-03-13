@@ -40,7 +40,10 @@ Request::Request(const char *request, size_t length, ClientInfo &client)
     parse_request(request, length);
 }
 
-Request::~Request() {}
+Request::~Request() {
+	// std::cout << this->_path  << " " << this->_client.socket << std::endl;
+	// std::cout << "request is destructed " << std::endl;
+}
 
 // GET /fish.png HTTP/1.1
 void    Request::get_method_and_path(std::string &line)
@@ -140,7 +143,7 @@ void    Request::parse_request(const char *request, size_t length)
 	}
 	else
 		_body_len = atoi(_header["Content-Length"].c_str());
-	print_request();
+	// print_request();
 
 
 

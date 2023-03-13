@@ -6,12 +6,13 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/13 14:35:54 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/13 19:51:37 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
+size_t Response::_change_name = 0;
 
 void Response::fill_directive(){
     _root = _configs._root;
@@ -223,40 +224,19 @@ void    Response::get_index_in_post(){
 void    Response::post_method(){  
     if (this->_upload){
         std::string Upload_file = this->_upload_dir;
-        Upload_file += "/upload.";
+        Upload_file += "/upload" + std::to_string(this->_change_name);
+		this->_change_name++;
         Upload_file += this->types.get_extention(this->_content_type);
-		std::cout<<"-------"<<Upload_file<<std::endl;
-        int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
+		// std::cout<<"-------"<<Upload_file<<std::endl;
+        int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
 		fcntl(fd, F_SETFL, O_NONBLOCK);
+
 		_request._client.fd = fd;
 		_request._client.still_saving = true;
 		_request._client.total_bytes_saved = 0;
-		// ssize_t r;
-		// std::cout << "saving start " << std::endl;
-		// while (_request._client.total_bytes_saved < _request._body_len)
-		// {
-		// 	size_t bytes_to_write = _request._body_len - _request._client.total_bytes_saved;
-		// 	if (bytes_to_write > CHUNK_SIZE)
-		// 		bytes_to_write = CHUNK_SIZE;
-        // 	r = write(fd, _request._body.c_str() + _request._client.total_bytes_saved,
-		// 				bytes_to_write);
-		// 	if (r < 0)
-		// 	{
-		// 		std::cout << "shit it would block" << std::endl;
-		// 		_request._client.still_saving = true;
-		// 		_request._client.fd = fd;
-		// 		return ;
-		// 	}
-		// 	_request._client.total_bytes_saved += r;
-		// 	std::cout << "bytes were saved: " << r << std::endl;
-		// }
-		// std::cout << "finished" << std::endl;
-		// _request._client.still_saving = false;
-		// _request._client.total_bytes_saved = 0;
-		// _request._client.fd = -1;
+		
         if (this->_status == 0)
             this->_status = 201;
-        close(fd);
     }
     else if (this->_cgi_path.size() > 0)
     {
@@ -359,7 +339,7 @@ void Response::set_body(std::string body){
 }
 std::string Response::get_content_type(){
     if (this->_status >= 400)
-        return ("Content-Type: text/html");
+        return ("Content-Type: text/html\r\n");
     else if (this->_request._method == "POST")
         return ("");
     else if (this->_request._method == "DELETE")
@@ -393,7 +373,7 @@ ServerConfig& Response::get_config(){
     return (this->_configs);
 }
 Response::Response(Request& re_st) : _request(re_st){
-    this->_status = 0;
+	this->_status = 0;
     this->_check_location = false;
 }
 

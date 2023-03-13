@@ -363,7 +363,7 @@ std::string MimeTypes::get_extention(std::string type){
      std::map<std::string , std::string>::iterator it = this->_ex_type.begin();
      while (it != this->_ex_type.end()){
         if (it->second == type)
-            return it->first;
+            return "." + it->first;
         it++;
     }
     return "";
