@@ -115,15 +115,21 @@ void get_content_type_from_cgi(){
 
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
-        this->_file.open(this->_path);
-        std::string str;
-        while (!this->_file.fail() && !this->_file.eof()){
-            std::getline(this->_file, str);
-            this->_body += str;
-            if (!this->_file.eof())
-                this->_body += "\n";
-        }
-        this->_file.close();
+            //the old method for getting;;;;;;
+            this->_file.open(this->_path);
+            std::string str;
+            while (!this->_file.fail() && !this->_file.eof()){
+                std::getline(this->_file, str);
+                this->_body += str;
+                if (!this->_file.eof())
+                    this->_body += "\n";
+            }
+            this->_file.close();
+            //the new mtehod for getting ;;;;;;;;
+            // if (this->_request._client.fd != -1)
+                // close(this->_request._client.fd);
+            // this->_request._client.fd = open(this->_path.c_str(), O_RDONLY);
+            // this->_request._client.still_saving = true;
     }
     else{
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
