@@ -18,7 +18,8 @@ void Response::fill_directive(){
     _root = _location._root.size() > 0 ? _location._root : _configs._root;
     _index = _configs._index;
     _index = _location._index.size() > 0 ? _location._index : _configs._index;
-    _allowed_methods = _location._allowed_methods;
+    _allowed_methods = _configs._allowed_methods;
+    _allowed_methods =_location._allowed_methods.size() > 0 ? _location._allowed_methods : _configs._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
     _autoindex = _location._autoindex;
@@ -32,7 +33,7 @@ void  Response::get_files_in_dir(){
     DIR*            dir;
     struct dirent*  to_incriment;
 
-    dir = opendir(this->_path.c_str());
+    dir = opendir(this->_path.c_str()); 
     to_incriment = readdir(dir);
     _body = "<html>\n";
     _body += "<head>Index ";
