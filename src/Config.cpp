@@ -399,8 +399,6 @@ void	Config::init_if_not_set()
 			_configs[i]._host = "127.0.0.1";
 		if (_configs[i]._server_name == "")
 			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hostname
-		if (_configs[i]._error_pages.empty())
-			_configs[i]._error_pages[404] = "public/error/404.html";
 		if (_configs[i]._max_body == 0)
 			_configs[i]._max_body = 1024;
 		for (int j = 0; j < _configs[i]._locations.size(); j++)
