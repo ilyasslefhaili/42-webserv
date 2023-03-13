@@ -4,9 +4,12 @@
 #include "Mimetypes.hpp"
 int main(int ac, char **av, char **env)
 {  
-    MimeTypes l;
 
     (void)av;
+    (void)env;
+
+    std::string str = "./a.out.dSYM";
+    // std::cout<<isDirectory(str)<<std::endl;
+    delete_folder(str);
     ac = 0;
-    std::cout<<cgi_execute("../php-cgi", "../i.php", env)<<std::endl;
 }

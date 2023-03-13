@@ -15,11 +15,10 @@
 
 bool isDirectory(std::string& path){
 	// std::cout << path << std::endl;
-    DIR*  dir = opendir(path.c_str());
-    if (dir != NULL){
-        closedir(dir);
+    struct stat statbuf;
+    stat(path.c_str(), &statbuf);
+    if (S_ISDIR(statbuf.st_mode))
         return true;
-    }
     return false;
 }
 
@@ -38,6 +37,12 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 502 Bad Gateway\r\n");
     else if (status == 403)
         return (re_st._protocol_ver + " 403 Forbidden\r\n");
+    else if (status == 204)
+        return (re_st._protocol_ver + " 204 No Content\r\n");
+    else if (status == 500)
+        return (re_st._protocol_ver + " 500 Internal Server Error\r\n");
+    else if (status == 409)
+        return (re_st._protocol_ver + " 409 Conflict\r\n");
     return "";
 }
 
@@ -57,6 +62,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(*a);
     response += "\r\n";
     response += a->get_body();
+    std::cout<<response<<std::endl;
     delete a;
     return response;
 }
@@ -76,6 +82,9 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     else if (re_st._method == "POST"){
         std::cout<<"POST"<<std::endl;
         a->post_method();
+    }else if (re_st._method == "DELETE"){
+        std::cout<<"DELETE"<<std::endl;
+        a->delete_response();
     }
     try
     {
@@ -92,30 +101,33 @@ std::string cgi_execute(std::string cgi_path, std::string file, char **env){
     int fd[2];
     int for_k;
     std::string buff;
-    char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
-    pipe(fd);
-    for_k = fork(); 
-    if (for_k == 0){
-        dup2(fd[1], 1);
+    if (access(file.c_str(), F_OK) != -1)
+    {
+        char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
+        pipe(fd);
+        for_k = fork(); 
+        if (for_k == 0){
+            dup2(fd[1], 1);
+            close(fd[1]);
+            close(fd[0]);
+            execve(cgi_path.c_str(), argv, env);
+            write(2, "cgi fail()\n", 12);
+            exit(1);
+        }
+        wait(NULL);
+        char c[2];
+        int r = 1;
+        close(fd[1]);
+        while (r != 0){
+            r = read(fd[0], c, 1);
+            if (r != 1)
+                break ;
+            c[1] = '\0';
+            buff += c;
+        }
         close(fd[1]);
         close(fd[0]);
-        execve(cgi_path.c_str(), argv, env);
-        write(2, "cgi fail()\n", 12);
-        exit(1);
     }
-    wait(NULL);
-    char c[2];
-    int r = 1;
-    close(fd[1]);
-    while (r != 0){
-        r = read(fd[0], c, 1);
-        if (r != 1)
-            break ;
-        c[1] = '\0';
-        buff += c;
-    }
-    close(fd[1]);
-    close(fd[0]);
     return buff;
 }
 //get content type 
@@ -175,3 +187,4 @@ ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     }
     return (configs[0]);
 }
+

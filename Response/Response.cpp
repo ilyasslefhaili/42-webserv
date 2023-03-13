@@ -51,6 +51,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
+    closedir(dir);
 }
 
 void    Response::get_index(){
@@ -106,6 +107,10 @@ void Response::check_status_code(std::string& str){
     }
 }
 
+void get_content_type_from_cgi(){
+
+}
+
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
         this->_file.open(this->_path);
@@ -116,25 +121,30 @@ void Response::fill_body(){
             if (!this->_file.eof())
                 this->_body += "\n";
         }
+        this->_file.close();
     }
     else{
-        if (access(this->_cgi_path.c_str(), F_OK) != -1){
-            if (access(this->_cgi_path.c_str(), X_OK) != -1){
-                std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                // std::cout<<str<<std::endl;
-                this->check_status_code(str);
-                if (this->_status == 301 || this->_status == 200){
-                    size_t pos = str.find("\n");
-                    str.erase(0, pos + 1);
-                    pos = str.find("\r");
-                    this->_body = str.substr(pos + 2, str.size());
+            if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
+                if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                    std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                    this->check_status_code(str);
+                    if (this->_status == 301 || this->_status == 200){
+                        size_t pos = str.find("\n");
+                        this->_content_type = str.substr(0, pos + 1);
+                        str.erase(0, pos + 1);
+                        if (strncmp(this->_content_type.c_str(), "Content-Type:", 13) != 0){
+                            size_t pos = str.find("\n");
+                            this->_content_type = str.substr(0, pos + 1);
+                            str.erase(0, pos + 1);
+                        }
+                        this->_body = str;
+                    }
                 }
+                else
+                    this->_status = 502;
             }
             else
-                this->_status = 502;
-        }
-        else
-            this->_status = 404;
+                this->_status = 404;
     }
 }
 
@@ -246,6 +256,7 @@ void    Response::post_method(){
 		// _request._client.fd = -1;
         if (this->_status == 0)
             this->_status = 201;
+        close(fd);
     }
     else if (this->_cgi_path.size() > 0)
     {
@@ -277,7 +288,6 @@ void    Response::post_method(){
     else 
         this->_status = 403;
     this->_content_type = "";
-
 }
 
 void Response::get_error_page(){
@@ -296,6 +306,7 @@ void Response::get_error_page(){
                 this->_body += "\n";
         }
    }
+   error.close();
 }
 
 int     compare_str(std::string a, std::string b){
@@ -351,6 +362,10 @@ std::string Response::get_content_type(){
         return ("Content-Type: text/html");
     else if (this->_request._method == "POST")
         return ("");
+    else if (this->_request._method == "DELETE")
+        return ("");
+    else if (this->_cgi_path.size() > 0)
+        return (this->_content_type);
     return (this->types.get_type(this->_path));
 }
 void Response::set_content_type(std::string type){
@@ -384,4 +399,66 @@ Response::Response(Request& re_st) : _request(re_st){
 
 Response::~Response()
 {
+}
+
+bool check_empty_dir(std::string path){
+    struct stat dir_info;
+
+    stat(path.c_str(), &dir_info);
+    if (dir_info.st_size == 68)
+        return true;
+    return false;
+}
+
+bool delete_folder(std::string path){
+    DIR*  dir = opendir(path.c_str());
+
+    struct  dirent *rdd;
+    while ((rdd = readdir(dir))){    
+        if (strcmp(rdd->d_name, ".") != 0 && strcmp(rdd->d_name, "..") != 0){
+            std::string str = path + "/";
+            str += rdd->d_name;
+            if (isDirectory(str)){
+                if (!check_empty_dir(str)){
+                    if (delete_folder(str) == false)
+                        return false;
+                    if (rmdir(str.c_str()) == -1)
+                        return false;
+                }
+                else{
+                    if (rmdir(str.c_str()) == -1)
+                        return false;
+                    return true;
+                }
+            }else{
+                if (unlink(str.c_str()) == -1)
+                    return (false);
+            }
+        }
+    }
+    return true;
+}
+
+void Response::delete_response(){
+    if (access(this->_path.c_str(), F_OK) == 0){
+        if (isDirectory(this->_path)){
+            if (this->_path[this->_path.size() - 1]!= '/'){
+                this->_status = 409;
+            }
+            else if (access(this->_path.c_str(), W_OK) != 0){
+                this->_status = 403;
+            }
+            else{
+                if (!delete_folder(this->_path))
+                    this->_status = 500;
+                else
+                    this->_status = 204;
+            }
+        }else{
+            unlink(this->_path.c_str());
+            this->_status = 204;
+        }
+    }
+    else 
+        this->_status = 404;
 }
