@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/12 15:57:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/12 22:18:53 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,7 +190,9 @@ void Response::fill_attributes(Request& re_st){
         check_the_file_permissions(this->_path, &this->_status);
     }
     catch(const std::exception& e){
+        this->_body = "Not found 404";
         this->_status = 404;
+        this->_content_type = "text/html";
         return ;
     }
     if (this->_status == 0)
@@ -225,12 +227,30 @@ void    Response::post_method(){
         Upload_file += this->types.get_extention(this->_content_type);
 		std::cout<<"-------"<<Upload_file<<std::endl;
         int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-		// fcntl(fd, F_SETFL, O_NONBLOCK);
-        ssize_t r = write(fd, this->_request._body.c_str(), this->_request._body_len);
-		if (r == -1)
+		fcntl(fd, F_SETFL, O_NONBLOCK);
+		ssize_t r;
+		std::cout << "saving start " << std::endl;
+		while (_request._client.total_bytes_saved < _request._body_len)
 		{
-			std::cout << "would block" << std::endl;
+			size_t bytes_to_write = _request._body_len - _request._client.total_bytes_saved;
+			if (bytes_to_write > CHUNK_SIZE)
+				bytes_to_write = CHUNK_SIZE;
+        	r = write(fd, _request._body.c_str() + _request._client.total_bytes_saved,
+						bytes_to_write);
+			if (r < 0)
+			{
+				std::cout << "shit it would block" << std::endl;
+				_request._client.still_saving = true;
+				_request._client.fd = fd;
+				return ;
+			}
+			_request._client.total_bytes_saved += r;
+			std::cout << "bytes were saved: " << r << std::endl;
 		}
+		std::cout << "finished" << std::endl;
+		_request._client.still_saving = false;
+		_request._client.total_bytes_saved = 0;
+		_request._client.fd = -1;
         if (this->_status == 0)
             this->_status = 201;
         close(fd);
@@ -328,7 +348,7 @@ void    Response::get_the_absolute_path(){
 
 std::string Response::get_body(){
     if (this->_status >= 400)
-        this->_body =  std::to_string(this->_status);
+        return std::to_string(this->_status);
     return _body;
 }
 void Response::set_body(std::string body){
@@ -336,7 +356,7 @@ void Response::set_body(std::string body){
 }
 std::string Response::get_content_type(){
     if (this->_status >= 400)
-        return ("Content-Type: text/html\r\n");
+        return ("Content-Type: text/html");
     else if (this->_request._method == "POST")
         return ("");
     else if (this->_request._method == "DELETE")

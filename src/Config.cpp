@@ -97,6 +97,8 @@ void	Config::parse_open_accolade(std::istringstream &ss)
 		_location_bracket_open = true;
 		_parsing_location = true;
 	}
+	else
+		throw ConfigFileException();
 }
 
 void	Config::parse_close_accolade(std::istringstream &ss)
@@ -112,29 +114,35 @@ void	Config::parse_close_accolade(std::istringstream &ss)
 		_configs.push_back(_current);
 		_server_bracket_open = false;
 	}
+	else
+		throw ConfigFileException();
 }
 
 void	Config::parse_listen(std::istringstream &ss)
 {
-	if (_location_bracket_open)
+	if (!_server_bracket_open || _location_bracket_open)
 		throw ConfigFileException();
 	ss >> _current._port;
 }
 
 void	Config::parse_host(std::istringstream &ss)
 {
-	if (_location_bracket_open)
+	if (!_server_bracket_open || _location_bracket_open)
 		throw ConfigFileException();
 	ss >> _current._host;
 }
 
 void	Config::parse_server_name( std::istringstream &ss)
 {
+	if (!_server_bracket_open || _location_bracket_open)
+		throw ConfigFileException();
 	ss >> _current._server_name;
 }
 
 void	Config::parse_autoindex( std::istringstream &ss)
 {
+	if (!_server_bracket_open)
+		throw ConfigFileException();
 	std::string temp;
 	bool		value;
 	ss >> temp;
@@ -155,9 +163,15 @@ void	Config::parse_autoindex( std::istringstream &ss)
 }
 
 void	Config::parse_error_page( std::istringstream &ss)
-{	
-	if (_location_bracket_open)
+{
+	if (!_server_bracket_open)
 		throw ConfigFileException();
+	std::map<int, std::string>	*_error_pages;
+
+	if (_location_bracket_open)
+		_error_pages = &_current._error_pages;
+	else
+		_error_pages = &_current_location._error_pages;
 	int 		code;
 	std::string	page;
 	std::set<int> temp;
@@ -168,20 +182,25 @@ void	Config::parse_error_page( std::istringstream &ss)
 	std::set<int>::iterator it = temp.begin();
 	while (it != temp.end())
 	{
-		_current._error_pages[*it] = page;
+		(*_error_pages)[*it] = page;
 		++it;
 	}
 }
 
 void	Config::parse_client_max_body_size( std::istringstream &ss)
 {
-	if (_location_bracket_open)
+	if (!_server_bracket_open)
 		throw ConfigFileException();
-	ss >> _current._max_body;
+	if (_location_bracket_open)
+		ss >> _current_location._max_body;
+	else
+		ss >> _current._max_body;
 }
 
 void	Config::parse_root( std::istringstream &ss)
 {
+	if (!_server_bracket_open)
+		throw ConfigFileException();
 	if (_location_bracket_open)
 		ss >> _current_location._root;
 	else
@@ -190,23 +209,22 @@ void	Config::parse_root( std::istringstream &ss)
 
 void	Config::parse_index( std::istringstream &ss)
 {
+	if (!_server_bracket_open)
+		throw ConfigFileException();
+	std::vector<std::string>			*index;
 	if (_location_bracket_open)
-	{
-		_current_location._index.clear();
-		std::string temp;
-		while (ss >> temp)
-			_current_location._index.push_back(temp);
-		return ;
-	}
-	_current._index.clear();
-	std::string index;
-	while (ss >> index)
-		_current._index.push_back(index);
+		index = &_current_location._index;
+	else
+		index = &_current._index;
+	index->clear();
+	std::string temp;
+	while (ss >> temp)
+		index->push_back(temp);
 }
 
 void	Config::parse_location( std::istringstream &ss)
 {
-	if (_location_bracket_open)
+	if (_location_bracket_open || !_server_bracket_open)
 		throw ConfigFileException();	
 	_current_location = Location();
 	ss >> _current_location._path;
@@ -214,7 +232,7 @@ void	Config::parse_location( std::istringstream &ss)
 
 void	Config::parse_return( std::istringstream &ss)
 {
-	if (!_location_bracket_open)
+	if (!_location_bracket_open || !_server_bracket_open)
 		throw ConfigFileException();
 	if (!(ss >> _current_location._ret.first))
 		throw ConfigFileException();
@@ -223,40 +241,57 @@ void	Config::parse_return( std::istringstream &ss)
 
 void	Config::parse_methods( std::istringstream &ss)
 {
-	if (!_location_bracket_open)
+	if (!_server_bracket_open)
 		throw ConfigFileException();
-	_current_location._allowed_methods.clear();
+	std::vector<std::string>	*allowed_methods;
+	if (_location_bracket_open)
+		allowed_methods = &_current_location._allowed_methods;
+	else
+		allowed_methods = &_current._allowed_methods;
 	std::string method;
+	allowed_methods->clear();
 	while (ss >> method)
-		_current_location._allowed_methods.push_back(method);
+		allowed_methods->push_back(method);
 }
 
 void	Config::parse_cgi_path( std::istringstream &ss)
 {
-	if (!_location_bracket_open)
+	if (!_server_bracket_open)
 		throw ConfigFileException();
-	ss >> _current_location._cgi_path;
+	if (!_location_bracket_open)
+		ss >> _current._cgi_path;
+	else
+		ss >> _current_location._cgi_path;
 }
 
 void	Config::parse_upload( std::istringstream &ss )
 {
-	if (!_location_bracket_open)
+	if (!_server_bracket_open)
 		throw ConfigFileException();
+	bool b;
+
 	std::string temp;
 	ss >> temp;
 	if (temp == "on")
-		_current_location._upload = true;
+		b = true;
 	else if (temp == "off")
-		_current_location._upload = false;
+		b = false;
 	else
 		throw ConfigFileException();
+	if (!_location_bracket_open)
+		_current._upload = b;
+	else
+		_current_location._upload = b;
 }
 
 void	Config::parse_upload_dir( std::istringstream &ss )
 {
-	if (!_location_bracket_open)
+	if (!_server_bracket_open)
 		throw ConfigFileException();
-	ss >> _current_location._upload_dir;
+	if (!_location_bracket_open)
+		ss >> _current._upload_dir;
+	else
+		ss >> _current_location._upload_dir;
 }
 
 void    Config::parse()
@@ -306,7 +341,7 @@ void    Config::parse()
 	}
 	_key = "";
 	if (_server_bracket_open || _location_bracket_open)
-		throw ConfigFileException();	
+		throw ConfigFileException();
 }
 
 void Config::generate_servers(std::vector<Server> &servers)

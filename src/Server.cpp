@@ -37,6 +37,7 @@ std::vector<ClientInfo>::iterator Server::drop_client(ClientInfo & client)
 	{
 		if (client.socket == it->socket)
 		{
+			free(it->request_obj);
 			free(it->request);
 			return (clients.erase(it));
 		}
@@ -81,11 +82,17 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 			FD_SET(cl->socket, &writes);
 			if (cl->socket > max_socket)
 				max_socket = cl->socket;
+			if (cl->fd != -1)
+			{
+				FD_SET(cl->fd, &reads);
+				FD_SET(cl->fd, &writes);
+				if (cl->fd > max_socket)
+					max_socket = cl->fd;
+			}
 			++cl;
 		}
 		++serv;
 	}
-
 	struct timeval timeout;
 	timeout.tv_sec = TIMEOUT - 1;
 	timeout.tv_usec = 0;
@@ -134,8 +141,11 @@ bool		Server::send_data(ClientInfo &client)
 {
 	while (client.total_bytes_sent < client.response.size())
 	{
+		size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
+		if (bytes_to_send > CHUNK_SIZE)
+			bytes_to_send = CHUNK_SIZE;
 		client.bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
-			client.response.size() - client.total_bytes_sent, 0);
+			bytes_to_send, 0);
 		if (client.bytes_sent < 0)
 		{
 			// std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
@@ -184,6 +194,10 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 	client.response = get_response(*client.request_obj, _configs);
 	client.bytes_sent = 0;
 	client.total_bytes_sent = 0;
+	if (client.still_saving)
+		return (true);
+	// if (client.response == "")
+	// 	return (true);
 
 	if (!FD_ISSET(client.socket, &fds.second))
 	{
@@ -228,7 +242,9 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
 			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
-			it->request_obj = new Request(it->request, it->received);
+			if (it->request_obj != nullptr)
+				delete it->request_obj;
+			it->request_obj = new Request(it->request, it->received, *it);
 			it->request_obj->_env = env;
 			if (!this->serve_resource(*it, fds))
 			{

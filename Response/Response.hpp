@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/08 15:48:23 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/12 18:25:37 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ class Response
         std::string                                         _cgi_header;
         bool                                                _upload;
         std::string                                         _upload_dir;
-        std::pair<int, std::string>                 _ret;
+        std::pair<int, std::string>                 		_ret;
 
     public:
         MimeTypes   types;

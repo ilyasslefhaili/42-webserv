@@ -19,7 +19,7 @@
 # define BSIZE 1024
 # define BASE_REQUEST_SIZE 14096
 # define TIMEOUT 60
-# define CHUNK_SIZE 4096
+#define CHUNK_SIZE 10000000
 
 # include "Location.hpp"
 # include <iostream>
@@ -30,25 +30,11 @@
 # include "Request.hpp"
 # include "Config.hpp"
 # include "ServerConfig.hpp"
+# include "ClientInfo.hpp"
 # include <set>
 # include <ctime>
 # include <utility>
 
-struct ClientInfo {
-	socklen_t 				address_length;
-	struct sockaddr_storage address;
-	int						socket;
-	char					*request;
-	size_t					capacity;
-	size_t					received;
-	time_t 					last_received;
-	std::string				response;
-	ssize_t 				bytes_sent;
-	ssize_t 				total_bytes_sent;
-	Request					*request_obj;
-	bool					still_receiving;
-	
-};
 
 struct	ServerConfig;
 class	Config;

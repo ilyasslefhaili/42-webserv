@@ -19,5 +19,11 @@ struct ServerConfig {
 	std::vector<std::string>			_index;
 	bool								_auto_index;
 	std::vector<Location>				_locations;
+	std::vector<std::string>			_allowed_methods;
+	std::string							_cgi_path;
+	bool								_upload;
+	std::string							_upload_dir;
+
+
 };
 #endif
