@@ -77,11 +77,14 @@ class Response
         ServerConfig& get_config();
         void    get_the_absolute_path();
         void    get_location();
+        void    delete_response();
+        
         Response(Request& re_st);
         ~Response();
         
 };
 
+bool    delete_folder(std::string path);
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs);
 // std::string content_from_path(std::string& path);
 std::string get_response(Request& re_st);
