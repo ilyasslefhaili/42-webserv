@@ -38,10 +38,7 @@ class Request;
 		int						fd;
 		size_t					total_bytes_saved;
 
-		// ClientInfo()
-		// {
-		// 	request_obj = nullptr;
-		// }
+		bool					is_reading;
 		
 	};
 

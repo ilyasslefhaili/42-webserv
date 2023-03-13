@@ -6,12 +6,13 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/12 22:18:53 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/13 19:58:09 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
+size_t Response::_change_name = 0;
 
 void Response::fill_directive(){
     _root = _configs._root;
@@ -225,42 +226,24 @@ void    Response::post_method(){
         if (this->_upload){
             if (access(this->_upload_dir.c_str(), F_OK) != -1)
             {
-                if (access(this->_upload_dir.c_str(), W_OK) != -1){
+                if (access(this->_upload_dir.c_str(), W_OK) != -1)
+				{
                     std::string Upload_file = this->_upload_dir;
                     Upload_file += "/upload.";
                     Upload_file += this->types.get_extention(this->_content_type);
 	    	        std::cout<<"-------"<<Upload_file<<std::endl;
-                    int fd = open(Upload_file.c_str(), O_CREAT | O_RDWR, 0666);
-	    	        fcntl(fd, F_SETFL, O_NONBLOCK);
-	    	        ssize_t r;
-	    	        std::cout << "saving start " << std::endl;
-	    	        while (_request._client.total_bytes_saved < _request._body_len)
-	    	        {
-	    	        	size_t bytes_to_write = _request._body_len - _request._client.total_bytes_saved;
-	    	        	if (bytes_to_write > CHUNK_SIZE)
-	    	        		bytes_to_write = CHUNK_SIZE;
-                    	r = write(fd, _request._body.c_str() + _request._client.total_bytes_saved,
-	    	        				bytes_to_write);
-	    	        	if (r < 0)
-	    	        	{
-	    	        		std::cout << "shit it would block" << std::endl;
-	    	        		_request._client.still_saving = true;
-	    	        		_request._client.fd = fd;
-	    	        		return ;
-	    	        	}
-	    	        	_request._client.total_bytes_saved += r;
-	    	        	std::cout << "bytes were saved: " << r << std::endl;
-	    	        }
-	    	        std::cout << "finished" << std::endl;
-	    	        _request._client.still_saving = false;
-	    	        _request._client.total_bytes_saved = 0;
-	    	        _request._client.fd = -1;
-                    if (this->_status == 0)
-                        this->_status = 201;
-                    close(fd);
+	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
+					fcntl(fd, F_SETFL, O_NONBLOCK);
+
+					_request._client.fd = fd;
+					_request._client.still_saving = true;
+					_request._client.total_bytes_saved = 0;
+					
+       				if (this->_status == 0)
+       				    this->_status = 201;
                 }
                 else
-                    this->_status = 403;
+                	this->_status = 403;
             }
             else
                 this->_status = 404;
@@ -405,7 +388,7 @@ ServerConfig& Response::get_config(){
     return (this->_configs);
 }
 Response::Response(Request& re_st) : _request(re_st){
-    this->_status = 0;
+	this->_status = 0;
     this->_check_location = false;
 }
 

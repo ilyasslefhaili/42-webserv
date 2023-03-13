@@ -1,3 +1,19 @@
 numbers at uploads names
 extentions
 close files descriptor
+
+
+if request is POST  and body is empty handle accordingly
+if request is GET dont read immediatly save fd and flag bool until select
+handle request_body_max_size
+
+if request is GET, and cgi found => return Response
+if request is GET, and error occured => return Response
+if request is GET, and need to open file => open file  keep file descriptor in client.fd, set client.is_reading to true, response only have header body empty
+
+
+
+// simo
+// add the fd in select
+// if fd is flagged, send header first, read with CHUNK from fd and send to socket
+

@@ -17,9 +17,11 @@
 # include <cstring>
 
 # define BSIZE 1024
-# define BASE_REQUEST_SIZE 14096
+# define BASE_REQUEST_SIZE 10000000
 # define TIMEOUT 60
-#define CHUNK_SIZE 10000000
+# define CHUNK_SIZE_SEND 1000000
+# define CHUNK_SIZE_SAVE 10000
+# define MAX_REQUEST_SIZE 1000000000 // 1gb
 
 # include "Location.hpp"
 # include <iostream>
@@ -71,8 +73,10 @@ class Server {
 
 
 		// handle http error condition
-		std::vector<ClientInfo>::iterator		send_400(ClientInfo &client);
-		std::vector<ClientInfo>::iterator		send_404(ClientInfo &client);
+		void									send_400(ClientInfo &client);
+		void									send_404(ClientInfo &client);
+		void 									send_413(ClientInfo &client);
+
 
 		// transfer a file to a connected client
 		bool									serve_resource(ClientInfo &client,
