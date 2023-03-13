@@ -77,6 +77,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
             }
 			else if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
 			{
+				std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
 				{
@@ -87,7 +88,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			}
 			else if (it->still_saving && FD_ISSET(it->fd, &fds.second))
 			{
-				std::cout << "trying again" << std::endl;
+				std::cout << "savin file" << std::endl;
 				ssize_t r;
 				while (it->total_bytes_saved < it->request_obj->_body_len)
 				{
@@ -98,6 +99,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 						bytes_to_write);
 					if (r < 0)
 					{
+						std::cout << "gonna try later " << std::endl;
 						it->still_saving = true;
            				++it;
 						continue;
@@ -109,10 +111,8 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 				it->still_saving = false;
 				it->still_receiving = true;
 				it->total_bytes_saved = 0;
+				close(it->fd);
 				it->fd = -1;
-
-				// handle if done
-
 			}
 			else
 			{

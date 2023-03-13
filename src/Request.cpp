@@ -73,8 +73,8 @@ void    Request::print_request() const
         std::cout << it->first << ": " << it->second << std::endl;
         ++it;
     }
-    std::cout << "Body :" << std::endl;
-    std::cout << this->_body << std::endl;
+    // std::cout << "Body :" << std::endl;
+    // std::cout << this->_body << std::endl;
 }
 
 // GET /fish.png HTTP/1.1
@@ -140,6 +140,7 @@ void    Request::parse_request(const char *request, size_t length)
 	}
 	else
 		_body_len = atoi(_header["Content-Length"].c_str());
+	print_request();
 
 
 
