@@ -20,7 +20,7 @@ struct Location {
 	std::string							_cgi_path;
 	bool								_upload;
 	std::string							_upload_dir;
-	size_t								_max_body;
+	ssize_t								_max_body;
 	std::map<int, std::string>			_error_pages;
 
 

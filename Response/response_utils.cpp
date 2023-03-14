@@ -43,6 +43,10 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 500 Internal Server Error\r\n");
     else if (status == 409)
         return (re_st._protocol_ver + " 409 Conflict\r\n");
+    else if (status == 400)
+        return (re_st._protocol_ver + " 400 Bad Request\r\n");
+    else if (status == 413)
+        return (re_st._protocol_ver + " 413 Content Too Large\r\n");
     return "";
 }
 
@@ -79,15 +83,23 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     a->fill_directive();
     a->link_root_path(re_st);
     a->get_the_absolute_path();
-    if (re_st._method == "GET"){
-        a->fill_attributes(re_st);
-    }
-    else if (re_st._method == "POST"){
-        std::cout<<"POST"<<std::endl;
-        a->post_method();
-    }else if (re_st._method == "DELETE"){
-        std::cout<<"DELETE"<<std::endl;
-        a->delete_response();
+    if (re_st._path.size() > 100)
+        a->set_status(400);
+	else if (re_st._path.find("..") != std::string::npos)
+		a->set_status(404);
+	else{
+        if (re_st._method == "GET"){
+            a->fill_attributes(re_st);
+        }
+        else if (re_st._method == "POST"){
+            std::cout<<"POST"<<std::endl;
+            a->post_method();
+        }else if (re_st._method == "DELETE"){
+            std::cout<<"DELETE"<<std::endl;
+            a->delete_response();
+        }
+        else
+            a->set_status(400);
     }
     try
     {
