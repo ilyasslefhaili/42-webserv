@@ -124,19 +124,22 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 				size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
 				if (bytes_to_write > CHUNK_SIZE_SAVE)
 					bytes_to_write = CHUNK_SIZE_SAVE;
+				std::cout << it->fd << std::endl;
 				r = write(it->fd, it->request_obj->_body.c_str() + it->total_bytes_saved,
 					bytes_to_write);
 				if (r < 0)
 				{
-						std::cout << "dropping client" << std::endl;
+					std::cout << strerror(errno) << " " << errno << std::endl;
+					std::cout << "dropping client" << std::endl;
 					if (it->fd != -1)
 						close(it->fd);
+					unlink(it->file_name.c_str());
 					server->drop_client(*it);
 					e = server->clients.end();
                     continue ;
 				}
 				it->total_bytes_saved += r;
-				// std::cout << "bytes were saved: " << r << std::endl;
+				std::cout << "bytes were saved: " << r << std::endl;
 				if (it->total_bytes_saved == it->request_obj->_body_len)
 				{
 					it->still_saving = false;

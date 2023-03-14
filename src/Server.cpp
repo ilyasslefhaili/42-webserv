@@ -171,9 +171,6 @@ bool		Server::send_data(ClientInfo &client)
 		size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
 		if (bytes_to_send > CHUNK_SIZE_SEND)
 			bytes_to_send = CHUNK_SIZE_SEND;
-		// std::cout << "bytes_to_send " << bytes_to_send << std::endl;
-		// std::cout << "total_bytes_sent " << client.total_bytes_sent << std::endl;
-		// std::cout << client.response.size()<<"    "<<bytes_to_send << std::endl;
 		std::cout << " send using socket " << client.socket << std::endl;
 		ssize_t bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
 			bytes_to_send, 0);
@@ -182,7 +179,7 @@ bool		Server::send_data(ClientInfo &client)
 			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl;
 			return false ;
 		}
-		// std::cout << bytes_sent << " bytes were sent " << std::endl;
+		std::cout << bytes_sent << " bytes were sent " << std::endl;
 		client.last_received = time(NULL);
 		client.total_bytes_sent += bytes_sent;
 	// }
@@ -286,10 +283,10 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 			send_413(*it);
 			return true;
 		}
-		// std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
+		std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
 		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
 		{
-			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
 				delete it->request_obj;
 			it->request_obj = new Request(it->request, it->received, *it);

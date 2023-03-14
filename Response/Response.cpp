@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 13:46:49 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/14 15:59:38 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,26 +116,16 @@ void get_content_type_from_cgi(){
 
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
-            //the old method for getting;;;;;;
-            // this->_file.open(this->_path);
-            // std::string str;
-            // while (!this->_file.fail() && !this->_file.eof()){
-            //     std::getline(this->_file, str);
-            //     this->_body += str;
-            //     if (!this->_file.eof())
-            //         this->_body += "\n";
-            // }
-            // this->_file.close();
-            //the new mtehod for getting ;;;;;;;;
-            if (this->_request._client.fd != -1)
-                close(this->_request._client.fd);
-            this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
-			fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
-			struct stat buf;
-			fstat(_request._client.fd, &buf);
-			_request._client.file_size = buf.st_size;
-			// std::cout << _request._client.file_size << std::endl;
-            this->_request._client.is_reading = true;
+        if (this->_request._client.fd != -1)
+            close(this->_request._client.fd);
+        this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+		_request._client.file_name = _path;
+
+		fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
+		struct stat buf;
+		fstat(_request._client.fd, &buf);
+		_request._client.file_size = buf.st_size;
+        this->_request._client.is_reading = true;
     }
     else{
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
@@ -294,30 +284,15 @@ void    Response::post_method(){
 void Response::get_error_page(){
     std::cout<<this->_status<<std::endl;
    this->_error_page = this->_configs._error_pages[this->_status];
-//    std::cout<<this->_error_page<<std::endl;
-//    std::fstream error;
-//    error.open(this->_error_page);
-	// int fd = open(this->_error_page.c_str(), O_RDONLY | O_NONBLOCK);
+
 	if (this->_request._client.fd != -1)
 	    close(this->_request._client.fd);
 	this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+	_request._client.file_name = this->_path;
 	fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
 	struct stat buf;
 	fstat(_request._client.fd, &buf);
 	_request._client.file_size = buf.st_size;
-//    if (error.is_open())
-//    {
-//         std::string str;
-//         while (!error.eof())
-//         {
-//             std::getline(error, str);
-//             // std::cout<<str<<std::endl;
-//             this->_body += str;
-//             if (!error.eof())
-//                 this->_body += "\n";
-//         }
-//    }
-//    error.close();
 }
 
 int     compare_str(std::string a, std::string b){
