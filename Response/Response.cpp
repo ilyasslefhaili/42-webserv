@@ -110,10 +110,6 @@ void Response::check_status_code(std::string& str){
     }
 }
 
-void get_content_type_from_cgi(){
-
-}
-
 void Response::fill_body(){
     if (_cgi_path.size()  == 0){
             //the old method for getting;;;;;;
@@ -187,6 +183,17 @@ void Response::in_case_of_return(){
 
 void Response::fill_attributes(Request& re_st){
     (void)re_st;
+    if (this->_allowed_methods.size() > 0){
+        size_t i = 0; 
+        for (;i< _allowed_methods.size(); i++){
+            if (_allowed_methods[i] == "GET")
+                break;
+        }
+        if (i == _allowed_methods.size()){
+            this->_status = 400;
+            return ;
+        }
+    }
     if (this->_dir_or_file)
     {
         try{
@@ -228,60 +235,70 @@ void    Response::get_index_in_post(){
 }
 
 void    Response::post_method(){
-    if (access(this->_path.c_str(), F_OK) != -1)
-    {
-        if (this->_upload){
-            if (access(this->_upload_dir.c_str(), F_OK) != -1)
-            {
-                if (access(this->_upload_dir.c_str(), W_OK) != -1)
-				{
-                    std::string Upload_file = this->_upload_dir;
-                    Upload_file += "/upload" + std::to_string(_change_name);
-                    _change_name++;
-                    Upload_file += this->types.get_extention(this->_content_type);
-	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
-					fcntl(fd, F_SETFL, O_NONBLOCK);
-					_request._client.fd = fd;
-					_request._client.still_saving = true;
-					_request._client.total_bytes_saved = 0;
-					
-       				if (this->_status == 0)
-       				    this->_status = 201;
-                }
-                else
-                	this->_status = 403;
-            }
-            else
-                this->_status = 404;
+    if (this->_allowed_methods.size() > 0){
+        size_t i = 0; 
+        for (;i< _allowed_methods.size(); i++){
+            if (_allowed_methods[i] == "POST")
+                break;
         }
-        else if (this->_cgi_path.size() > 0)
-        {
-            if (this->_dir_or_file)
-            {
-                try{
-                this->get_index_in_post();
-                }catch(std::exception& e){
-                    return ;
-                }   
-            }
-            if (access(this->_cgi_path.c_str(), F_OK) != -1){
-                if (access(this->_cgi_path.c_str(), X_OK) != -1){
-                    std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                    this->check_status_code(str);
-                    if (this->_status == 0)
-                        this->_status = 200;
-                }
-                else
-                    this->_status = 502;
-            }
-            else
-                this->_status = 404;  
+        if (i == _allowed_methods.size()){
+            this->_status = 400;
+            return ;
         }
-        else 
-            this->_status = 403;
     }
-    else    
-        this->_status = 404;
+    if (this->_upload){
+        if (access(this->_upload_dir.c_str(), F_OK) != -1)
+        {
+            if (access(this->_upload_dir.c_str(), W_OK) != -1)
+			{
+                std::string Upload_file = this->_upload_dir;
+                if (isDirectory(this->_path)){
+                    Upload_file += "/upload" + std::to_string(_change_name);
+                    Upload_file += this->types.get_extention(this->_content_type);
+                    _change_name++;
+                }
+                else
+                    Upload_file = this->_path;
+		   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
+				fcntl(fd, F_SETFL, O_NONBLOCK);
+				_request._client.fd = fd;
+				_request._client.still_saving = true;
+				_request._client.total_bytes_saved = 0;
+				
+    			if (this->_status == 0)
+    			    this->_status = 201;
+            }
+            else
+            	this->_status = 403;
+        }
+        else
+            this->_status = 404;
+    }
+    else if (this->_cgi_path.size() > 0)
+    {
+        if (this->_dir_or_file)
+        {
+            try{
+                this->get_index_in_post();
+            }catch(std::exception& e){
+                return ;
+            }   
+        }
+        if (access(this->_cgi_path.c_str(), F_OK) != -1){
+            if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                this->check_status_code(str);
+                if (this->_status == 0)
+                    this->_status = 200;
+            }
+            else
+                this->_status = 502;
+        }
+        else
+            this->_status = 404;  
+    }
+    else 
+        this->_status = 403;
     this->_content_type = "";
 }
 
@@ -437,6 +454,21 @@ bool delete_folder(std::string path){
 }
 
 void Response::delete_response(){
+    if (this->_allowed_methods.size() > 0){
+        size_t i = 0; 
+        for (;i< _allowed_methods.size(); i++){
+            if (_allowed_methods[i] == "DELETE")
+                break;
+        }
+        if (i == _allowed_methods.size()){
+            this->_status = 400;
+            return ;
+        }
+    }
+    else{
+        this->_status = 400;
+        return ;
+    }
     if (access(this->_path.c_str(), F_OK) == 0){
         if (isDirectory(this->_path)){
             if (this->_path[this->_path.size() - 1]!= '/'){

@@ -43,6 +43,8 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 500 Internal Server Error\r\n");
     else if (status == 409)
         return (re_st._protocol_ver + " 409 Conflict\r\n");
+    else if (status == 400)
+        return (re_st._protocol_ver + " 400 Bad Request\r\n");
     return "";
 }
 
@@ -86,6 +88,8 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
         std::cout<<"DELETE"<<std::endl;
         a->delete_response();
     }
+    else
+        a->set_status(400);
     try
     {
         a->in_case_of_return();
