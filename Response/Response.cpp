@@ -27,6 +27,7 @@ void Response::fill_directive(){
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
     _content_type = _request._header["Content-Type"];
+    std::cout<<"|||||||"<<_content_type<<std::endl;
     _cgi_path = _location._cgi_path;
 }
 
@@ -235,12 +236,11 @@ void    Response::post_method(){
                 if (access(this->_upload_dir.c_str(), W_OK) != -1)
 				{
                     std::string Upload_file = this->_upload_dir;
-                    Upload_file += "/upload.";
+                    Upload_file += "/upload" + std::to_string(_change_name);
+                    _change_name++;
                     Upload_file += this->types.get_extention(this->_content_type);
-	    	        std::cout<<"-------"<<Upload_file<<std::endl;
 	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
 					fcntl(fd, F_SETFL, O_NONBLOCK);
-
 					_request._client.fd = fd;
 					_request._client.still_saving = true;
 					_request._client.total_bytes_saved = 0;
@@ -267,13 +267,9 @@ void    Response::post_method(){
             if (access(this->_cgi_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                    // std::cout<<str<<std::endl;
                     this->check_status_code(str);
                     if (this->_status == 0)
                         this->_status = 200;
-                    size_t pos = str.find("\n");
-                    str.erase(0, pos + 1);
-                    pos = str.find("\r");
                 }
                 else
                     this->_status = 502;
