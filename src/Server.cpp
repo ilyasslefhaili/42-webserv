@@ -201,12 +201,7 @@ bool		Server::send_data(ClientInfo &client)
 bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
-	if (client.request_obj->_path.size() > 100)
-		send_400(client);
-	else if (client.request_obj->_path.find("..") != std::string::npos)
-		send_404(client);
-	else
-		client.response = get_response(*client.request_obj, _configs);
+	client.response = get_response(*client.request_obj, _configs);
 	client.bytes_sent = 0;
 	client.total_bytes_sent = 0;
 	if (client.still_saving)

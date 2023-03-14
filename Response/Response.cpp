@@ -27,8 +27,9 @@ void Response::fill_directive(){
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
     _content_type = _request._header["Content-Type"];
-    std::cout<<"|||||||"<<_content_type<<std::endl;
     _cgi_path = _location._cgi_path;
+    _max_body_size = _configs._max_body;
+    _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
 }
 
 void  Response::get_files_in_dir(){
@@ -246,59 +247,62 @@ void    Response::post_method(){
             return ;
         }
     }
-    if (this->_upload){
-        if (access(this->_upload_dir.c_str(), F_OK) != -1)
-        {
-            if (access(this->_upload_dir.c_str(), W_OK) != -1)
-			{
-                std::string Upload_file = this->_upload_dir;
-                if (isDirectory(this->_path)){
-                    Upload_file += "/upload" + std::to_string(_change_name);
-                    Upload_file += this->types.get_extention(this->_content_type);
-                    _change_name++;
+    if (this->_request._body.size() <= _max_body_size){
+        if (this->_upload){
+            if (access(this->_upload_dir.c_str(), F_OK) != -1)
+            {
+                if (access(this->_upload_dir.c_str(), W_OK) != -1)
+	    		{
+                    std::string Upload_file = this->_upload_dir;
+                    if (isDirectory(this->_path)){
+                        Upload_file += "/upload" + std::to_string(_change_name);
+                        Upload_file += this->types.get_extention(this->_content_type);
+                        _change_name++;
+                    }
+                    else
+                        Upload_file = this->_path;
+	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
+	    			fcntl(fd, F_SETFL, O_NONBLOCK);
+	    			_request._client.fd = fd;
+	    			_request._client.still_saving = true;
+	    			_request._client.total_bytes_saved = 0;
+        			if (this->_status == 0)
+        			    this->_status = 201;
                 }
                 else
-                    Upload_file = this->_path;
-		   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
-				fcntl(fd, F_SETFL, O_NONBLOCK);
-				_request._client.fd = fd;
-				_request._client.still_saving = true;
-				_request._client.total_bytes_saved = 0;
-				
-    			if (this->_status == 0)
-    			    this->_status = 201;
+                	this->_status = 403;
             }
             else
-            	this->_status = 403;
+                this->_status = 404;
         }
-        else
-            this->_status = 404;
-    }
-    else if (this->_cgi_path.size() > 0)
-    {
-        if (this->_dir_or_file)
+        else if (this->_cgi_path.size() > 0)
         {
-            try{
-                this->get_index_in_post();
-            }catch(std::exception& e){
-                return ;
-            }   
-        }
-        if (access(this->_cgi_path.c_str(), F_OK) != -1){
-            if (access(this->_cgi_path.c_str(), X_OK) != -1){
-                std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                this->check_status_code(str);
-                if (this->_status == 0)
-                    this->_status = 200;
+            if (this->_dir_or_file)
+            {
+                try{
+                    this->get_index_in_post();
+                }catch(std::exception& e){
+                    return ;
+                }   
+            }
+            if (access(this->_cgi_path.c_str(), F_OK) != -1){
+                if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                    std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                    this->check_status_code(str);
+                    if (this->_status == 0)
+                        this->_status = 200;
+                }
+                else
+                    this->_status = 502;
             }
             else
-                this->_status = 502;
+                this->_status = 404;  
         }
-        else
-            this->_status = 404;  
+        else 
+            this->_status = 403;
     }
-    else 
-        this->_status = 403;
+    else
+        this->_status = 413;
     this->_content_type = "";
 }
 

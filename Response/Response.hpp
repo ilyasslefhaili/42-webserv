@@ -32,7 +32,8 @@ class Response
 {
     private:
         int                                                 _status;
-        // char**                                              _env;                
+        // char**                                              _env;
+        ssize_t                                             _max_body_size;                
         bool                                                _dir_or_file;
         ServerConfig                                        _configs;
         std::fstream                                        _file;

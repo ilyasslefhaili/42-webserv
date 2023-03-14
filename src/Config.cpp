@@ -227,6 +227,7 @@ void	Config::parse_location( std::istringstream &ss)
 	if (_location_bracket_open || !_server_bracket_open)
 		throw ConfigFileException();	
 	_current_location = Location();
+	_current_location._max_body = -1;
 	ss >> _current_location._path;
 }
 
