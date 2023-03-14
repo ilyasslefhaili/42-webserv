@@ -10,13 +10,13 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <unistd.h>
-# include <errno.h>
+# include <cerrno>
 
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>
-# include <time.h>
-# include <string>
+# include <ctime>
+# include <csignal>
 # include <set>
 
 # include <vector>

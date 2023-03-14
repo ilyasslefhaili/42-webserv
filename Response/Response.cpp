@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 17:55:36 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/14 20:09:50 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,9 +117,12 @@ void Response::fill_body(){
         if (this->_request._client.fd != -1)
             close(this->_request._client.fd);
         this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+		if (_request._client.fd < 0)
+		{
+			return ;
+		}
+		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
 		_request._client.file_name = _path;
-
-		fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
 		struct stat buf;
 		fstat(_request._client.fd, &buf);
 		_request._client.file_size = buf.st_size;
@@ -258,15 +261,22 @@ void    Response::post_method(){
                     else
                         Upload_file = this->_path;
 	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
-					_request._client.file_name = Upload_file;
-					// fcntl(fd, F_SETFL, O_NONBLOCK);
-					std::cout << "adsfadsf   " << fd << std::endl;
-					_request._client.fd = fd;
-					_request._client.is_saving = true;
-					_request._client.total_bytes_saved = 0;
-					
-       				if (this->_status == 0)
-       				    this->_status = 201;
+					if (fd < 0)
+					{
+						this->_status = 500;
+					}
+					else
+					{
+						_request._client.file_name = Upload_file;
+						// fcntl(fd, F_SETFL, O_NONBLOCK);
+						std::cout << "adsfadsf   " << fd << std::endl;
+						_request._client.fd = fd;
+						_request._client.is_saving = true;
+						_request._client.total_bytes_saved = 0;
+						
+       					if (this->_status == 0)
+       					    this->_status = 201;
+					}
                 }
                 else
                 	this->_status = 403;
@@ -305,20 +315,42 @@ void    Response::post_method(){
     this->_content_type = "";
 }
 
-void Response::get_error_page(){
-    std::cout<<this->_status<<std::endl;
-   this->_error_page = this->_configs._error_pages[this->_status];
+    //    if (this->_request._client.fd != -1)
+    //         close(this->_request._client.fd);
+    //     this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+	// 	if (_request._client.fd < 0)
+	// 	{
+	// 		return ;
+	// 	}
+	// 	// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
+	// 	_request._client.file_name = _path;
+	// 	struct stat buf;
+	// 	fstat(_request._client.fd, &buf);
+	// 	_request._client.file_size = buf.st_size;
+    //     this->_request._client.is_reading = true;
 
+void Response::get_error_page(){
+    std::cout<<"status    " <<this->_status<<std::endl;
+   this->_error_page = this->_configs._error_pages[this->_status];
+	
+	
    if (!_error_page.empty())
    {
 		if (this->_request._client.fd != -1)
 	    	close(this->_request._client.fd);
-		this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
-		_request._client.file_name = this->_path;
-		fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
-		struct stat buf;
-		fstat(_request._client.fd, &buf);
-		_request._client.file_size = buf.st_size;
+		this->_request._client.fd = open(this->_error_page.c_str(), O_RDONLY | O_NONBLOCK);
+		if (_request._client.fd < 0)
+			_status = 404;
+		else
+		{
+			// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
+			_request._client.file_name = this->_path;
+			struct stat buf;
+			fstat(_request._client.fd, &buf);
+			_request._client.file_size = buf.st_size;
+			std::cout<<"len   = "<<buf.st_size<<std::endl;
+			_request._client.is_reading = true;
+		}
    }
 
 
