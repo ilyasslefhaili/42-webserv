@@ -77,6 +77,7 @@ class Server {
 		void									send_400(ClientInfo &client);
 		void									send_404(ClientInfo &client);
 		void 									send_413(ClientInfo &client);
+		void 									send_500(ClientInfo &client);
 
 
 		// transfer a file to a connected client

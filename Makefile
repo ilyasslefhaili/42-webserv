@@ -2,7 +2,8 @@ CFLAGS = -fsanitize=address -g3
 
 NAME = webserv
 
-HEADERS = main.hpp
+HEADERS = main.hpp src/ClientInfo.hpp src/Config.hpp src/Location.hpp src/Request.hpp src/Server.hpp src/ServerConfig.hpp \
+			Response/Response.hpp Response/Mimetypes.hpp
 
 SRC  = main.cpp 	\
 		src/Server.cpp 	\
@@ -10,13 +11,14 @@ SRC  = main.cpp 	\
 		Response/Response.cpp \
 		Response/response_utils.cpp	\
 		src/Config.cpp			\
-		Response/Mimetypes.cpp
+		Response/Mimetypes.cpp	\
+		main_utils.cpp			\
 
 OBJ = $(SRC:.cpp=.o)
 
 all:	$(NAME)
 
-$(NAME): $(SRC)
+$(NAME): $(SRC) $(HEADERS)
 	c++ $(CFLAGS) $(SRC) -o $(NAME)
 
 # $(OBJ): $(SRC)

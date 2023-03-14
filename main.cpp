@@ -34,8 +34,8 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
             client.address_length = sizeof(client.address);
 			client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 			client.capacity = BASE_REQUEST_SIZE;
-			client.still_receiving = false;
-			client.still_saving = false;
+			client.is_receiving = false;
+			client.is_saving = false;
 			client.is_reading = false;
 			client.fd = -1;
 			client.received = 0;
@@ -68,7 +68,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-			if (!it->still_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
+			if (!it->is_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
 			{
 				if (it->response.empty())
 				{
@@ -100,9 +100,9 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 						it->total_bytes_read = 0;
 					}
 				}
-				it->still_receiving = true;
+				it->is_receiving = true;
 			}
-			else if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
+			else if (it->is_receiving && FD_ISSET(it->socket, &fds.second))
 			{
 				std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
@@ -116,15 +116,15 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
                     continue ;
 				}
 			}
-			else if (it->still_saving && FD_ISSET(it->fd, &fds.second))
+			else if (it->is_saving && FD_ISSET(it->fd, &fds.second))
 			{
-				std::cout << "savin file" << std::endl;
+				// std::cout << "savin file" << std::endl;
 				ssize_t r;
 				bool failed = false;
 				size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
 				if (bytes_to_write > CHUNK_SIZE_SAVE)
 					bytes_to_write = CHUNK_SIZE_SAVE;
-				std::cout << it->fd << std::endl;
+				// std::cout << it->fd << std::endl;
 				r = write(it->fd, it->request_obj->_body.c_str() + it->total_bytes_saved,
 					bytes_to_write);
 				if (r < 0)
@@ -142,11 +142,11 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 				std::cout << "bytes were saved: " << r << std::endl;
 				if (it->total_bytes_saved == it->request_obj->_body_len)
 				{
-					it->still_saving = false;
+					it->is_saving = false;
 					close(it->fd);
 					it->fd = -1;
 					it->total_bytes_saved = 0;
-					it->still_receiving = true;
+					it->is_receiving = true;
 				}
 			}
 			else if (FD_ISSET(it->socket, &fds.first))

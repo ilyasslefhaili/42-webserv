@@ -124,7 +124,7 @@ void	Server::send_400(ClientInfo &client)
 	const char *c400 = "HTTP/1.1 400 Bad Request\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 11\r\n\r\nBad Request";
-		client.still_receiving = true;
+		client.is_receiving = true;
 	client.response = std::string(c400);
 	// send(client.socket, c400, strlen(c400), 0);
 
@@ -135,7 +135,7 @@ void	Server::send_413(ClientInfo &client)
 	const char *c413 = "HTTP/1.1 413 Request Entity Too Large\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 11\r\n\r\nBad Request";
-	client.still_receiving = true;
+	client.is_receiving = true;
 	client.response = std::string(c413);
 	// send(client.socket, c413, strlen(c413), 0);
 
@@ -146,7 +146,7 @@ void	Server::send_404(ClientInfo &client)
 	const char *c404 = "HTTP/1.1 404 Not Found\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 9\r\n\r\nNot Found";
-	client.still_receiving = true;
+	client.is_receiving = true;
 	client.response = std::string(c404);
 	
 	// send(client.socket, c404, strlen(c404), 0);
@@ -154,7 +154,7 @@ void	Server::send_404(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
-	client.still_receiving = false;
+	client.is_receiving = false;
 	free(client.request_obj);
 	client.request_obj = nullptr;
 	free(client.request);
@@ -185,13 +185,13 @@ bool		Server::send_data(ClientInfo &client)
 	// }
 	if (client.total_bytes_sent != client.response.size())
 	{
-		client.still_receiving = true;
+		client.is_receiving = true;
 		return (true);
 	}
 	if (client.is_reading)
 	{
 		client.response.clear();
-		client.still_receiving = false;
+		client.is_receiving = false;
 		client.total_bytes_sent = 0;
 		return (true);
 	}
@@ -216,7 +216,7 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
 	client.response = get_response(*client.request_obj, _configs);
 	client.total_bytes_sent = 0;
-	if (client.still_saving)
+	if (client.is_saving)
 		return (true);
 	// std::cout << "RESPONSE SIZE " << client.response.size() << std::endl;
 	if (!FD_ISSET(client.socket, &fds.second))
@@ -231,16 +231,6 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 // returns true if clients dropped
 bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env, std::pair<fd_set, fd_set> &fds)
 {
-	// if (it->still_saving)
-	// {
-	// 	it->still_saving = false;
-	// 	it->total_bytes_saved = 0;
-	// 	it->response = "";
-	// 	delete it->request_obj;
-	// 	it->request_obj = nullptr;
-	// 	close(it->fd);
-	// 	it->fd = -1;
-	// }
 	if (it->received == it->capacity)
 	{
 		it->capacity *= 2;

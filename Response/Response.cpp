@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 16:10:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/14 17:55:36 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ void Response::fill_directive(){
     _cgi_path = _location._cgi_path;
     _max_body_size = _configs._max_body;
     _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
+	// std::cout << "_max_body_size " << _max_body_size << std::endl;
 }
 
 void  Response::get_files_in_dir(){
@@ -258,9 +259,10 @@ void    Response::post_method(){
                         Upload_file = this->_path;
 	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
 					_request._client.file_name = Upload_file;
-					fcntl(fd, F_SETFL, O_NONBLOCK);
+					// fcntl(fd, F_SETFL, O_NONBLOCK);
+					std::cout << "adsfadsf   " << fd << std::endl;
 					_request._client.fd = fd;
-					_request._client.still_saving = true;
+					_request._client.is_saving = true;
 					_request._client.total_bytes_saved = 0;
 					
        				if (this->_status == 0)
@@ -307,14 +309,19 @@ void Response::get_error_page(){
     std::cout<<this->_status<<std::endl;
    this->_error_page = this->_configs._error_pages[this->_status];
 
-	if (this->_request._client.fd != -1)
-	    close(this->_request._client.fd);
-	this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
-	_request._client.file_name = this->_path;
-	fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
-	struct stat buf;
-	fstat(_request._client.fd, &buf);
-	_request._client.file_size = buf.st_size;
+   if (!_error_page.empty())
+   {
+		if (this->_request._client.fd != -1)
+	    	close(this->_request._client.fd);
+		this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+		_request._client.file_name = this->_path;
+		fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
+		struct stat buf;
+		fstat(_request._client.fd, &buf);
+		_request._client.file_size = buf.st_size;
+   }
+
+
 }
 
 int     compare_str(std::string a, std::string b){
@@ -358,7 +365,7 @@ void    Response::get_the_absolute_path(){
 }
 
 std::string Response::get_body(){
-    if (this->_status >= 400 && this->_body.size() == 0)
+    if (this->_status >= 400 && this->_body.size() == 0 && this->_error_page.empty())
         return std::to_string(this->_status);
     return _body;
 }
