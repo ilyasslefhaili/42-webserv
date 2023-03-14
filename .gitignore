@@ -2,7 +2,6 @@ a.out
 webserv
 webserv.dSYM
 a.out.dSYM
-*.php
 .DS_Store
 .vscode
 nginx
