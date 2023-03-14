@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 20:09:50 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/14 20:18:10 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void  Response::get_files_in_dir(){
     _body += this->_path;
     while (to_incriment != NULL){
         _body += "<a href= \"";
-        _body += _request._path;
+        _body += this->_path;
         _body += "/";
         _body += to_incriment->d_name;
         _body += "\"> ";
