@@ -29,16 +29,19 @@ class Request;
 		size_t					received;
 		time_t 					last_received;
 		std::string				response;
-		ssize_t 				bytes_sent;
+		
 		ssize_t 				total_bytes_sent;
 		Request					*request_obj;
 		bool					still_receiving;
 
 		bool					still_saving;
+		std::string				file_name;
 		int						fd;
 		size_t					total_bytes_saved;
 
 		bool					is_reading;
+		size_t					total_bytes_read;
+		off_t					file_size;
 		
 	};
 

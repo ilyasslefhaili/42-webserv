@@ -227,6 +227,7 @@ void	Config::parse_location( std::istringstream &ss)
 	if (_location_bracket_open || !_server_bracket_open)
 		throw ConfigFileException();	
 	_current_location = Location();
+	_current_location._max_body = -1;
 	ss >> _current_location._path;
 }
 
@@ -400,11 +401,12 @@ void	Config::init_if_not_set()
 		if (_configs[i]._server_name == "")
 			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hostname
 		if (_configs[i]._max_body == 0)
-			_configs[i]._max_body = 1024;
+			_configs[i]._max_body = 1048576; // 1mb
 		for (int j = 0; j < _configs[i]._locations.size(); j++)
 		{
 			if (!_configs[i]._locations[j]._is_autoindex_set)
 				_configs[i]._locations[j]._autoindex = _configs[i]._auto_index;
+			
 		}
 		i++;
 	}

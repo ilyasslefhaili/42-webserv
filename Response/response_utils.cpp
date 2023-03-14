@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/13 15:54:03 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/14 10:36:56 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,12 @@ std::string create_status_line(int status, Request&re_st){
     return "";
 }
 
-std::string get_content_lenght(Response &a){
+std::string get_content_lenght(Response &a, Request &re_st){
     std::string str = "Content-Length: ";
-    str += std::to_string(a.get_body().size());
+	if (re_st._client.is_reading)
+		str += std::to_string(re_st._client.file_size);
+	else
+    	str += std::to_string(a.get_body().size());
     str += "\r\n";
     return (str);
 }
@@ -60,7 +63,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     a->get_error_page();
     response += create_status_line(a->get_status(), re_st);
     response += a->get_content_type();
-    response += get_content_lenght(*a);
+    response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
     delete a;

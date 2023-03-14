@@ -36,6 +36,7 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
 			client.capacity = BASE_REQUEST_SIZE;
 			client.still_receiving = false;
 			client.still_saving = false;
+			client.is_reading = false;
 			client.fd = -1;
 			client.received = 0;
             client.socket = accept(s->get_socket(),
@@ -67,12 +68,49 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-			if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
+			if (!it->still_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
+			{
+				if (it->response.empty())
+				{
+					std::cout << "reading file" << std::endl;
+					ssize_t  r;
+					size_t byte_to_read = it->file_size - it->total_bytes_read;
+					if (byte_to_read > CHUNK_SIZE_SEND)
+						byte_to_read = CHUNK_SIZE_SEND;
+					char s[byte_to_read];
+					r = read(it->fd, s, byte_to_read);
+					if (r < 0)
+					{
+						std::cout << "dropping client" << std::endl;
+						if (it->fd != -1)
+							close(it->fd);
+						server->drop_client(*it);
+						e = server->clients.end();
+						continue ;
+					}
+					it->total_bytes_read += r;
+					// std::cout << "total bytes read: " << r << std::endl;
+					it->response = std::string(s, r);
+					if (it->total_bytes_read == it->file_size)
+					{
+						// std::cout << "finished reading " << std::endl;
+						it->is_reading = false;
+						close(it->fd);
+						it->fd = -1;
+						it->total_bytes_read = 0;
+					}
+				}
+				it->still_receiving = true;
+			}
+			else if (it->still_receiving && FD_ISSET(it->socket, &fds.second))
 			{
 				std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
 				{
+						std::cout << "dropping client" << std::endl;
+					if (it->fd != -1)
+						close(it->fd);
 				    it = server->drop_client(*it);
 					e = server->clients.end();
                     continue ;
@@ -90,12 +128,15 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 					bytes_to_write);
 				if (r < 0)
 				{
+						std::cout << "dropping client" << std::endl;
+					if (it->fd != -1)
+						close(it->fd);
 					server->drop_client(*it);
 					e = server->clients.end();
                     continue ;
 				}
 				it->total_bytes_saved += r;
-				std::cout << "bytes were saved: " << r << std::endl;
+				// std::cout << "bytes were saved: " << r << std::endl;
 				if (it->total_bytes_saved == it->request_obj->_body_len)
 				{
 					it->still_saving = false;
@@ -151,6 +192,7 @@ int	main(int argc, char **argv, char **env)
 			std::cout << "invalid id " << config.get_key() << std::endl;
 		exit(1);
 	}
+	signal(SIGPIPE, SIG_IGN);
 	std::vector<Server> servers;
 	config.generate_servers(servers);
 	Server::create_sockets(servers);

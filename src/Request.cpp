@@ -67,6 +67,7 @@ void    Request::get_method_and_path(std::string &line)
 
 void    Request::print_request() const
 {
+	// PIPE_BUF
     std::cout << "Method: " << this->_method << std::endl;
     std::cout << "Path: " << this->_path << std::endl;
     std::cout << "Procol ver: " << this->_protocol_ver << std::endl;

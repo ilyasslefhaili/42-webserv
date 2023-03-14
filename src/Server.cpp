@@ -72,7 +72,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 	while (serv != servers.end())
 	{
 		FD_SET(serv->_socket, &reads);
-		// FD_SET(serv->_socket, &writes);
+		FD_SET(serv->_socket, &writes);
 		if (serv->get_socket() > max_socket)
 			max_socket = serv->get_socket();
 		std::vector<ClientInfo>::iterator cl = serv->clients.begin();
@@ -84,7 +84,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 				max_socket = cl->socket;
 			if (cl->fd != -1)
 			{
-				// FD_SET(cl->fd, &reads);
+				FD_SET(cl->fd, &reads);
 				FD_SET(cl->fd, &writes);
 				if (cl->fd > max_socket)
 					max_socket = cl->fd;
@@ -154,34 +154,50 @@ void	Server::send_404(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
+	client.still_receiving = false;
 	free(client.request_obj);
 	client.request_obj = nullptr;
 	free(client.request);
 	client.request = (char *) calloc(BASE_REQUEST_SIZE, sizeof(char));
 	client.capacity = BASE_REQUEST_SIZE;
 	client.received = 0;
+	client.response = "";
 }
 
 bool		Server::send_data(ClientInfo &client)
 {
-	while (client.total_bytes_sent < client.response.size())
-	{
+	// while (client.total_bytes_sent < client.response.size())
+	// {
 		size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
 		if (bytes_to_send > CHUNK_SIZE_SEND)
 			bytes_to_send = CHUNK_SIZE_SEND;
-		client.bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
+		// std::cout << "bytes_to_send " << bytes_to_send << std::endl;
+		// std::cout << "total_bytes_sent " << client.total_bytes_sent << std::endl;
+		// std::cout << client.response.size()<<"    "<<bytes_to_send << std::endl;
+		std::cout << " send using socket " << client.socket << std::endl;
+		ssize_t bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
 			bytes_to_send, 0);
-		if (client.bytes_sent < 0)
+		if (bytes_sent < 0)
 		{
-			// std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl; // forbidden, just for testing
-			client.still_receiving = true;
-			return true ;
+			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl;
+			return false ;
 		}
+		// std::cout << bytes_sent << " bytes were sent " << std::endl;
 		client.last_received = time(NULL);
-		std::cout << client.bytes_sent << " bytes were sent " << std::endl;
-		client.total_bytes_sent += client.bytes_sent;
+		client.total_bytes_sent += bytes_sent;
+	// }
+	if (client.total_bytes_sent != client.response.size())
+	{
+		client.still_receiving = true;
+		return (true);
 	}
-	client.still_receiving = false;
+	if (client.is_reading)
+	{
+		client.response.clear();
+		client.still_receiving = false;
+		client.total_bytes_sent = 0;
+		return (true);
+	}
 	std::cout << "client " << client.socket << " received " << client.total_bytes_sent << " bytes." << std::endl;
 	std::string connection = client.request_obj->_header["Connection"];
 	reset_req(client);
@@ -207,7 +223,6 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 		send_404(client);
 	else
 		client.response = get_response(*client.request_obj, _configs);
-	client.bytes_sent = 0;
 	client.total_bytes_sent = 0;
 	if (client.still_saving)
 		return (true);
