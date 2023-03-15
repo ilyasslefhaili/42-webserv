@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 10:36:56 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/15 11:12:03 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,7 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 }
 
 std::string cgi_execute(std::string cgi_path, std::string file, char **env){
+	std::cout << "CGI EXECUTING" << std::endl;
     int fd[2];
     int for_k;
     std::string buff;

@@ -145,9 +145,6 @@ void    Request::parse_request(const char *request, size_t length)
 	else
 		_body_len = atoi(_header["Content-Length"].c_str());
 	// print_request();
-
-
-
 }
 
 bool Request::request_is_complete(const char* buffer, size_t length)
@@ -157,7 +154,16 @@ bool Request::request_is_complete(const char* buffer, size_t length)
         return false; // header was not yet received
     }
 
-    // Check if the ontent-length is specified
+    const char* chunked = strnstr(buffer, "Transfer-Encoding: Chunked", length);
+	if (chunked != nullptr)
+	{
+	    const char* final_chunk = strnstr(buffer, "\r\n0\r\n\r\n", length);
+		if (final_chunk != nullptr)
+			return true;
+		return false;
+	}
+
+    // Check if the content-length is specified
     const char* content_length_str = strnstr(buffer, "Content-Length:", length);
     if (content_length_str != nullptr) {
         content_length_str += strlen("Content-Length:");
@@ -166,5 +172,6 @@ bool Request::request_is_complete(const char* buffer, size_t length)
             return false; // Not enough data received
         }
     }
+
     return true; // Request is complete
 }
