@@ -99,8 +99,8 @@ void    Request::parse_request(const char *request, size_t length)
 	const char *s = strnstr(request, "\r\n\r\n", length);
 	// _body = (char *) (s + 4);
 	_body = req.substr(pos + 4, req.size());
-	std::cout << "check req size " << req.size() << std::endl;
-	std::cout << "check _body size " << _body.size() << std::endl;
+	// std::cout << "check req size " << req.size() << std::endl;
+	// std::cout << "check _body size " << _body.size() << std::endl;
 
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
@@ -145,6 +145,10 @@ void    Request::parse_request(const char *request, size_t length)
 	else
 		_body_len = atoi(_header["Content-Length"].c_str());
 	// print_request();
+	// if (_body.find("------WebKitFormBoundary") != std::string::npos)
+	// {
+
+	// }
 }
 
 bool Request::request_is_complete(const char* buffer, size_t length)

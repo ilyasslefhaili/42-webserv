@@ -230,7 +230,7 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
 	client.response = get_response(*client.request_obj, _configs);
-	std::cout << client.response << std::endl;
+	// std::cout << client.response << std::endl;
 	client.total_bytes_sent = 0;
 	if (client.is_saving)
 		return (true);

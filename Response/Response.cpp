@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 20:18:10 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/15 12:35:34 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ void Response::fill_body(){
 		_request._client.file_size = buf.st_size;
         this->_request._client.is_reading = true;
     }
-    else{
+    else {
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
@@ -269,7 +269,7 @@ void    Response::post_method(){
 					{
 						_request._client.file_name = Upload_file;
 						// fcntl(fd, F_SETFL, O_NONBLOCK);
-						std::cout << "adsfadsf   " << fd << std::endl;
+						// std::cout << "adsfadsf   " << fd << std::endl;
 						_request._client.fd = fd;
 						_request._client.is_saving = true;
 						_request._client.total_bytes_saved = 0;
