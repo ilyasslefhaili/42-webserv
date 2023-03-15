@@ -136,7 +136,6 @@ void	Server::send_413(ClientInfo &client)
 	const char *c413 = "HTTP/1.1 413 Request Entity Too Large\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 24\r\n\r\nRequest Entity Too Large";
-	client.is_receiving = true;
 	client.response = std::string(c413);
 	give_error_page(*client.request_obj, this->_configs, 413);
 	// send(client.socket, c413, strlen(c413), 0);
@@ -148,7 +147,6 @@ void	Server::send_404(ClientInfo &client)
 	const char *c404 = "HTTP/1.1 404 Not Found\r\n"
 		"Connection: close\r\n"
 		"Content-Length: 9\r\n\r\nNot Found";
-	client.is_receiving = true;
 	client.response = std::string(c404);
 	give_error_page(*client.request_obj, this->_configs, 404);
 	// send(client.socket, c404, strlen(c404), 0);
