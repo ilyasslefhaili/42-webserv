@@ -74,6 +74,16 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     return response;
 }
 
+
+void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int status){
+    Response respo(re_st);
+
+    respo.set_config(get_server(re_st, configs));
+    respo.get_location();
+    respo.set_status(status);
+    respo.get_error_page();
+}
+
 Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response(re_st);
 

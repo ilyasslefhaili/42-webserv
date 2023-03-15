@@ -126,6 +126,7 @@ void	Server::send_400(ClientInfo &client)
 		"Content-Length: 11\r\n\r\nBad Request";
 		client.is_receiving = true;
 	client.response = std::string(c400);
+	give_error_page(*client.request_obj, this->_configs, 400);
 	// send(client.socket, c400, strlen(c400), 0);
 
 }
@@ -137,6 +138,7 @@ void	Server::send_413(ClientInfo &client)
 		"Content-Length: 24\r\n\r\nRequest Entity Too Large";
 	client.is_receiving = true;
 	client.response = std::string(c413);
+	give_error_page(*client.request_obj, this->_configs, 413);
 	// send(client.socket, c413, strlen(c413), 0);
 
 }
@@ -148,7 +150,7 @@ void	Server::send_404(ClientInfo &client)
 		"Content-Length: 9\r\n\r\nNot Found";
 	client.is_receiving = true;
 	client.response = std::string(c404);
-	
+	give_error_page(*client.request_obj, this->_configs, 404);
 	// send(client.socket, c404, strlen(c404), 0);
 }
 
@@ -159,7 +161,7 @@ void	Server::send_500(ClientInfo &client)
 		"Content-Length: 21\r\n\r\nInternal Server Error";
 	client.is_receiving = true;
 	client.response = std::string(c500);
-	
+	give_error_page(*client.request_obj, this->_configs, 500);
 	// send(client.socket, c404, strlen(c404), 0);
 }
 
