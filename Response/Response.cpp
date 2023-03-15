@@ -40,13 +40,12 @@ void  Response::get_files_in_dir(){
     dir = opendir(this->_path.c_str()); 
     to_incriment = readdir(dir);
     _body = "<html>\n";
-    _body += "<head>Index ";
+    _body += "<head>Index :  ";
     _body += this->_path;
+    _body += "</head>";
     while (to_incriment != NULL){
         _body += "<a href= \"";
-        _body += this->_path;
-        _body += "/";
-        _body += to_incriment->d_name;
+        _body +=  to_incriment->d_name;
         _body += "\"> ";
         _body += to_incriment->d_name;
         _body += "</a>";
@@ -56,6 +55,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
+    std::cout<<_body<<std::endl;
     closedir(dir);
 }
 
@@ -113,22 +113,8 @@ void Response::check_status_code(std::string& str){
 }
 
 void Response::fill_body(){
-    if (_cgi_path.size()  == 0){
-        if (this->_request._client.fd != -1)
-            close(this->_request._client.fd);
-        this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
-		if (_request._client.fd < 0)
-		{
-			return ;
-		}
-		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
-		_request._client.file_name = _path;
-		struct stat buf;
-		fstat(_request._client.fd, &buf);
-		_request._client.file_size = buf.st_size;
-        this->_request._client.is_reading = true;
-    }
-    else{
+
+    if(this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3)){
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
@@ -150,6 +136,21 @@ void Response::fill_body(){
             }
             else
                 this->_status = 404;
+    }
+    else {
+        if (this->_request._client.fd != -1)
+            close(this->_request._client.fd);
+        this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
+		if (_request._client.fd < 0)
+		{
+			return ;
+		}
+		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
+		_request._client.file_name = _path;
+		struct stat buf;
+		fstat(_request._client.fd, &buf);
+		_request._client.file_size = buf.st_size;
+        this->_request._client.is_reading = true;
     }
 }
 
