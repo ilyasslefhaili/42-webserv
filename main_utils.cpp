@@ -107,7 +107,7 @@ bool	save_chunk_file(std::vector<ClientInfo>::iterator &it)
 		return true ;
 	}
 	it->total_bytes_saved += r;
-	std::cout << "bytes were saved: " << r << std::endl;
+	// std::cout << "bytes were saved: " << r << std::endl;
 	if (it->total_bytes_saved == it->request_obj->_body_len)
 	{
 		it->is_saving = false;
