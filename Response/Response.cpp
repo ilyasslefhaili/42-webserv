@@ -31,7 +31,6 @@ void Response::fill_directive(){
     _cgi_path = _location._cgi_path;
     _max_body_size = _configs._max_body;
     _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
-	// std::cout << "_max_body_size " << _max_body_size << std::endl;
 }
 
 void  Response::get_files_in_dir(){
@@ -46,12 +45,12 @@ void  Response::get_files_in_dir(){
     _body += "</head>";
     _body += "\n";
     while (to_incriment != NULL){
-        std::cout<<to_incriment->d_name<<std::endl;
+        // std::cout<<to_incriment->d_name<<std::endl;
         if (std::string(to_incriment->d_name) == "." || std::string(to_incriment->d_name) == ".."){
             to_incriment = readdir(dir);
             continue;
         }
-        std::cout<<to_incriment->d_name<<std::endl;
+        // std::cout<<to_incriment->d_name<<std::endl;
         _body += "<a href= \"";
         _body += "http://" + _request._header["Host"] + "/";
         _body += this->_path;
@@ -65,7 +64,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
-    std::cout<<_body<<std::endl;
+    // std::cout<<_body<<std::endl;
     closedir(dir);
 }
 
@@ -92,10 +91,7 @@ void    Response::get_index(){
         throw (std::exception());
     }
     else
-    {
-        std::cout<<"skfd"<<std::endl;
         this->_status = 404;
-    }
 }
 
 std::string& Response::get_path(){
@@ -126,7 +122,6 @@ void Response::check_status_code(std::string& str){
 }
 
 void Response::fill_body(){
-    std::cout<< " sjfksj   "<<this->_path<<std::endl;
     if(this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3)){
        
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
@@ -161,7 +156,6 @@ void Response::fill_body(){
             this->_status = 500;
 			return ;
 		}
-		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
 		_request._client.file_name = _path;
 		struct stat buf;
 		fstat(_request._client.fd, &buf);

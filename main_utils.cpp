@@ -40,10 +40,10 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
 				std::cerr << "accept() failed. (" << errno << ") " << strerror(errno) << std::endl;
 				exit(1);
 			}
-			std::cout << "######################################################" << std::endl;
+			// std::cout << "######################################################" << std::endl;
 			std::cout << "New connection from " << s->get_client_address(client)
 				<< " : " << s->get_port() << " using socket " << client.socket << std::endl;
-			std::cout << "####################################################" << std::endl;
+			// std::cout << "####################################################" << std::endl;
         }
         s++;
     }
@@ -54,7 +54,7 @@ bool	read_chunk_file(std::vector<ClientInfo>::iterator &it)
 {
 	if (it->response.empty())
 	{
-		std::cout << "reading file" << std::endl;
+		// std::cout << "reading file" << std::endl;
 		ssize_t  r;
 		size_t byte_to_read = it->file_size - it->total_bytes_read;
 		if (byte_to_read > CHUNK_SIZE_SEND)
@@ -145,7 +145,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			}
 			else if (it->is_receiving && FD_ISSET(it->socket, &fds.second))
 			{
-				std::cout << "retrying receiving "<< std::endl;
+				// std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
 				{
