@@ -3,8 +3,8 @@ $name=null;
 if (!empty($_COOKIE['username'])) {
 	$name = $_COOKIE['username'];
 }
-else if (!empty($_POST['username'])) {
-	setcookie('username', $_POST['username'], time() + 60 * 60);
+if (!empty($_POST['username'])) {
+	setcookie('username', $_POST['username']);
 	$name = $_POST['username'];
 }
 require 'header.php';
