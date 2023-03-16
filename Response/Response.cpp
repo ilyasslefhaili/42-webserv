@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 18:56:40 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:16:01 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ void Response::fill_directive(){
     _allowed_methods =_location._allowed_methods.size() > 0 ? _location._allowed_methods : _configs._allowed_methods;
     _ret = _location._ret;
     _autoindex = _configs._auto_index;
-    _autoindex = _location._autoindex;
+    if (this->_check_location)
+        _autoindex = _location._autoindex;
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
     _content_type = _request._header["Content-Type"];
@@ -43,8 +44,17 @@ void  Response::get_files_in_dir(){
     _body += "<head>Index :  ";
     _body += this->_path;
     _body += "</head>";
+    _body += "\n";
     while (to_incriment != NULL){
+        std::cout<<to_incriment->d_name<<std::endl;
+        if (std::string(to_incriment->d_name) == "." || std::string(to_incriment->d_name) == ".."){
+            to_incriment = readdir(dir);
+            continue;
+        }
+        std::cout<<to_incriment->d_name<<std::endl;
         _body += "<a href= \"";
+        _body += "http://" + _request._header["Host"] + "/";
+        _body += this->_path;
         _body +=  to_incriment->d_name;
         _body += "\"> ";
         _body += to_incriment->d_name;
@@ -55,7 +65,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
-    // std::cout<<_body<<std::endl;
+    std::cout<<_body<<std::endl;
     closedir(dir);
 }
 
@@ -82,7 +92,10 @@ void    Response::get_index(){
         throw (std::exception());
     }
     else
+    {
+        std::cout<<"skfd"<<std::endl;
         this->_status = 404;
+    }
 }
 
 std::string& Response::get_path(){
@@ -113,8 +126,9 @@ void Response::check_status_code(std::string& str){
 }
 
 void Response::fill_body(){
-    if(this->_cgi_path.size() > 0 && (_path.find(".php") == _path.size() - 4 || _path.find(".pl") == _path.size() - 3)){
-            if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(_path.c_str(), F_OK) != -1){
+    if(this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3)){
+       
+            if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
                     this->check_status_code(str);
@@ -143,6 +157,7 @@ void Response::fill_body(){
         this->_request._client.fd = open(this->_path.c_str(), O_RDONLY | O_NONBLOCK);
 		if (_request._client.fd < 0)
 		{
+            this->_status = 500;
 			return ;
 		}
 		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
@@ -407,6 +422,7 @@ void    Response::get_location(){
             b = a;
         }
     }
+    this->_request._path.erase(0, this->_location._path.size());
 }
 
 void    Response::get_the_absolute_path(){

@@ -6,14 +6,14 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 18:52:32 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:14:46 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "Response.hpp"
 
-bool isDirectory(std::string& path){
+bool isDirectory(const std::string& path){
 	// std::cout << path << std::endl;
     struct stat statbuf;
     stat(path.c_str(), &statbuf);
@@ -169,10 +169,11 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         for_k = fork(); 
         int i = 0;
         // FILE* temp = tmpfile();
-        int f_w = open("l", O_CREAT | O_WRONLY | O_TRUNC, 0666);
-        int f_r = open("l", O_RDONLY);
+        int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        int f_r = open("/tmp/l", O_RDONLY);
         if (for_k == 0){
             write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f
+            std::cout<<this->_request._body<<std::endl;
             dup2(f_r, 0);// d - f
             close(f_r);// c -f
             close(f_w);
@@ -196,9 +197,10 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
             buff += c;
         }
         close(fd[0]);
+        unlink("/tmp/l");
         // close(fd_r[0]);
         // close(f);
-        // close(fd_r[1]);
+        // close(f_R);
     }
     // std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
