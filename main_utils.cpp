@@ -100,7 +100,7 @@ bool	save_chunk_file(std::vector<ClientInfo>::iterator &it)
 		bytes_to_write);
 	if (r < 0)
 	{
-		std::cout << strerror(errno) << " " << errno << std::endl;
+		std::cout << strerror(errno) << " : " << errno << std::endl;
 		if (it->fd != -1)
 			close(it->fd);
 		it->fd = -1;
@@ -133,7 +133,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-			if (!it->is_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
+			if (it->fd != -1 && !it->is_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
 			{
 				int r = read_chunk_file(it);
 				if (r)
@@ -157,7 +157,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
                     continue ;
 				}
 			}
-			else if (it->is_saving && FD_ISSET(it->fd, &fds.second))
+			else if (it->fd != -1 && it->is_saving && FD_ISSET(it->fd, &fds.second))
 			{
 				bool r = save_chunk_file(it);
 				if (r)

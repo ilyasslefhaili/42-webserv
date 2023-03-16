@@ -90,8 +90,10 @@ void    Response::get_index(){
         this->_path += "i.html";
         throw (std::exception());
     }
-    else
-        this->_status = 404;
+    else{
+        this->_status = 403;
+        throw (std::exception());
+    }
 }
 
 std::string& Response::get_path(){
