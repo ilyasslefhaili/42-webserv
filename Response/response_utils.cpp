@@ -166,10 +166,11 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         for_k = fork(); 
         int i = 0;
         // FILE* temp = tmpfile();
-        int f_w = open("l", O_CREAT | O_WRONLY | O_TRUNC);
-        int f_r = open("l", O_RDONLY);
+        int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        int f_r = open("/tmp/l", O_RDONLY);
         if (for_k == 0){
             write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f
+            std::cout<<this->_request._body<<std::endl;
             dup2(f_r, 0);// d - f
             close(f_r);// c -f
             close(f_w);
@@ -193,9 +194,10 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
             buff += c;
         }
         close(fd[0]);
+        unlink("/tmp/l");
         // close(fd_r[0]);
         // close(f);
-        // close(fd_r[1]);
+        // close(f_R);
     }
     // std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
