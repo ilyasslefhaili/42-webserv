@@ -145,7 +145,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			}
 			else if (it->is_receiving && FD_ISSET(it->socket, &fds.second))
 			{
-				std::cout << "retrying receiving "<< std::endl;
+				// std::cout << "retrying receiving "<< std::endl;
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
 				{

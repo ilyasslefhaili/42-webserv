@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 19:16:01 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:29:41 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,12 +46,12 @@ void  Response::get_files_in_dir(){
     _body += "</head>";
     _body += "\n";
     while (to_incriment != NULL){
-        std::cout<<to_incriment->d_name<<std::endl;
+        // std::cout<<to_incriment->d_name<<std::endl;
         if (std::string(to_incriment->d_name) == "." || std::string(to_incriment->d_name) == ".."){
             to_incriment = readdir(dir);
             continue;
         }
-        std::cout<<to_incriment->d_name<<std::endl;
+        // std::cout<<to_incriment->d_name<<std::endl;
         _body += "<a href= \"";
         _body += "http://" + _request._header["Host"] + "/";
         _body += this->_path;
@@ -65,7 +65,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
-    std::cout<<_body<<std::endl;
+    // std::cout<<_body<<std::endl;
     closedir(dir);
 }
 
@@ -93,7 +93,6 @@ void    Response::get_index(){
     }
     else
     {
-        std::cout<<"skfd"<<std::endl;
         this->_status = 404;
     }
 }
@@ -213,7 +212,6 @@ void Response::fill_attributes(Request& re_st){
     }
     if (this->_dir_or_file)
     {
-		std::cout << "dire or file " << std::endl;
         try{
             this->get_index();
         }catch(std::exception& e){
@@ -221,7 +219,6 @@ void Response::fill_attributes(Request& re_st){
         }
     }
     try{
-		std::cout << "check file perm " << _path << std::endl;
         check_the_file_permissions(this->_path, &this->_status);
     }
     catch(const std::exception& e){
@@ -473,7 +470,6 @@ int Response::get_status(){
 void Response::link_root_path(Request& re_st){
 
     _path = this->_root;
-	std::cout << "root " << _root << std::endl;
     if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
         re_st._path.erase(0, 1);
     
@@ -486,8 +482,6 @@ void Response::link_root_path(Request& re_st){
 	} else {
 		_path += re_st._path;
 	}
-	std::cout << "finish linking  p " << _path << std::endl;
-	std::cout << "finish linking  q " << _query << std::endl;
 
 }
 

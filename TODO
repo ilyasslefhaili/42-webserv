@@ -1,19 +1,13 @@
-numbers at uploads names
-extentions
-close files descriptor
+simo
+check leaks
+check return recv/send read/write // drop client if error
+sessions
+Setup multiple servers with different hostnames (use something like: curl --resolve example.com:80:127.0.0.1 http://example.com/)
+Search for all read/recv/write/send and check if the returned value is correctly checked (checking only -1 or 0 values is not enough, both should be checked).
+There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the select() (or equivalent) to the read and write of a client.
 
 
-if request is POST  and body is empty handle accordingly
-if request is GET dont read immediatly save fd and flag bool until select
-handle request_body_max_size
-
-if request is GET, and cgi found => return Response
-if request is GET, and error occured => return Response
-if request is GET, and need to open file => open file  keep file descriptor in client.fd, set client.is_reading to true, response only have header body empty
-
-
-
-// simo
-// add the fd in select
-// if fd is flagged, send header first, read with CHUNK from fd and send to socket
-
+ilyass
+check status code
+curl
+test

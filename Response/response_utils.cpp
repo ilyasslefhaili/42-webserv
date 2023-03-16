@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 19:14:46 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:29:52 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ std::string get_content_lenght(Response &a, Request &re_st){
 
 std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     std::string response;
-    std::cout<<"get_response"<<std::endl;
+    // std::cout<<"get_response"<<std::endl;
     Response *a = get_response_object(re_st, configs);
     a->get_error_page();
     response += create_status_line(a->get_status(), re_st);
@@ -76,7 +76,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
-	std::cout << response << std::endl;
+	// std::cout << response << std::endl;
     delete a;
     return response;
 }
@@ -130,7 +130,6 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 }
 
 std::vector<std::string> Response::set_env(){
-	std::cout << "SET ENV" << std::endl;
 	std::string cookie = _request._header["Cookie"];
     std::string a = "SCRIPT_FILENAME=:QUERY_STRING=:REQUEST_METHOD=:CONTENT_TYPE=:CONTENT_LENGTH=:REDIRECT_STATUS=:HTTP_COOKIE=";
     std::vector<std::string> vec_str = split_host_port(a);
@@ -157,8 +156,8 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
 
     for (int i = 0;i < vec_str.size(); i++)
         envp[i] = (char *)vec_str[i].c_str();
-    for (int i = 0;i < 7; i++)
-        std::cout<<envp[i]<<std::endl;
+    // for (int i = 0;i < 7; i++)
+    //     std::cout<<envp[i]<<std::endl;
     envp[7] = NULL;
     std::string buff;
     if (access(file.c_str(), F_OK) != -1)
@@ -173,7 +172,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         int f_r = open("/tmp/l", O_RDONLY);
         if (for_k == 0){
             write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f
-            std::cout<<this->_request._body<<std::endl;
+            // std::cout<<this->_request._body<<std::endl;
             dup2(f_r, 0);// d - f
             close(f_r);// c -f
             close(f_w);

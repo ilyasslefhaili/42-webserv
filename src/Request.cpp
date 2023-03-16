@@ -214,7 +214,6 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
 				// std::cout << "len_str " << len_str << std::endl;
 				std::stringstream ss(len_str);
 				ss << std::hex; ss >> len;
-				std::cout << "length " << len << std::endl;
 				if (len == 0)
 				{
 					// std::cout << "check this out "<< len_str << std::endl;
