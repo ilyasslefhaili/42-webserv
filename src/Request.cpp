@@ -164,7 +164,7 @@ void    Request::parse_request(const char *request, size_t length)
 		_body = req.substr(pos + 4, length);
 		_body_len = atoi(_header["Content-Length"].c_str());
 	}
-	// print_request();
+	print_request();
 	// if (_body.find("------WebKitFormBoundary") != std::string::npos)
 	// {
 

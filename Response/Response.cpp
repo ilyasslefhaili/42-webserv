@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/15 12:47:34 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 13:59:52 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,16 +119,17 @@ void Response::fill_body(){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
                     this->check_status_code(str);
+					if (this->_status == 0)
+						this->_status = 200;
                     if (this->_status == 301 || this->_status == 200){
-                        size_t pos = str.find("\n");
-                        this->_content_type = str.substr(0, pos + 1);
-                        str.erase(0, pos + 1);
-                        if (strncmp(this->_content_type.c_str(), "Content-Type:", 13) != 0){
-                            size_t pos = str.find("\n");
-                            this->_content_type = str.substr(0, pos + 1);
-                            str.erase(0, pos + 1);
-                        }
-                        this->_body = str;
+						if (this->_status == 200)
+							this->is_cgi_response = true;
+						else{
+							size_t pos = str.find("\r\n");
+							if (pos != std::string::npos)
+								str.erase(0, pos + 2);
+						}
+                    	this->_body = str;
                     }
                 }
                 else
@@ -236,6 +237,17 @@ void    Response::get_index_in_post(){
     }
 }
 
+// if (this->_status == 301 || this->_status == 200){
+//                         size_t pos = str.find("\n");
+//                         this->_content_type = str.substr(0, pos + 1);
+//                         str.erase(0, pos + 1);
+//                         if (strncmp(this->_content_type.c_str(), "Content-Type:", 13) != 0){
+//                             size_t pos = str.find("\n");
+//                             this->_content_type = str.substr(0, pos + 1);
+//                             str.erase(0, pos + 1);
+//                         }
+//                         this->_body = str;
+//                     }
 void    Response::post_method(){
     if (this->_allowed_methods.size() > 0){
         size_t i = 0; 
@@ -264,15 +276,15 @@ void    Response::post_method(){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
                     this->check_status_code(str);
                     if (this->_status == 0)
+					{
+						this->is_cgi_response = true;
                         this->_status = 200;
-                    size_t pos = str.find("\n");
-                    this->_content_type = str.substr(0, pos + 1);
-                    str.erase(0, pos + 1);
-                    if (strncmp(this->_content_type.c_str(), "Content-Type:", 13) != 0){
-                        size_t pos = str.find("\n");
-                        this->_content_type = str.substr(0, pos + 1);
-                        str.erase(0, pos + 1);
-                    }
+					}
+					else{
+						size_t pos = str.find("\r\n");
+						if (pos != std::string::npos)
+							str.erase(0, pos + 2);
+					}
                     this->_body = str;
                 }
                 else
@@ -458,6 +470,7 @@ ServerConfig& Response::get_config(){
 }
 Response::Response(Request& re_st) : _request(re_st){
 	this->_status = 0;
+	this->is_cgi_response = false;
     this->_check_location = false;
 }
 
