@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 17:23:11 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 18:52:32 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
+	std::cout << response << std::endl;
     delete a;
     return response;
 }
@@ -168,7 +169,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         for_k = fork(); 
         int i = 0;
         // FILE* temp = tmpfile();
-        int f_w = open("l", O_CREAT | O_WRONLY | O_TRUNC);
+        int f_w = open("l", O_CREAT | O_WRONLY | O_TRUNC, 0666);
         int f_r = open("l", O_RDONLY);
         if (for_k == 0){
             write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f

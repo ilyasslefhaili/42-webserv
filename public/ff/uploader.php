@@ -4,7 +4,7 @@
 		<title> FILE UPLOAD </title>
 	</head>
 	<body>
-		<form id="uploadbanner" enctype="multipart/form-data" method="post" action="http://10.11.7.6:8080/public/ff/ss">
+		<form id="uploadbanner" enctype="multipart/form-data" method="post" action="upload.php">
 			<input id="fileupload" name="myfile" type="file"/>
 			<input type="submit" value="submit" id="submit" />
 		 </form>

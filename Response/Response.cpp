@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 17:32:18 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 18:56:40 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,8 +113,6 @@ void Response::check_status_code(std::string& str){
 }
 
 void Response::fill_body(){
-	std::cout << "my path ll : " << _path << std::endl;
-	std::cout << "query ll : " << _query << std::endl;
     if(this->_cgi_path.size() > 0 && (_path.find(".php") == _path.size() - 4 || _path.find(".pl") == _path.size() - 3)){
             if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
@@ -441,7 +439,7 @@ std::string Response::get_content_type(){
         return ("");
     else if (this->_request._method == "DELETE")
         return ("");
-    else if (this->_cgi_path.size() > 0)
+    else if (this->_cgi_path.size() > 0&& (_path.find(".php") == _path.size() - 4 || _path.find(".pl") == _path.size() - 3))
         return (this->_content_type);
     return (this->types.get_type(this->_path));
 }
