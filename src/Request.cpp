@@ -2,6 +2,12 @@
 
 #include "Request.hpp"
 
+Request::Request(ClientInfo &client)	: _client(client)
+{
+
+}
+
+
 Request::Request(const Request &src) : _client(src._client)
 {
 	*this = src;
@@ -37,6 +43,11 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
 Request::Request(const char *request, size_t length, ClientInfo &client)
 	: _client(client)
 {
+	_client.chunk_finished = true;
+	_client.first_time = true;
+	_client.chunk_size = 0;
+	// _client.body;
+	// _client.new_body;
     parse_request(request, length);
 }
 
@@ -98,7 +109,6 @@ void    Request::parse_request(const char *request, size_t length)
 
 	// const char *s = strnstr(request, "\r\n\r\n", length);
 	// _body = (char *) (s + 4);
-	_body = req.substr(pos + 4, length);
 	// std::cout << "check req size " << req.size() << std::endl;
 	// std::cout << "check _body size " << _body.size() << std::endl;
 
@@ -120,35 +130,40 @@ void    Request::parse_request(const char *request, size_t length)
 	// std::string str_body(_body, _body_len);
 	if (_header["Transfer-Encoding"] == "Chunked")
 	{
-		std::string new_body = "";
-		std::cout << "body length " << _body.length() << std::endl;
-		int pos = _body.find("\r\n");
-		while (pos != std::string::npos)
-		{
-			std::string len_str = _body.substr(0, pos);
-			unsigned int len;
-			// std::cout << "len_str " << len_str << std::endl;
-			std::stringstream ss(len_str);
-			ss << std::hex; ss >> len;
-			// std::cout << "len_str in decimal " << len << std::endl;
-			if (len == 0)
-				break ;
-			_body = _body.substr(len_str.length() + 2); // skip both length and \r\n
-
-
-			new_body += _body.substr(0, len);
-
-
-			_body = _body.substr(len + 2);
-			pos = _body.find("\r\n");
-		}
+		// std::string new_body = "";
+		// std::cout << "body length " << _body.length() << std::endl;
+		// int pos = _body.find("\r\n");
+		// while (pos != std::string::npos)
+		// {
+		// 	std::string len_str = _body.substr(0, pos);
+		// 	unsigned int len;
+		// 	// std::cout << "len_str " << len_str << std::endl;
+		// 	std::stringstream ss(len_str);
+		// 	ss << std::hex; ss >> len;
+		// 	// std::cout << "len_str in decimal " << len << std::endl;
+		// 	if (len == 0)
+		// 		break ;
+		// 	_body = _body.substr(len_str.length() + 2); // skip both length and \r\n
+		// 	new_body += _body.substr(0, len);
+		// 	_body = _body.substr(len + 2);
+		// 	pos = _body.find("\r\n");
+		// }
 		// new_body += "\r\n";
-		_body = new_body;
+		_body = _client.new_body;
 		_body_len = _body.size();
+		_client.new_body.clear();
+		_client.body.clear();
+		_client.chunk_finished = true;
+		_client.first_time = true;
+		_client.chunk_size = 0;
+
 		// std::cout  << _body << std::endl;
 	}
 	else
+	{
+		_body = req.substr(pos + 4, length);
 		_body_len = atoi(_header["Content-Length"].c_str());
+	}
 	// print_request();
 	// if (_body.find("------WebKitFormBoundary") != std::string::npos)
 	// {
@@ -157,27 +172,111 @@ void    Request::parse_request(const char *request, size_t length)
 	//5107830
 }
 
-bool Request::request_is_complete(const char* buffer, size_t length)
+void	check_for_chunk()
 {
-    const char* end = strnstr(buffer, "\r\n\r\n", length); // double CRLF sequence that marks the end of the header
+
+}
+
+bool Request::request_is_complete(const char* buffer, size_t length, int added_length, ClientInfo &client)
+{
+	std::cout << added_length << std::endl;
+    const char* end = (const char *) memmem(buffer, length, "\r\n\r\n", 4); // double CRLF sequence that marks the end of the header
     if (end == NULL) {
+		// std::cout << "LULE" << std::endl;
         return false; // header was not yet received
     }
 
-    const char* chunked = strnstr(buffer, "Transfer-Encoding: Chunked", length);
-	if (chunked != NULL)
+	// std::cout << length << std::endl;
+	// std::cout << added_length << std::endl;
+
+    void* chunked = memmem(buffer, length,  "Transfer-Encoding: Chunked", 26);
+	if (chunked != NULL) // find away to collect while collencting ghh
 	{
-		// std::cout << "length lule : " << length << std::endl;
-	    void* final_chunk = memmem(buffer, length, "\r\n0\r\n\r\n", 7);
-		if (final_chunk != NULL)
+		size_t body_start = end - buffer + 4;
+		
+		if (client.first_time)
 		{
-			// std::cout << " M HERE " << std::endl;
-			return true;
+			// if (length - body_start == end + 4)
+			client.body = std::string(end + 4, length - body_start);
+			client.first_time = false;
 		}
-		// std::cout << " M NEVER HERE " << std::endl;
-		return false;
-	}
-//370629
+		else
+		{
+			client.body += std::string(buffer + length - added_length, added_length);
+			// std::cout << std::string(buffer + length - added_length, added_length) << "." << std::endl;
+		}
+
+		if (client.body.size() >= client.chunk_size && client.chunk_size != 0)
+			{
+				client.new_body += client.body.substr(0, client.chunk_size);
+				client.body = client.body.substr(client.chunk_size + 2);
+				client.chunk_size = 0;
+			}
+		// if (client.chunk_finished)
+		// {
+			client.chunk_finished = false;
+			int pos = client.body.find("\r\n");
+			while (pos != std::string::npos)
+			{
+				std::string len_str = client.body.substr(0, pos);
+				unsigned int len;
+				// std::cout << "len_str " << len_str << std::endl;
+				std::stringstream ss(len_str);
+				ss << std::hex; ss >> len;
+				std::cout << "length " << len << std::endl;
+				if (len == 0)
+				{
+					// std::cout << "check this out "<< len_str << std::endl;
+					return true ;
+				}
+				client.chunk_size = len;
+				client.body = client.body.substr(len_str.length() + 2);
+				if (client.body.size() >= client.chunk_size)
+				{
+					client.new_body += client.body.substr(0, len);
+					client.body = client.body.substr(len + 2);
+					client.chunk_size = 0;
+					// client.chunk_finished = true;
+					pos = client.body.find("\r\n");
+				}
+				else
+					return false;
+			}
+			// else
+			// {
+				return false ;
+			// }
+		// }
+		// else
+		// {
+		// 	if (client.body.size() >= client.chunk_size)
+		// 	{
+		// 		client.new_body += client.body.substr(0, client.chunk_size);
+		// 		client.body = client.body.substr(client.chunk_size + 2);
+		// 		client.chunk_size = 0;
+		// 		client.chunk_finished = true;
+		// 		std::cout << "LULE " << std::endl;
+		// 		// int pos = client.body.find("\r\n");
+		// 		// if (pos == std::string::npos)
+		// 		// 	return false;
+		// 		// std::string len_str = client.body.substr(0, pos);
+		// 		// unsigned int len;
+		// 		// std::stringstream ss(len_str);
+		// 		// ss << std::hex; ss >> len;
+		// 		// if (len == 0)
+		// 		// {
+		// 		// 	std::cout << "LULE" << std::endl;
+		// 		// 	return true ;
+
+		// 		// }
+		// 		// client.chunk_size = len;
+		// 		// client.body = client.body.substr(len_str.length() + 2);
+		// 	}
+				// client.chunk_finished = true;
+			return false ;
+		}
+
+
     // Check if the content-length is specified
     const char* content_length_str = strnstr(buffer, "Content-Length:", length);
     if (content_length_str != NULL) {
@@ -189,4 +288,9 @@ bool Request::request_is_complete(const char* buffer, size_t length)
     }
 
     return true; // Request is complete
+}
+
+void		Request::set_request(const char *request, size_t length)
+{
+    parse_request(request, length);
 }

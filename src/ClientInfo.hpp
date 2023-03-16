@@ -44,6 +44,12 @@ class Request;
 		off_t					file_size;
 		
 		bool					force_drop_connection;
+
+		bool					chunk_finished;
+		bool					first_time;
+		size_t					chunk_size;
+		std::string				body;
+		std::string				new_body;
 	};
 
 #endif

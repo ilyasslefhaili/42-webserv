@@ -292,7 +292,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		// 	return true;
 		// }
 		std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
-		if (Request::request_is_complete(it->request, it->received)) // true if request is fully received; start processing
+		if (Request::request_is_complete(it->request, it->received, r, *it)) // true if request is fully received; start processing
 		{
 			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)

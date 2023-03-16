@@ -10,6 +10,10 @@ void	init_client(ClientInfo &client)
 	client.is_receiving = false;
 	client.is_saving = false;
 	client.is_reading = false;
+	client.first_time = true;
+	client.chunk_finished = true;
+	client.chunk_size = 0;
+
 	client.fd = -1;
 	client.received = 0;
 }

@@ -26,13 +26,14 @@ class Request {
 		size_t								_body_len;
 		std::string 						_path;
 		ClientInfo							&_client;
-		// SESSION ?
+		bool								_is_chunked;
 
 
 	private:
 		void		get_method_and_path(std::string &line);
 
 	public:
+		Request(ClientInfo &client);
 		Request(const char *request, size_t length, ClientInfo &client);
 		Request(const Request &src);
 		Request & operator=(const Request &rhs);
@@ -40,7 +41,8 @@ class Request {
 
 		void		parse_request(const char *request, size_t length);
 		void   		print_request() const;
-		static bool request_is_complete(const char* buffer, size_t length);
+		static bool request_is_complete(const char* buffer, size_t length, int added_length, ClientInfo &client);
+		void		set_request(const char *request, size_t length);
 
 
 
