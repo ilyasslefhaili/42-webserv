@@ -13,7 +13,7 @@
 
 #include "Response.hpp"
 
-bool isDirectory(std::string& path){
+bool isDirectory(const std::string& path){
 	// std::cout << path << std::endl;
     struct stat statbuf;
     stat(path.c_str(), &statbuf);

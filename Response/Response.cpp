@@ -45,6 +45,11 @@ void  Response::get_files_in_dir(){
     _body += "</head>";
     while (to_incriment != NULL){
         _body += "<a href= \"";
+        // if (isDirectory(this->_path + to_incriment->d_name))
+        // {
+            _body += this->_path;
+            // std::cout<<this->_path + to_incriment->d_name<<std::endl;
+        // }
         _body +=  to_incriment->d_name;
         _body += "\"> ";
         _body += to_incriment->d_name;
@@ -394,6 +399,7 @@ void    Response::get_location(){
             b = a;
         }
     }
+    this->_path.erase(0, this->_location._path.size());
 }
 
 void    Response::get_the_absolute_path(){
