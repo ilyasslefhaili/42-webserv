@@ -35,7 +35,7 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
 }
 
 Request::Request(const char *request, size_t length, ClientInfo &client)
-	: _client(client)
+	: _client(client), _raw(std::string(request, length))
 {
     parse_request(request, length);
 }
@@ -149,6 +149,7 @@ void    Request::parse_request(const char *request, size_t length)
 
 bool Request::request_is_complete(const char* buffer, size_t length)
 {
+    std::cout<<buffer<<std::endl;
     const char* end = strnstr(buffer, "\r\n\r\n", length); // double CRLF sequence that marks the end of the header
     if (end == nullptr) {
         return false; // header was not yet received
