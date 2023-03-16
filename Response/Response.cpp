@@ -55,7 +55,7 @@ void  Response::get_files_in_dir(){
     if (this->_status == 0)
         this->_status = 200;
     _body += "</html>\n";
-    std::cout<<_body<<std::endl;
+    // std::cout<<_body<<std::endl;
     closedir(dir);
 }
 
@@ -249,19 +249,55 @@ void    Response::post_method(){
         }
     }
     if (this->_request._body.size() <= _max_body_size){
-        if (this->_upload){
+        if (this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3))
+        {
+            if (this->_dir_or_file)
+            {
+                try{
+                    this->get_index_in_post();
+                }catch(std::exception& e){
+                    return ;
+                }   
+            }
+            if (access(this->_cgi_path.c_str(), F_OK) != -1){
+                if (access(this->_cgi_path.c_str(), X_OK) != -1){
+                    std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
+                    this->check_status_code(str);
+                    if (this->_status == 0)
+                        this->_status = 200;
+                    size_t pos = str.find("\n");
+                    this->_content_type = str.substr(0, pos + 1);
+                    str.erase(0, pos + 1);
+                    if (strncmp(this->_content_type.c_str(), "Content-Type:", 13) != 0){
+                        size_t pos = str.find("\n");
+                        this->_content_type = str.substr(0, pos + 1);
+                        str.erase(0, pos + 1);
+                    }
+                    this->_body = str;
+                }
+                else
+                    this->_status = 502;
+            }
+            else
+                this->_status = 404;  
+        }
+        else if (this->_upload){
             if (access(this->_upload_dir.c_str(), F_OK) != -1)
             {
                 if (access(this->_upload_dir.c_str(), W_OK) != -1)
 	    		{
                     std::string Upload_file = this->_upload_dir;
-                    if (isDirectory(this->_path)){
+                    if (isDirectory(this->_path) && this->_path.find(_upload_dir) == 0){
                         Upload_file += "/upload" + std::to_string(_change_name);
                         Upload_file += this->types.get_extention(this->_content_type);
                         _change_name++;
                     }
-                    else
+                    else if (this->_path.find(_upload_dir) == 0)
                         Upload_file = this->_path;
+                    else{
+                        this->_status = 403;
+                        return ;
+                    }
 	    	   		int fd = open(Upload_file.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0666);
 					if (fd < 0)
 					{
@@ -286,29 +322,6 @@ void    Response::post_method(){
             else
                 this->_status = 404;
         }
-        else if (this->_cgi_path.size() > 0)
-        {
-            if (this->_dir_or_file)
-            {
-                try{
-                    this->get_index_in_post();
-                }catch(std::exception& e){
-                    return ;
-                }   
-            }
-            if (access(this->_cgi_path.c_str(), F_OK) != -1){
-                if (access(this->_cgi_path.c_str(), X_OK) != -1){
-                    std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
-                    this->check_status_code(str);
-                    if (this->_status == 0)
-                        this->_status = 200;
-                }
-                else
-                    this->_status = 502;
-            }
-            else
-                this->_status = 404;  
-        }
         else 
             this->_status = 403;
     }
@@ -332,7 +345,7 @@ void    Response::post_method(){
     //     this->_request._client.is_reading = true;
 
 void Response::get_error_page(){
-    std::cout<<"status    " <<this->_status<<std::endl;
+    // std::cout<<"status    " <<this->_status<<std::endl;
    this->_error_page = this->_configs._error_pages[this->_status];
 	
 	
@@ -350,7 +363,7 @@ void Response::get_error_page(){
 			struct stat buf;
 			fstat(_request._client.fd, &buf);
 			_request._client.file_size = buf.st_size;
-			std::cout<<"len   = "<<buf.st_size<<std::endl;
+			// std::cout<<"len   = "<<buf.st_size<<std::endl;
 			_request._client.is_reading = true;
 		}
    }
@@ -431,6 +444,8 @@ int Response::get_status(){
 void Response::link_root_path(Request& re_st){
 
     _path = this->_root;
+    if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
+        re_st._path.erase(0, 1);
     _path += re_st._path;
 }
 

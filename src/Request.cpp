@@ -41,7 +41,7 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
 }
 
 Request::Request(const char *request, size_t length, ClientInfo &client)
-	: _client(client)
+	: _client(client), _raw(std::string(request, length))
 {
 	_client.chunk_finished = true;
 	_client.first_time = true;
@@ -172,22 +172,13 @@ void    Request::parse_request(const char *request, size_t length)
 	//5107830
 }
 
-void	check_for_chunk()
-{
-
-}
-
 bool Request::request_is_complete(const char* buffer, size_t length, int added_length, ClientInfo &client)
 {
-	std::cout << added_length << std::endl;
     const char* end = (const char *) memmem(buffer, length, "\r\n\r\n", 4); // double CRLF sequence that marks the end of the header
     if (end == NULL) {
 		// std::cout << "LULE" << std::endl;
         return false; // header was not yet received
     }
-
-	// std::cout << length << std::endl;
-	// std::cout << added_length << std::endl;
 
     void* chunked = memmem(buffer, length,  "Transfer-Encoding: Chunked", 26);
 	if (chunked != NULL) // find away to collect while collencting ghh

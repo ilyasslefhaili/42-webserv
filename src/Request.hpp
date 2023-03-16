@@ -16,7 +16,7 @@
 class Request {
 
 	public:
-		char								*_raw;
+		std::string							_raw;
 		char**								_env;
 		std::string							_method;
 		std::string							_protocol_ver;	//ver of HTTP protocol

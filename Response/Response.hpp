@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include "Mimetypes.hpp"
 #include <sys/stat.h>
+#include <cstdlib>
 
 
 class Response
@@ -78,8 +79,9 @@ class Response
         ServerConfig& get_config();
         void    get_the_absolute_path();
         void    get_location();
+        std::vector<std::string>     set_env();
         void    delete_response();
-        
+        std::string cgi_execute(std::string cgi_path, std::string file, char **env);
         Response(Request& re_st);
         ~Response();
         
@@ -95,7 +97,6 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs);
 Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs);
 std::vector<std::string> split_host_port(std::string host_port);
 bool        isDirectory(std::string& path);
-std::string cgi_execute(std::string cgi_path, std::string file, char **env);
 void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int status);
 
 

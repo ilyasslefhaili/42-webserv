@@ -122,38 +122,74 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     return a;
 }
 
-std::string cgi_execute(std::string cgi_path, std::string file, char **env){
-	std::cout << "CGI EXECUTING" << std::endl;
+std::vector<std::string> Response::set_env(){
+    std::string a = "SCRIPT_FILENAME=:QUERY_STRING=:REQUEST_METHOD=:CONTENT_TYPE=:CONTENT_LENGTH=:REDIRECT_STATUS=";
+    std::vector<std::string> vec_str = split_host_port(a);
+    
+    vec_str[0] += this->_path;
+    vec_str[2] += this->_request._method;
+    vec_str[3] += this->_content_type;
+    vec_str[4] += std::to_string(this->_request._body.size());
+    vec_str[5] += std::to_string(200);
+ 
+    return vec_str;
+}
+
+std::string Response::cgi_execute(std::string cgi_path, std::string file, char **env){
+
+	std::cout << "CGI EXECUTING  :"<< file << std::endl;
     int fd[2];
+    int fd_r[2];
     int for_k;
+    std::vector<std::string> vec_str = set_env();
+    char *envp[7];
+
+    for (int i = 0;i < vec_str.size(); i++)
+        envp[i] = (char *)vec_str[i].c_str();
+    for (int i = 0;i < 6; i++)
+        std::cout<<envp[i]<<std::endl;
+    envp[6] = NULL;
     std::string buff;
     if (access(file.c_str(), F_OK) != -1)
     {
         char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
         pipe(fd);
+        //pipe(fd_r);
         for_k = fork(); 
+        int i = 0;
+        // FILE* temp = tmpfile();
+        int f_w = open("l", O_CREAT | O_WRONLY | O_TRUNC);
+        int f_r = open("l", O_RDONLY);
         if (for_k == 0){
+            write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f
+            dup2(f_r, 0);// d - f
+            close(f_r);// c -f
+            close(f_w);
             dup2(fd[1], 1);
             close(fd[1]);
             close(fd[0]);
-            execve(cgi_path.c_str(), argv, env);
+            // close(fd_r[0]);
+            execve(cgi_path.c_str(), argv, envp);
             write(2, "cgi fail()\n", 12);
             exit(1);
         }
-        wait(NULL);
+        wait(NULL); 
         char c[2];
         int r = 1;
         close(fd[1]);
         while (r != 0){
             r = read(fd[0], c, 1);
-            if (r != 1)
+            if (r <= 0)
                 break ;
             c[1] = '\0';
             buff += c;
         }
-        close(fd[1]);
         close(fd[0]);
+        // close(fd_r[0]);
+        // close(f);
+        // close(fd_r[1]);
     }
+    std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
 }
 //get content type 
