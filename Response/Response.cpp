@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/14 20:18:10 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/15 12:47:34 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,7 @@ void Response::fill_body(){
         this->_request._client.is_reading = true;
     }
 }
+
 
 void Response::in_case_of_return(){
     // std::cout<<this->_ret.first<<std::endl;
@@ -306,7 +307,7 @@ void    Response::post_method(){
 					{
 						_request._client.file_name = Upload_file;
 						// fcntl(fd, F_SETFL, O_NONBLOCK);
-						std::cout << "adsfadsf   " << fd << std::endl;
+						// std::cout << "adsfadsf   " << fd << std::endl;
 						_request._client.fd = fd;
 						_request._client.is_saving = true;
 						_request._client.total_bytes_saved = 0;

@@ -96,11 +96,11 @@ void    Request::parse_request(const char *request, size_t length)
     int pos = req.find("\r\n\r\n");
     std::string header = req.substr(0, pos + 1);
 
-	const char *s = strnstr(request, "\r\n\r\n", length);
+	// const char *s = strnstr(request, "\r\n\r\n", length);
 	// _body = (char *) (s + 4);
-	_body = req.substr(pos + 4, req.size());
-	std::cout << "check req size " << req.size() << std::endl;
-	std::cout << "check _body size " << _body.size() << std::endl;
+	_body = req.substr(pos + 4, length);
+	// std::cout << "check req size " << req.size() << std::endl;
+	// std::cout << "check _body size " << _body.size() << std::endl;
 
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
@@ -121,19 +121,24 @@ void    Request::parse_request(const char *request, size_t length)
 	if (_header["Transfer-Encoding"] == "Chunked")
 	{
 		std::string new_body = "";
+		std::cout << "body length " << _body.length() << std::endl;
 		int pos = _body.find("\r\n");
 		while (pos != std::string::npos)
 		{
 			std::string len_str = _body.substr(0, pos);
 			unsigned int len;
-			std::cout << "len_str " << len_str << std::endl;
+			// std::cout << "len_str " << len_str << std::endl;
 			std::stringstream ss(len_str);
 			ss << std::hex; ss >> len;
-			std::cout << "len_str in decimal " << len << std::endl;
+			// std::cout << "len_str in decimal " << len << std::endl;
 			if (len == 0)
 				break ;
 			_body = _body.substr(len_str.length() + 2); // skip both length and \r\n
+
+
 			new_body += _body.substr(0, len);
+
+
 			_body = _body.substr(len + 2);
 			pos = _body.find("\r\n");
 		}
@@ -145,28 +150,38 @@ void    Request::parse_request(const char *request, size_t length)
 	else
 		_body_len = atoi(_header["Content-Length"].c_str());
 	// print_request();
+	// if (_body.find("------WebKitFormBoundary") != std::string::npos)
+	// {
+
+	// }5107845
+	//5107830
 }
 
 bool Request::request_is_complete(const char* buffer, size_t length)
 {
     std::cout<<buffer<<std::endl;
     const char* end = strnstr(buffer, "\r\n\r\n", length); // double CRLF sequence that marks the end of the header
-    if (end == nullptr) {
+    if (end == NULL) {
         return false; // header was not yet received
     }
 
     const char* chunked = strnstr(buffer, "Transfer-Encoding: Chunked", length);
-	if (chunked != nullptr)
+	if (chunked != NULL)
 	{
-	    const char* final_chunk = strnstr(buffer, "\r\n0\r\n\r\n", length);
-		if (final_chunk != nullptr)
+		// std::cout << "length lule : " << length << std::endl;
+	    void* final_chunk = memmem(buffer, length, "\r\n0\r\n\r\n", 7);
+		if (final_chunk != NULL)
+		{
+			// std::cout << " M HERE " << std::endl;
 			return true;
+		}
+		// std::cout << " M NEVER HERE " << std::endl;
 		return false;
 	}
-
+//370629
     // Check if the content-length is specified
     const char* content_length_str = strnstr(buffer, "Content-Length:", length);
-    if (content_length_str != nullptr) {
+    if (content_length_str != NULL) {
         content_length_str += strlen("Content-Length:");
         int content_length = atoi(content_length_str);
         if (length < (end - buffer) + 4 + content_length) {
