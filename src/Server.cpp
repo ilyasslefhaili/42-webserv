@@ -59,7 +59,7 @@ std::string	Server::get_client_address(ClientInfo &client)
 	return (std::string(address_buffer));
 }
 
-// static 
+
 std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers)
 {
 	fd_set	reads;// a struct which will hold all our active sockets
@@ -72,20 +72,24 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 	while (serv != servers.end())
 	{
 		FD_SET(serv->_socket, &reads);
-		FD_SET(serv->_socket, &writes);
+		// FD_SET(serv->_socket, &writes);
 		if (serv->get_socket() > max_socket)
 			max_socket = serv->get_socket();
 		std::vector<ClientInfo>::iterator cl = serv->clients.begin();
 		while (cl != serv->clients.end())
 		{
-			FD_SET(cl->socket, &reads);
-			FD_SET(cl->socket, &writes);
+			if (!cl->is_receiving)
+				FD_SET(cl->socket, &reads);
+			else
+				FD_SET(cl->socket, &writes);
 			if (cl->socket > max_socket)
 				max_socket = cl->socket;
 			if (cl->fd != -1)
 			{
-				FD_SET(cl->fd, &reads);
-				FD_SET(cl->fd, &writes);
+				if (cl->is_reading)
+					FD_SET(cl->fd, &reads);
+				if (cl->is_saving)
+					FD_SET(cl->fd, &writes);
 				if (cl->fd > max_socket)
 					max_socket = cl->fd;
 			}
@@ -94,7 +98,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 		++serv;
 	}
 	struct timeval timeout;
-	timeout.tv_sec = TIMEOUT - 1;
+	timeout.tv_sec = TIMEOUT;
 	timeout.tv_usec = 0;
 
 	// select indicates which of the specified file descriptors is ready for reading, ready for writing, or has an error condition pending
@@ -167,7 +171,6 @@ void	Server::send_500(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
-	client.is_receiving = false;
 	free(client.request_obj);
 	client.request_obj = nullptr;
 	free(client.request);
@@ -179,36 +182,40 @@ void	reset_req(ClientInfo &client)
 
 bool		Server::send_data(ClientInfo &client)
 {
-	// while (client.total_bytes_sent < client.response.size())
-	// {
-		size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
-		if (bytes_to_send > CHUNK_SIZE_SEND)
-			bytes_to_send = CHUNK_SIZE_SEND;
-		// std::cout << " send using socket " << client.socket << std::endl;
-		ssize_t bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
-			bytes_to_send, 0);
-		if (bytes_sent < 0)
+
+	size_t bytes_to_send = client.response.size() - client.total_bytes_sent;
+	if (bytes_to_send > CHUNK_SIZE_SEND)
+		bytes_to_send = CHUNK_SIZE_SEND;
+	ssize_t bytes_sent = send(client.socket, client.response.c_str() + client.total_bytes_sent,
+		bytes_to_send, 0);
+	if (bytes_sent < 1)
+	{
+		if (bytes_sent == 0)
+			std::cout << "Connection was closed by the other end" << std::endl;
+		else
 		{
-			std::cerr << "error (" << errno << ") " << strerror(errno) << std::endl;
-			return false ;
+			std::cout << "Unexpected disconnect from " << this->get_client_address(client) << std::endl;
+			std::cerr << strerror(errno) << std::endl;
 		}
-		// std::cout << bytes_sent << " bytes were sent " << std::endl;
-		client.last_received = time(NULL);
-		client.total_bytes_sent += bytes_sent;
+		return false ;
+	}
+	// std::cout << bytes_sent << " bytes were sent " << std::endl;
+	client.last_received = time(NULL);
+	client.total_bytes_sent += bytes_sent;
 	// }
 	if (client.total_bytes_sent != client.response.size())
 	{
 		client.is_receiving = true;
 		return (true);
 	}
+	client.is_receiving = false;
 	if (client.is_reading)
 	{
 		client.response.clear();
-		client.is_receiving = false;
 		client.total_bytes_sent = 0;
 		return (true);
 	}
-	std::cout << "client " << client.socket << " received " << client.total_bytes_sent << " bytes." << std::endl;
+	// std::cout << "client " << client.socket << " received " << client.total_bytes_sent << " bytes." << std::endl;
 	std::string connection = client.request_obj->_header["Connection"];
 	reset_req(client);
 	if (client.force_drop_connection)
@@ -234,13 +241,14 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 	client.total_bytes_sent = 0;
 	if (client.is_saving)
 		return (true);
-	// std::cout << "RESPONSE SIZE " << client.response.size() << std::endl;
-	if (!FD_ISSET(client.socket, &fds.second))
-	{
-		std::cout << "not yet, we shall wait" << std::endl;
-	 	return (true);
-	}
-	return (send_data(client));
+	client.is_receiving = true;
+	return (true);
+	// if (!FD_ISSET(client.socket, &fds.second))
+	// {
+	// 	std::cout << "not yet, we shall wait" << std::endl;
+	//  	return (true);
+	// }
+	// return (send_data(client));
 
 }
 
@@ -291,10 +299,10 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		// 	send_413(*it);
 		// 	return true;
 		// }
-		std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
+		// std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
 		if (Request::request_is_complete(it->request, it->received, r, *it)) // true if request is fully received; start processing
 		{
-			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
 				delete it->request_obj;
 			it->request_obj = new Request(it->request, it->received, *it);
@@ -342,7 +350,13 @@ int Server::create_socket(const char* host, const char *port)
 		exit(1);
 	}
 	freeaddrinfo(bind_address);
-	std::cout << "Listening to port " << port << std::endl;	
+	std::cout << "Listening to port " << port << std::endl;
+	int optval = 1;
+	if (setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+	{
+		std::cerr << "setsockopt() failed. (" << errno << ") " << strerror(errno) << std::endl;
+        return 1;
+    }
 	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
 		std::cerr << "listen() failed. (" << errno << ") " << strerror(errno) << std::endl;

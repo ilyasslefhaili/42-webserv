@@ -1,10 +1,15 @@
 <?php
 $name=null;
+if (!empty($_GET["action"]) && $_GET["action"] === "logout")
+{
+	unset($_COOKIE['username']);
+	setcookie('username', '', time() - 10);
+}
 if (!empty($_COOKIE['username'])) {
 	$name = $_COOKIE['username'];
 }
-else if (!empty($_POST['username'])) {
-	setcookie('username', $_POST['username'], time() + 60 * 60);
+if (!empty($_POST['username'])) {
+	setcookie('username', $_POST['username']);
 	$name = $_POST['username'];
 }
 require 'header.php';
@@ -12,6 +17,7 @@ require 'header.php';
 
 <?php if ($name): ?>
 	<h1>  Hello <?= htmlentities($name) ?> </h1>
+	<a href="cookie.php?action=logout" >Logout</a>
 <?php else: ?>
 <main role="main" class="container">
 

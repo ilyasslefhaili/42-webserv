@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 14:12:40 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:29:52 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
+	// std::cout << response << std::endl;
     delete a;
     return response;
 }
@@ -134,6 +135,7 @@ std::vector<std::string> Response::set_env(){
     std::vector<std::string> vec_str = split_host_port(a);
     
     vec_str[0] += this->_path;
+    vec_str[1] += _query;
     vec_str[2] += this->_request._method;
     vec_str[3] += this->_content_type;
     vec_str[4] += std::to_string(this->_request._body.size());

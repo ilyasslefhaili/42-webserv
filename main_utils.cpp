@@ -149,7 +149,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 				bool r = server->send_data(*it); // if true keep connection
 				if (!r)
 				{
-						std::cout << "dropping client" << std::endl;
+					std::cout << "dropping client" << std::endl;
 					if (it->fd != -1)
 						close(it->fd);
 				    it = server->drop_client(*it);

@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 13:46:53 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 17:13:53 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class Response
         std::fstream                                        _file;
         bool                                                _check_location;
         std::string                                         _path;
+		std::string											_query;
         std::string                                         _body;
         Request&                                            _request;
         Location                                            _location;

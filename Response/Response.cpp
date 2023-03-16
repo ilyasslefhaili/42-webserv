@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 13:59:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 19:29:41 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -448,7 +448,7 @@ std::string Response::get_content_type(){
         return ("");
     else if (this->_request._method == "DELETE")
         return ("");
-    else if(this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3))
+    else if (this->_cgi_path.size() > 0&& (_path.find(".php") == _path.size() - 4 || _path.find(".pl") == _path.size() - 3))
         return (this->_content_type);
     return (this->types.get_type(this->_path));
 }
@@ -468,8 +468,17 @@ void Response::link_root_path(Request& re_st){
     _path = this->_root;
     if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
         re_st._path.erase(0, 1);
-    std::cout<<_request._path<<std::endl;
-    _path += _request._path;
+    
+	size_t pos = re_st._path.find("?");
+	if (pos != std::string::npos)
+	{
+		_path += re_st._path.substr(0, pos);
+		_query = re_st._path.substr(pos + 1);
+		re_st._path = _path;
+	} else {
+		_path += re_st._path;
+	}
+
 }
 
 void   Response::set_config(ServerConfig& conf){
