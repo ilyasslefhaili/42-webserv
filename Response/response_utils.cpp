@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/15 12:26:12 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 14:12:40 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,11 @@ std::string create_status_line(int status, Request&re_st){
 
 std::string get_content_lenght(Response &a, Request &re_st){
     std::string str = "Content-Length: ";
+	if (a.is_cgi_response){
+		size_t pos = a.get_body().find("\r\n\r\n");
+		size_t len = a.get_body().size() - (pos + 4);
+		return (str + std::to_string(len));
+	}
 	if (re_st._client.is_reading)
 		str += std::to_string(re_st._client.file_size);
 	else
@@ -66,7 +71,8 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = get_response_object(re_st, configs);
     a->get_error_page();
     response += create_status_line(a->get_status(), re_st);
-    response += a->get_content_type();
+	if (a->is_cgi_response == false)
+    	response += a->get_content_type();
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
@@ -123,7 +129,8 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 }
 
 std::vector<std::string> Response::set_env(){
-    std::string a = "SCRIPT_FILENAME=:QUERY_STRING=:REQUEST_METHOD=:CONTENT_TYPE=:CONTENT_LENGTH=:REDIRECT_STATUS=";
+	std::string cookie = _request._header["Cookie"];
+    std::string a = "SCRIPT_FILENAME=:QUERY_STRING=:REQUEST_METHOD=:CONTENT_TYPE=:CONTENT_LENGTH=:REDIRECT_STATUS=:HTTP_COOKIE=";
     std::vector<std::string> vec_str = split_host_port(a);
     
     vec_str[0] += this->_path;
@@ -131,6 +138,7 @@ std::vector<std::string> Response::set_env(){
     vec_str[3] += this->_content_type;
     vec_str[4] += std::to_string(this->_request._body.size());
     vec_str[5] += std::to_string(200);
+	vec_str[6] += cookie;
  
     return vec_str;
 }
@@ -142,13 +150,13 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
     int fd_r[2];
     int for_k;
     std::vector<std::string> vec_str = set_env();
-    char *envp[7];
+    char *envp[8];
 
     for (int i = 0;i < vec_str.size(); i++)
         envp[i] = (char *)vec_str[i].c_str();
-    for (int i = 0;i < 6; i++)
+    for (int i = 0;i < 7; i++)
         std::cout<<envp[i]<<std::endl;
-    envp[6] = NULL;
+    envp[7] = NULL;
     std::string buff;
     if (access(file.c_str(), F_OK) != -1)
     {
@@ -189,7 +197,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         // close(f);
         // close(fd_r[1]);
     }
-    std::cout<<"that is the buffer :"<<buff<<std::endl;
+    // std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
 }
 //get content type 
