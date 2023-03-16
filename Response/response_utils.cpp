@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 14:12:40 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 17:23:11 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,11 +129,13 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 }
 
 std::vector<std::string> Response::set_env(){
+	std::cout << "SET ENV" << std::endl;
 	std::string cookie = _request._header["Cookie"];
     std::string a = "SCRIPT_FILENAME=:QUERY_STRING=:REQUEST_METHOD=:CONTENT_TYPE=:CONTENT_LENGTH=:REDIRECT_STATUS=:HTTP_COOKIE=";
     std::vector<std::string> vec_str = split_host_port(a);
     
     vec_str[0] += this->_path;
+    vec_str[1] += _query;
     vec_str[2] += this->_request._method;
     vec_str[3] += this->_content_type;
     vec_str[4] += std::to_string(this->_request._body.size());

@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 13:59:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/16 17:32:18 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,9 +113,10 @@ void Response::check_status_code(std::string& str){
 }
 
 void Response::fill_body(){
-
-    if(this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3)){
-            if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(this->_path.c_str(), F_OK) != -1){
+	std::cout << "my path ll : " << _path << std::endl;
+	std::cout << "query ll : " << _query << std::endl;
+    if(this->_cgi_path.size() > 0 && (_path.find(".php") == _path.size() - 4 || _path.find(".pl") == _path.size() - 3)){
+            if (access(this->_cgi_path.c_str(), F_OK) != -1 && access(_path.c_str(), F_OK) != -1){
                 if (access(this->_cgi_path.c_str(), X_OK) != -1){
                     std::string str = cgi_execute(_cgi_path, this->_path, this->_request._env);
                     this->check_status_code(str);
@@ -199,6 +200,7 @@ void Response::fill_attributes(Request& re_st){
     }
     if (this->_dir_or_file)
     {
+		std::cout << "dire or file " << std::endl;
         try{
             this->get_index();
         }catch(std::exception& e){
@@ -206,6 +208,7 @@ void Response::fill_attributes(Request& re_st){
         }
     }
     try{
+		std::cout << "check file perm " << _path << std::endl;
         check_the_file_permissions(this->_path, &this->_status);
     }
     catch(const std::exception& e){
@@ -456,9 +459,22 @@ int Response::get_status(){
 void Response::link_root_path(Request& re_st){
 
     _path = this->_root;
+	std::cout << "root " << _root << std::endl;
     if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
         re_st._path.erase(0, 1);
-    _path += re_st._path;
+    
+	size_t pos = re_st._path.find("?");
+	if (pos != std::string::npos)
+	{
+		_path += re_st._path.substr(0, pos);
+		_query = re_st._path.substr(pos + 1);
+		re_st._path = _path;
+	} else {
+		_path += re_st._path;
+	}
+	std::cout << "finish linking  p " << _path << std::endl;
+	std::cout << "finish linking  q " << _query << std::endl;
+
 }
 
 void   Response::set_config(ServerConfig& conf){
