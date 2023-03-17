@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 19:29:41 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 10:59:55 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,8 @@ void Response::fill_directive(){
     _upload    = _location._upload;
     _upload_dir = _location._upload_dir;
     _content_type = _request._header["Content-Type"];
-    _cgi_path = _location._cgi_path;
+	_cgi_path = _configs._cgi_path;
+    _cgi_path = _location._cgi_path.size() > 0 ? _location._cgi_path : _configs._cgi_path;
     _max_body_size = _configs._max_body;
     _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
 }
@@ -132,16 +133,11 @@ void Response::fill_body(){
                     this->check_status_code(str);
 					if (this->_status == 0)
 						this->_status = 200;
-                    if (this->_status == 301 || this->_status == 200){
-						if (this->_status == 200)
-							this->is_cgi_response = true;
-						else{
-							size_t pos = str.find("\r\n");
-							if (pos != std::string::npos)
-								str.erase(0, pos + 2);
-						}
-                    	this->_body = str;
-                    }
+					this->is_cgi_response = true;
+					size_t pos = str.find("\r\n");
+					if (pos != std::string::npos)
+						str.erase(0, pos + 2);
+                    this->_body = str;
                 }
                 else
                     this->_status = 502;
