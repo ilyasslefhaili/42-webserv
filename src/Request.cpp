@@ -197,8 +197,10 @@ Request::Request( ClientInfo &client, const char *header, size_t length) :_clien
 	// std::cout << "length " << length << std::endl;
 	// std::cout << "map content length " << _header["Content-Length"] << std::endl;
 	// std::cout << "content length " << atoi(_header["Content-Length"].c_str()) << std::endl;
-	buffer_size = length + 4 + atoi(_header["Content-Length"].c_str());
+	_body_len = atoi(_header["Content-Length"].c_str());
+	buffer_size = length + 4 + _body_len;
 	std::cout << "buffer_size " << buffer_size << std::endl;
+
 
 }
 

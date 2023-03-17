@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 12:43:12 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 14:27:25 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,13 +230,14 @@ ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     return (configs[0]);
 }
 
-bool check_body_size(std::vector<ServerConfig> &configs, Request& re_st){
+bool check_body_size(std::vector<ServerConfig> &configs, Request& re_st)
+{
     Response respo(re_st);
 
     respo.set_config(get_server(re_st, configs));
     respo.get_location();
     respo.fill_directive();
-    if (re_st._body.size() <= respo._max_body_size)
+    if (re_st._body_len <= respo._max_body_size)
         return (true);
     return (false);
 }
