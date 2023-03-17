@@ -235,12 +235,12 @@ bool		Server::send_data(ClientInfo &client)
 		return false;
 	if (connection == "keep-alive")
 	{
-		std::cout << "keeping the connection alive" << std::endl;
+		// std::cout << "keeping the connection alive" << std::endl;
 		return true;
 	}
 	else
 	{
-		std::cout << "closing the connection " << std::endl;
+		// std::cout << "closing the connection " << std::endl;
 		return false;
 	}
 }
@@ -248,7 +248,7 @@ bool		Server::send_data(ClientInfo &client)
 // returns whether the connection should be open or not
 bool		Server::serve_resource(ClientInfo &client)
 {
-	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
+	// std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
 	client.response = get_response(*client.request_obj, _configs);
 	// std::cout << client.response << std::endl;
 	client.total_bytes_sent = 0;
@@ -320,9 +320,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		{
 			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
-			{
 				delete it->request_obj;
-			}
 			it->request_obj = new Request(it->request, it->received, *it);
 			it->request_obj->_env = env;
 			if (!this->serve_resource(*it))
@@ -336,6 +334,8 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 			it->body_len_check = true;
 			if (it->request_obj != nullptr && !check_body_size(_configs, *it->request_obj))
 			{
+				std::cout << " true " << std::endl;
+
 				send_413(*it);
 				it->force_drop_connection = true;
 				it->is_receiving = true;

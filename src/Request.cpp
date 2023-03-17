@@ -134,7 +134,6 @@ void    Request::parse_request(const char *request, size_t length)
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
 
-    std::cout << "currently parsing the request" << std::endl;
     get_method_and_path(strings[0]);
     for (size_t i = 1; i < strings.size(); i++)
     {
@@ -157,7 +156,6 @@ void    Request::parse_request(const char *request, size_t length)
 	}
 	else
 	{
-		std::cout << "not chunekd " << std::endl;
 		_body = req.substr(pos + 4, length);
 		_body_len = atoi(_header["Content-Length"].c_str());
 	}
@@ -206,7 +204,6 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
 			if (client.request_obj != nullptr)
 				delete client.request_obj;
 			client.request_obj = new Request(client, buffer, end - buffer);
-			std::cout << "header reached" << std::endl;
 			client.header_reached = true;
 		}
 	}

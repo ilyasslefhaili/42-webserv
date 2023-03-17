@@ -197,6 +197,7 @@ void	Config::parse_client_max_body_size( std::istringstream &ss)
 		ss >> _current_location._max_body;
 	else
 		ss >> _current._max_body;
+	// std::cout<<_current_location._max_body<<std::endl;
 }
 
 void	Config::parse_root( std::istringstream &ss)
@@ -229,7 +230,7 @@ void	Config::parse_location( std::istringstream &ss)
 	if (_location_bracket_open || !_server_bracket_open)
 		throw ConfigFileException();	
 	_current_location = Location();
-	_current_location._max_body = -1;
+	_current_location._max_body = 0;
 	ss >> _current_location._path;
 }
 

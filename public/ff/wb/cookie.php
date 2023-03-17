@@ -3,7 +3,7 @@ $name=null;
 if (!empty($_GET["action"]) && $_GET["action"] === "logout")
 {
 	unset($_COOKIE['username']);
-	setcookie('username', '', time() - 10);
+	setcookie('username', '', time() - 3600);
 }
 if (!empty($_COOKIE['username'])) {
 	$name = $_COOKIE['username'];

@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 19:56:46 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 22:00:28 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,6 +239,7 @@ bool check_body_size(std::vector<ServerConfig> &configs, Request& re_st)
     respo.set_config(get_server(re_st, configs));
     respo.get_location();
     respo.fill_directive();
+
     if (re_st._body_len <= respo._max_body_size)
         return (true);
     return (false);

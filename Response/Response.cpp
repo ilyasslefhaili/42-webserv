@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 19:21:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 22:00:10 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ void Response::fill_directive(){
 	_cgi_path = _configs._cgi_path;
     _cgi_path = _location._cgi_path.size() > 0 ? _location._cgi_path : _configs._cgi_path;
     _max_body_size = _configs._max_body;
-    _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
+    _max_body_size = _location._max_body != 0 ? _location._max_body : _configs._max_body;
+
 }
 
 void  Response::get_files_in_dir(){
@@ -269,7 +270,7 @@ void    Response::post_method(){
             return ;
         }
     }
-    if (this->_request._body.size() <= _max_body_size){
+    if (this->_request._body.size() <= (size_t) _max_body_size){
         if (this->_cgi_path.size() > 0 && (this->_path.find(".php") == this->_path.size() - 4 || this->_path.find(".pl") == this->_path.size() - 3))
         {
             if (this->_dir_or_file)
