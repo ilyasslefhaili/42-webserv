@@ -43,6 +43,7 @@ class Request {
 		~Request();
 
 		void		parse_request(const char *request, size_t length);
+		void		parse_body(const char *request, size_t length);
 		void   		print_request() const;
 		static bool request_is_complete(const char* buffer, size_t length, int added_length, ClientInfo &client);
 		void		set_request(const char *request, size_t length);

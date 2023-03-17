@@ -131,6 +131,8 @@ void	Server::send_400(ClientInfo &client)
 		client.is_receiving = true;
 	client.response = std::string(c400);
 	give_error_page(*client.request_obj, this->_configs, 400);
+	client.force_drop_connection = true;
+
 	// send(client.socket, c400, strlen(c400), 0);
 
 }
@@ -142,6 +144,8 @@ void	Server::send_413(ClientInfo &client)
 		"Content-Length: 24\r\n\r\nRequest Entity Too Large";
 	client.response = std::string(c413);
 	give_error_page(*client.request_obj, this->_configs, 413);
+	client.force_drop_connection = true;
+	
 	// send(client.socket, c413, strlen(c413), 0);
 
 }
@@ -152,6 +156,8 @@ void	Server::send_404(ClientInfo &client)
 		"Connection: close\r\n"
 		"Content-Length: 9\r\n\r\nNot Found";
 	client.response = std::string(c404);
+	client.force_drop_connection = true;
+
 	give_error_page(*client.request_obj, this->_configs, 404);
 	// send(client.socket, c404, strlen(c404), 0);
 }
@@ -162,6 +168,7 @@ void	Server::send_500(ClientInfo &client)
 		"Connection: close\r\n"
 		"Content-Length: 21\r\n\r\nInternal Server Error";
 	client.is_receiving = true;
+	client.force_drop_connection = true;
 	client.response = std::string(c500);
 	give_error_page(*client.request_obj, this->_configs, 500);
 	// send(client.socket, c404, strlen(c404), 0);
@@ -179,6 +186,10 @@ void	reset_req(ClientInfo &client)
 	client.received = 0;
 	client.header_reached = false;
 	client.body_len_check = false;
+	client.chunk_finished = true;
+	client.total_bytes_sent = 0;
+	client.first_time = true;
+	client.chunk_size = 0;
 	client.response = "";
 }
 
@@ -262,7 +273,6 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		size_t new_capacity;
 		if (it->header_reached && it->request_obj != nullptr)
 		{
-			std::cout << "needs to allocate to the buffer size" << it->request_obj->buffer_size << std::endl;
 			new_capacity = it->request_obj->buffer_size;
 		}
 		else
@@ -270,7 +280,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		if (new_capacity > MAX_REQUEST_SIZE || new_capacity < it->capacity)
 		{
 			send_413(*it);
-			std::cout << "HERE 413" << std::endl;
+			it->force_drop_connection = true;
 			it->is_receiving = true;
 			return false ;
 		}
@@ -278,7 +288,6 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		char *temp = (char *) malloc(sizeof(char) * it->capacity);
 		if (!temp)
 		{
-			std::cout << "HERE 500" << std::endl;
 			send_500(*it);
 			it->force_drop_connection = true;
 			it->is_receiving = true;
@@ -307,17 +316,13 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 	{
 		it->last_received = time(NULL);
 		it->received += r;
-		// if (it->received > MAX_REQUEST_SIZE)
-		// {
-		// 	send_413(*it);
-		// 	return true;
-		// }
-		// std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
 		if (Request::request_is_complete(it->request, it->received, r, *it)) // true if request is fully received; start processing
 		{
-			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
+			{
 				delete it->request_obj;
+			}
 			it->request_obj = new Request(it->request, it->received, *it);
 			it->request_obj->_env = env;
 			if (!this->serve_resource(*it))
@@ -332,7 +337,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 			if (it->request_obj != nullptr && !check_body_size(_configs, *it->request_obj))
 			{
 				send_413(*it);
-				std::cout << "HERE 413" << std::endl;
+				it->force_drop_connection = true;
 				it->is_receiving = true;
 				return false ;
 			}

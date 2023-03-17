@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 18:56:45 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 19:56:46 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
 
 
 void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int status){
-	std::cout << "give_error_page" << std::endl;
+	// std::cout << "give_error_page" << std::endl;
     Response respo(re_st);
 
     respo.set_config(get_server(re_st, configs));
@@ -175,7 +175,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         this->_status = 500;
         return "";
     }
-	std::cout<<"before"<<"======"<<std::endl;
+	// std::cout<<"before"<<"======"<<std::endl;
     if (for_k == 0){
         if (write(f_w, this->_request._body.c_str(),this->_request._body.size()) < 0)
         {
@@ -194,7 +194,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         exit(1);
     }
     wait(NULL);
-	std::cout<<"after"<<"======"<<std::endl;
+	// std::cout<<"after"<<"======"<<std::endl;
     char c[2];
     int r = 1;
     close(fd[1]);

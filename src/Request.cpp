@@ -103,17 +103,34 @@ void    Request::print_request() const
 // Connection: keep-alive
 
 
+void	Request::parse_body(const char *request, size_t length)
+{
+	std::string req(request, length);
+	_raw = req;
+    int pos = req.find("\r\n\r\n");
+    std::string header = req.substr(0, pos + 1);
+	if (_header["Transfer-Encoding"] == "Chunked")
+	{
+		_body = _client.new_body;
+		_body_len = _body.size();
+		_client.new_body.clear();
+		_client.body.clear();
+		_client.chunk_finished = true;
+		_client.first_time = true;
+		_client.chunk_size = 0;
+	}
+	else
+	{
+		_body = req.substr(pos + 4, length);
+		_body_len = atoi(_header["Content-Length"].c_str());
+	}
+}
+
 void    Request::parse_request(const char *request, size_t length)
 {
     std::string req(request, length);
     int pos = req.find("\r\n\r\n");
     std::string header = req.substr(0, pos + 1);
-
-	// const char *s = strnstr(request, "\r\n\r\n", length);
-	// _body = (char *) (s + 4);
-	// std::cout << "check req size " << req.size() << std::endl;
-	// std::cout << "check _body size " << _body.size() << std::endl;
-
     std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
 
@@ -128,29 +145,8 @@ void    Request::parse_request(const char *request, size_t length)
             _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to remove the \r
         }
     }
-
-	// std::string str_body(_body, _body_len);
 	if (_header["Transfer-Encoding"] == "Chunked")
 	{
-		// std::string new_body = "";
-		// std::cout << "body length " << _body.length() << std::endl;
-		// int pos = _body.find("\r\n");
-		// while (pos != std::string::npos)
-		// {
-		// 	std::string len_str = _body.substr(0, pos);
-		// 	unsigned int len;
-		// 	// std::cout << "len_str " << len_str << std::endl;
-		// 	std::stringstream ss(len_str);
-		// 	ss << std::hex; ss >> len;
-		// 	// std::cout << "len_str in decimal " << len << std::endl;
-		// 	if (len == 0)
-		// 		break ;
-		// 	_body = _body.substr(len_str.length() + 2); // skip both length and \r\n
-		// 	new_body += _body.substr(0, len);
-		// 	_body = _body.substr(len + 2);
-		// 	pos = _body.find("\r\n");
-		// }
-		// new_body += "\r\n";
 		_body = _client.new_body;
 		_body_len = _body.size();
 		_client.new_body.clear();
@@ -158,24 +154,23 @@ void    Request::parse_request(const char *request, size_t length)
 		_client.chunk_finished = true;
 		_client.first_time = true;
 		_client.chunk_size = 0;
-
-		// std::cout  << _body << std::endl;
 	}
 	else
 	{
+		std::cout << "not chunekd " << std::endl;
 		_body = req.substr(pos + 4, length);
 		_body_len = atoi(_header["Content-Length"].c_str());
 	}
-	print_request();
-	// if (_body.find("------WebKitFormBoundary") != std::string::npos)
-	// {
 
-	// }5107845
-	//5107830
 }
 
 Request::Request( ClientInfo &client, const char *header, size_t length) :_client(client)
 {
+	_header_only = false;
+	_client.chunk_finished = true;
+	_client.first_time = true;
+	_client.chunk_size = 0;
+
 	_header_only = true;
 	std::string req(header, length);
 
@@ -193,16 +188,9 @@ Request::Request( ClientInfo &client, const char *header, size_t length) :_clien
             _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to remove the \r
         }
     }
-	// std::cout << "req " << req << std::endl;
-	// print_request();
-	// std::cout << "length " << length << std::endl;
-	// std::cout << "map content length " << _header["Content-Length"] << std::endl;
-	// std::cout << "content length " << atoi(_header["Content-Length"].c_str()) << std::endl;
 	_body_len = atoi(_header["Content-Length"].c_str());
 	buffer_size = length + 4 + _body_len;
-	// std::cout << "buffer_size " << buffer_size << std::endl;
-
-
+	// print_request();
 }
 
 
@@ -218,6 +206,7 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
 			if (client.request_obj != nullptr)
 				delete client.request_obj;
 			client.request_obj = new Request(client, buffer, end - buffer);
+			std::cout << "header reached" << std::endl;
 			client.header_reached = true;
 		}
 	}
@@ -318,7 +307,6 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
             return false; // Not enough data received
         }
     }
-
     return true; // Request is complete
 }
 

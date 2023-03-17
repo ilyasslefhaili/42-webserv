@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 19:12:05 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 19:21:52 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ void  Response::get_files_in_dir(){
             continue;
         }
         _body += "<a href= \"";
-		std::cout << "request " << this->_path_autoindex << std::endl;
-		std::cout << "d_name " << to_incriment->d_name << std::endl;
+		// std::cout << "request " << this->_path_autoindex << std::endl;
+		// std::cout << "d_name " << to_incriment->d_name << std::endl;
         _body += this->_path_autoindex;
         _body +=  to_incriment->d_name;
         _body += "\"> ";
