@@ -113,7 +113,7 @@ std::pair<fd_set, fd_set>  Server::wait_on_clients(std::vector<Server>  &servers
 
 void	Server::create_sockets(std::vector<Server> &servers)
 {
-	int i = 0;
+	size_t i = 0;
 
 	while (i < servers.size())
 	{
@@ -235,7 +235,7 @@ bool		Server::send_data(ClientInfo &client)
 }
 
 // returns whether the connection should be open or not
-bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
+bool		Server::serve_resource(ClientInfo &client)
 {
 	std::cout << "server_resource " << get_client_address(client) << " " << client.request_obj->_path << std::endl;
 	client.response = get_response(*client.request_obj, _configs);
@@ -255,7 +255,7 @@ bool		Server::serve_resource(ClientInfo &client, std::pair<fd_set, fd_set> &fds)
 }
 
 // returns true if clients dropped
-bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env, std::pair<fd_set, fd_set> &fds)
+bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env)
 {
 	if (it->received == it->capacity)
 	{
@@ -320,7 +320,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 				delete it->request_obj;
 			it->request_obj = new Request(it->request, it->received, *it);
 			it->request_obj->_env = env;
-			if (!this->serve_resource(*it, fds))
+			if (!this->serve_resource(*it))
 			{
 			    it = this->drop_client(*it);
 			    return true ;

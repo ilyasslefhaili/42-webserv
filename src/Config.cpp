@@ -34,54 +34,54 @@ Config &Config::operator=(const Config & rhs)
 	return (*this);
 }
 
-void	Config::print()
-{
-	std::vector<ServerConfig>::iterator it = _configs.begin();
-	while (it != _configs.end())
-	{
-		std::cout << "server_name:		" << it->_server_name << std::endl;
-		std::cout << "host: 			" << it->_host << std::endl;
-		// std::cout << "index: " << it->_index << std::endl;
-		for (int i = 0; i < it->_index.size(); i++)
-			std::cout << "index: 			" << it->_index[i] << std::endl;
+// void	Config::print()
+// {
+// 	std::vector<ServerConfig>::iterator it = _configs.begin();
+// 	while (it != _configs.end())
+// 	{
+// 		std::cout << "server_name:		" << it->_server_name << std::endl;
+// 		std::cout << "host: 			" << it->_host << std::endl;
+// 		// std::cout << "index: " << it->_index << std::endl;
+// 		for (size_t i = 0; i < it->_index.size(); i++)
+// 			std::cout << "index: 			" << it->_index[i] << std::endl;
 			
-		std::cout << "root: 			" << it->_root << std::endl;
-		std::cout << "max_body: 		" << it->_max_body << std::endl;
-		std::cout << "auto_index: 		" << std::boolalpha << it->_auto_index << std::endl;
-		std::map<int, std::string>::iterator err = it->_error_pages.begin();
-		while (err != it->_error_pages.end())
-		{
-			std::cout << err->first << " 			" << err->second << std::endl;
-			++err;
-		}
-		std::vector<Location>::iterator lo = it->_locations.begin();
-		while (lo != it->_locations.end())
-		{
-			std::cout << "location: 			" << lo->_path << std::endl;
-			std::cout << "	" << "_root: " << lo->_root << std::endl;
-			std::cout << "	" << "_ret: " << lo->_ret.first << " " << lo->_ret.second << std::endl;
-			std::cout << "	" << "_upload: " << std::boolalpha << lo->_upload << std::endl;
-			std::cout << "	" << "_upload_dir: " << lo->_upload_dir << std::endl;
-			std::cout << "	" << "_path: " << lo->_path << std::endl;
-			for (int i = 0; i < lo->_index.size(); i++)
-				std::cout << "	" << "index: " << lo->_index[i] << std::endl;
-			std::cout << "	" << "auto_index: " << std::boolalpha << lo->_autoindex << std::endl;
+// 		std::cout << "root: 			" << it->_root << std::endl;
+// 		std::cout << "max_body: 		" << it->_max_body << std::endl;
+// 		std::cout << "auto_index: 		" << std::boolalpha << it->_auto_index << std::endl;
+// 		std::map<int, std::string>::iterator err = it->_error_pages.begin();
+// 		while (err != it->_error_pages.end())
+// 		{
+// 			std::cout << err->first << " 			" << err->second << std::endl;
+// 			++err;
+// 		}
+// 		std::vector<Location>::iterator lo = it->_locations.begin();
+// 		while (lo != it->_locations.end())
+// 		{
+// 			std::cout << "location: 			" << lo->_path << std::endl;
+// 			std::cout << "	" << "_root: " << lo->_root << std::endl;
+// 			std::cout << "	" << "_ret: " << lo->_ret.first << " " << lo->_ret.second << std::endl;
+// 			std::cout << "	" << "_upload: " << std::boolalpha << lo->_upload << std::endl;
+// 			std::cout << "	" << "_upload_dir: " << lo->_upload_dir << std::endl;
+// 			std::cout << "	" << "_path: " << lo->_path << std::endl;
+// 			for (size_t i = 0; i < lo->_index.size(); i++)
+// 				std::cout << "	" << "index: " << lo->_index[i] << std::endl;
+// 			std::cout << "	" << "auto_index: " << std::boolalpha << lo->_autoindex << std::endl;
 
-			int i = 0;
-			std::cout << "	allowed methods: " << std::endl;
-			for (int i = 0; i < lo->_allowed_methods.size(); i++)
-				std::cout << "	" << lo->_allowed_methods[i] << std::endl;
-			std::cout << "	" << "_cgi_path: " << lo->_cgi_path << std::endl;
-			++lo;
-		}
+// 			std::cout << "	allowed methods: " << std::endl;
+// 			for (size_t i = 0; i < lo->_allowed_methods.size(); i++)
+// 				std::cout << "	" << lo->_allowed_methods[i] << std::endl;
+// 			std::cout << "	" << "_cgi_path: " << lo->_cgi_path << std::endl;
+// 			++lo;
+// 		}
 
-		std::cout << "==========================================" << std::endl;
-		++it;
-	}
-}
+// 		std::cout << "==========================================" << std::endl;
+// 		++it;
+// 	}
+// }
 
 void	Config::parse_server(std::istringstream &ss)
 {
+	(void)ss;
 	if (_server_bracket_open)
 		throw ConfigFileException();
 	_current = ServerConfig();
@@ -90,6 +90,7 @@ void	Config::parse_server(std::istringstream &ss)
 
 void	Config::parse_open_accolade(std::istringstream &ss)
 {
+	(void) ss;
 	if (_last_key == "server")
 		_server_bracket_open = true;
 	else if (_last_key == "location")
@@ -103,6 +104,7 @@ void	Config::parse_open_accolade(std::istringstream &ss)
 
 void	Config::parse_close_accolade(std::istringstream &ss)
 {
+	(void) ss;
 	if (_location_bracket_open)
 	{
 		_location_bracket_open = false;
@@ -352,12 +354,12 @@ void    Config::parse()
 
 void Config::generate_servers(std::vector<Server> &servers)
 {
-	int i = 0;
+	size_t i = 0;
 	bool is_set;
 	while (i < _configs.size())
 	{
 		is_set = false;
-		for (int j = 0; j < i; j++)
+		for (size_t j = 0; j < i; j++)
 		{
 			if (servers[j].get_port() == _configs[i]._port && servers[j].get_host() == _configs[i]._host)
 			{
@@ -396,7 +398,7 @@ bool	Config::is_port_valid(const std::string &port)
 // should also check if port ranges from 1 to 65535
 void	Config::init_if_not_set()
 {
-	int i = 0;
+	size_t i = 0;
 	while (i < _configs.size())
 	{
 		if (!is_port_valid(_configs[i]._port))
@@ -407,7 +409,7 @@ void	Config::init_if_not_set()
 			_configs[i]._server_name = _configs[i]._host; // default server_name in ngnix is hostname
 		if (_configs[i]._max_body == 0)
 			_configs[i]._max_body = 1048576; // 1mb
-		for (int j = 0; j < _configs[i]._locations.size(); j++)
+		for (size_t j = 0; j < _configs[i]._locations.size(); j++)
 		{
 			if (!_configs[i]._locations[j]._is_autoindex_set)
 				_configs[i]._locations[j]._autoindex = _configs[i]._auto_index;

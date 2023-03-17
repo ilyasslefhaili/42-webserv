@@ -93,7 +93,6 @@ bool	save_chunk_file(std::vector<ClientInfo>::iterator &it)
 {
 	// std::cout << "savin file" << std::endl;
 	ssize_t r;
-	bool failed = false;
 	size_t bytes_to_write = it->request_obj->_body_len - it->total_bytes_saved;
 	if (bytes_to_write > CHUNK_SIZE_SAVE)
 		bytes_to_write = CHUNK_SIZE_SAVE;
@@ -171,7 +170,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
 			}
 			else if (FD_ISSET(it->socket, &fds.first))
             {
-                bool r = server->receive_request(it, env, fds); // return whether should close connection or not
+                bool r = server->receive_request(it, env); // return whether should close connection or not
 				if (r)
                 {
                     e = server->clients.end();

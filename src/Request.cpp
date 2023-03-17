@@ -28,7 +28,7 @@ Request & Request::operator=(const Request &rhs)
 void customSplit(std::string str, std::vector<std::string> &strings, char c)
 {
     int startIndex = 0, endIndex = 0;
-    for (int i = 0; i <= str.size(); i++)
+    for (size_t i = 0; i <= str.size(); i++)
     {
         if (str[i] == c || i == str.size()) {
             endIndex = i;
@@ -41,8 +41,9 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
 }
 
 Request::Request(const char *request, size_t length, ClientInfo &client)
-	: _client(client), _raw(std::string(request, length))
+	: _client(client)
 {
+	_raw = std::string(request, length);
 	_header_only = false;
 	_client.chunk_finished = true;
 	_client.first_time = true;
@@ -60,8 +61,7 @@ Request::~Request() {
 // GET /fish.png HTTP/1.1
 void    Request::get_method_and_path(std::string &line)
 {
-	std::cout << line << std::endl;
-    int pos = line.find("/");
+    size_t pos = line.find("/");
     if (pos == std::string::npos)
         return ;
     this->_method = line.substr(0, pos - 1);
@@ -119,9 +119,9 @@ void    Request::parse_request(const char *request, size_t length)
 
     std::cout << "currently parsing the request" << std::endl;
     get_method_and_path(strings[0]);
-    for (int i = 1; i < strings.size(); i++)
+    for (size_t i = 1; i < strings.size(); i++)
     {
-        int pos = strings[i].find(": ");
+        size_t pos = strings[i].find(": ");
         if (pos != std::string::npos)
         {
             std::string value = strings[i].substr(pos + 2);
@@ -182,11 +182,11 @@ Request::Request( ClientInfo &client, const char *header, size_t length) :_clien
 	std::vector < std::string > strings;
     customSplit(std::string(header), strings, '\n');
 
-    std::cout << "currently parsing the request" << std::endl;
+    // std::cout << "currently parsing the request" << std::endl;
     get_method_and_path(strings[0]);
-    for (int i = 1; i < strings.size(); i++)
+    for (size_t i = 1; i < strings.size(); i++)
     {
-        int pos = strings[i].find(": ");
+        size_t pos = strings[i].find(": ");
         if (pos != std::string::npos)
         {
             std::string value = strings[i].substr(pos + 2);
@@ -200,7 +200,7 @@ Request::Request( ClientInfo &client, const char *header, size_t length) :_clien
 	// std::cout << "content length " << atoi(_header["Content-Length"].c_str()) << std::endl;
 	_body_len = atoi(_header["Content-Length"].c_str());
 	buffer_size = length + 4 + _body_len;
-	std::cout << "buffer_size " << buffer_size << std::endl;
+	// std::cout << "buffer_size " << buffer_size << std::endl;
 
 
 }
@@ -214,7 +214,7 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
 	{
 		if (end != NULL)
 		{
-			std::cout << "reached" << std::endl;
+			// std::cout << "reached" << std::endl;
 			if (client.request_obj != nullptr)
 				delete client.request_obj;
 			client.request_obj = new Request(client, buffer, end - buffer);
@@ -248,7 +248,7 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
 		// if (client.chunk_finished)
 		// {
 			client.chunk_finished = false;
-			int pos = client.body.find("\r\n");
+			size_t pos = client.body.find("\r\n");
 			while (pos != std::string::npos)
 			{
 				std::string len_str = client.body.substr(0, pos);
@@ -313,7 +313,7 @@ bool Request::request_is_complete(const char* buffer, size_t length, int added_l
     const char* content_length_str = strnstr(buffer, "Content-Length:", length);
     if (content_length_str != NULL) {
         content_length_str += strlen("Content-Length:");
-        int content_length = atoi(content_length_str);
+        size_t content_length = atoi(content_length_str);
         if (length < (end - buffer) + 4 + content_length) {
             return false; // Not enough data received
         }

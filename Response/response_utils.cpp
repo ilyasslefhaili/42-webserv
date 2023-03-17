@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 16:52:14 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 17:28:23 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
     a->fill_directive();
     a->link_root_path(re_st);
     a->get_the_absolute_path();
-    for (int i = 0;i < re_st._path.size();i++){
+    for (size_t i = 0;i < re_st._path.size();i++){
         if (str.find(re_st._path[i]) == std::string::npos){
             a->set_status(400);
             return (a);
@@ -156,20 +156,19 @@ std::vector<std::string> Response::set_env(){
 }
 
 std::string Response::cgi_execute(std::string cgi_path, std::string file, char **env){
+	(void) env;
     int fd[2];
-    int fd_r[2];
     int for_k;
     std::vector<std::string> vec_str = set_env();
     char *envp[8];
 
-    for (int i = 0;i < vec_str.size(); i++)
+    for (size_t i = 0;i < vec_str.size(); i++)
         envp[i] = (char *)vec_str[i].c_str();
     envp[7] = NULL;
     std::string buff;
     char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
     pipe(fd);
     for_k = fork(); 
-    int i = 0;
     int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
     int f_r = open("/tmp/l", O_RDONLY);
     if (f_w < 0 || f_r < 0){

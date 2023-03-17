@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 17:13:53 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 17:27:20 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ class Response
         std::pair<int, std::string>                 		_ret;
 		static size_t										_change_name;
     public:
-        ssize_t                                             _max_body_size;       
+        size_t                                             _max_body_size;       
 		bool is_cgi_response;
         MimeTypes   types;
         std::string get_body();

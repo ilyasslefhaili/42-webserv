@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 17:16:24 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 17:38:02 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -462,7 +462,6 @@ int Response::get_status(){
 
 void Response::link_root_path(Request& re_st){
 	this->_path = this->_root;
-	std::cout<<"rest  "<<re_st._path<<std::endl;
     if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
         re_st._path.erase(0, 1);
 	else if (this->_root.find("/") == std::string::npos && re_st._path.find("/") == std::string::npos)
@@ -477,7 +476,6 @@ void Response::link_root_path(Request& re_st){
 		_path += re_st._path;
 	}
 	
-	std::cout<<"path  {"<<this->_path<<"}"<<std::endl;
 }
 
 void   Response::set_config(ServerConfig& conf){

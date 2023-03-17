@@ -8,6 +8,7 @@ std::vector<Server> *g_servers = nullptr;
 
 void	handle_term(int sign)
 {
+	(void) sign;
 	if (g_servers != nullptr)
 	{
 		std::vector<Server>::iterator serv = g_servers->begin();

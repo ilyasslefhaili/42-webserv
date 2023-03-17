@@ -81,8 +81,7 @@ class Server {
 
 
 		// transfer a file to a connected client
-		bool									serve_resource(ClientInfo &client,
-												std::pair<fd_set, fd_set> &fds);
+		bool									serve_resource(ClientInfo &client);
 
 		bool									send_data(ClientInfo &client);
 		
@@ -101,7 +100,7 @@ class Server {
 		void									set_host(std::string &host);
 
 		bool									receive_request(std::vector<ClientInfo>::iterator &it,
-												char **env, std::pair<fd_set, fd_set> &fds);
+												char **env);
 };
 
 
