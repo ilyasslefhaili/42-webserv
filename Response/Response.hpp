@@ -34,7 +34,7 @@ class Response
     private:
         int                                                 _status;
         // char**                                              _env;
-        ssize_t                                             _max_body_size;                
+         
         bool                                                _dir_or_file;
         ServerConfig                                        _configs;
         std::fstream                                        _file;
@@ -57,6 +57,7 @@ class Response
         std::pair<int, std::string>                 		_ret;
 		static size_t										_change_name;
     public:
+        ssize_t                                             _max_body_size;       
 		bool is_cgi_response;
         MimeTypes   types;
         std::string get_body();
@@ -100,6 +101,7 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
 std::vector<std::string> split_host_port(std::string host_port);
 bool isDirectory(const std::string& path);
 void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int status);
+bool check_body_size(std::vector<ServerConfig> &configs, Request& re_st);
 
 
 #endif

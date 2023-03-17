@@ -222,7 +222,6 @@ std::vector<std::string> split_host_port(std::string host_port){
 }
 //find the matching config
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
-	std::cout << re_st._header["Host"] << std::endl;
     std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
     for (size_t i = 0; i < configs.size();i++){
         if (host_vec.at(0) == configs[i]._server_name)
@@ -231,3 +230,13 @@ ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
     return (configs[0]);
 }
 
+bool check_body_size(std::vector<ServerConfig> &configs, Request& re_st){
+    Response respo(re_st);
+
+    respo.set_config(get_server(re_st, configs));
+    respo.get_location();
+    respo.fill_directive();
+    if (re_st._body.size() <= respo._max_body_size)
+        return (true);
+    return (false);
+}
