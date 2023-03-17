@@ -204,7 +204,7 @@ void Response::fill_attributes(Request& re_st){
                 break;
         }
         if (i == _allowed_methods.size()){
-            this->_status = 400;
+            this->_status = 405;
             return ;
         }
     }
@@ -267,7 +267,7 @@ void    Response::post_method(){
                 break;
         }
         if (i == _allowed_methods.size()){
-            this->_status = 400;
+            this->_status = 405;
             return ;
         }
     }
@@ -546,12 +546,12 @@ void Response::delete_response(){
                 break;
         }
         if (i == _allowed_methods.size()){
-            this->_status = 400;
+            this->_status = 405;
             return ;
         }
     }
     else{
-        this->_status = 400;
+        this->_status = 405;
         return ;
     }
     if (access(this->_path.c_str(), F_OK) == 0){

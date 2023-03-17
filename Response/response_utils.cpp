@@ -47,6 +47,10 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 400 Bad Request\r\n");
     else if (status == 413)
         return (re_st._protocol_ver + " 413 Content Too Large\r\n");
+    else if (status == 405)
+        return (re_st._protocol_ver + " 405 Method Not Allowed\r\n");
+    else if (status == 414)
+        return (re_st._protocol_ver + " 414 URI Too Long\r\n");
     return "";
 }
 
@@ -93,30 +97,34 @@ void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int 
 
 Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs){
     Response *a = new Response(re_st);
-
+    std::string str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
     
     a->set_config(get_server(re_st, configs));
     a->get_location();
     a->fill_directive();
     a->link_root_path(re_st);
     a->get_the_absolute_path();
+    for (int i = 0;i < re_st._path.size();i++){
+        if (str.find(re_st._path[i]) == std::string::npos){
+            a->set_status(400);
+            return (a);
+        }
+    }
     if (re_st._path.size() > 100)
-        a->set_status(400);
+        a->set_status(414);
 	else if (re_st._path.find("..") != std::string::npos)
-		a->set_status(404);
+		a->set_status(403);
 	else{
         if (re_st._method == "GET"){
             a->fill_attributes(re_st);
         }
         else if (re_st._method == "POST"){
-            // std::cout<<"POST"<<std::endl;
             a->post_method();
         }else if (re_st._method == "DELETE"){
-            // std::cout<<"DELETE"<<std::endl;
             a->delete_response();
         }
         else
-            a->set_status(400);
+            a->set_status(405);
     }
     try
     {
