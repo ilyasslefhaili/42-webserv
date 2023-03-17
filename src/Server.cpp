@@ -171,7 +171,7 @@ void	Server::send_500(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
-	// delete client.request_obj;
+	delete client.request_obj;
 	client.request_obj = nullptr;
 	free(client.request);
 	client.request = (char *) malloc(BASE_REQUEST_SIZE * sizeof(char));

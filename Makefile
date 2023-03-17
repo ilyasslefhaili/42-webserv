@@ -1,5 +1,4 @@
-CFLAGS = -fsanitize=address -g3
-
+CFLAGS = 
 NAME = webserv
 
 HEADERS = main.hpp src/ClientInfo.hpp src/Config.hpp src/Location.hpp src/Request.hpp src/Server.hpp src/ServerConfig.hpp \
