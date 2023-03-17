@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use CGI qw(:standard);
-
 # Get the Perl script from the query string
 my $script = param('script');
 

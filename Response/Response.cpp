@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 17:38:02 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 19:12:05 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,8 @@ void  Response::get_files_in_dir(){
     DIR*            dir;
     struct dirent*  to_incriment;
 
-	if (this->_request._path[_request._path.size() - 1] != '/')
-		_request._path += "/";
+	if (this->_path_autoindex[_path_autoindex.size() - 1] != '/')
+		this->_path_autoindex += "/";
     dir = opendir(this->_path.c_str()); 
     to_incriment = readdir(dir);
     _body = "<html>\n";
@@ -53,7 +53,9 @@ void  Response::get_files_in_dir(){
             continue;
         }
         _body += "<a href= \"";
-        _body += this->_request._path;
+		std::cout << "request " << this->_path_autoindex << std::endl;
+		std::cout << "d_name " << to_incriment->d_name << std::endl;
+        _body += this->_path_autoindex;
         _body +=  to_incriment->d_name;
         _body += "\"> ";
         _body += to_incriment->d_name;
@@ -132,7 +134,8 @@ void Response::fill_body(){
                     this->check_status_code(str);
 					if (this->_status == 0)
 						this->_status = 200;
-					this->is_cgi_response = true;
+					if (_cgi_path.find("php-cgi") == _cgi_path.size() - 7)
+						this->is_cgi_response = true;
 					size_t pos = str.find("\r\n");
 					if (pos != std::string::npos)
 						str.erase(0, pos + 2);
@@ -283,7 +286,8 @@ void    Response::post_method(){
                     this->check_status_code(str);
                     if (this->_status == 0)
 					{
-						this->is_cgi_response = true;
+						if (_cgi_path.find("php-cgi") == _cgi_path.size() - 7)
+							this->is_cgi_response = true;
                         this->_status = 200;
 					}
 					else{
@@ -412,6 +416,7 @@ void    Response::get_location(){
             b = a;
         }
     }
+	this->_path_autoindex = this->_request._path;
     this->_request._path.erase(0, this->_location._path.size());
 }
 

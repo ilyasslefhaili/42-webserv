@@ -35,6 +35,12 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
             client.socket = accept(s->get_socket(),
                 (struct sockaddr*) &(client.address),
                 &(client.address_length));
+			int optval = 1;
+			if (setsockopt(client.socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+			{
+				std::cerr << "setsockopt() failed. (" << errno << ") " << strerror(errno) << std::endl;
+				exit(1);
+			}
 			fcntl(client.socket, F_SETFL, O_NONBLOCK);
             client.last_received = time(NULL);
 			s->clients.push_back(client);

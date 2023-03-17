@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 17:28:23 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 18:56:45 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,6 +175,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         this->_status = 500;
         return "";
     }
+	std::cout<<"before"<<"======"<<std::endl;
     if (for_k == 0){
         if (write(f_w, this->_request._body.c_str(),this->_request._body.size()) < 0)
         {
@@ -185,13 +186,15 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         close(f_r);// c -f
         close(f_w);
         dup2(fd[1], 1);
+		dup2(fd[1], 2);
         close(fd[1]);
         close(fd[0]);
         execve(cgi_path.c_str(), argv, envp);
         write(2, "cgi fail()\n", 12);
         exit(1);
     }
-    wait(NULL); 
+    wait(NULL);
+	std::cout<<"after"<<"======"<<std::endl;
     char c[2];
     int r = 1;
     close(fd[1]);

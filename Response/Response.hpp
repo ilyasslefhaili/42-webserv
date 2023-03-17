@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:49:50 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 17:27:20 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 19:02:10 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,9 @@ class Response
         std::string                                         _upload_dir;
         std::pair<int, std::string>                 		_ret;
 		static size_t										_change_name;
+		std::string 										_path_autoindex;
     public:
+		
         size_t                                             _max_body_size;       
 		bool is_cgi_response;
         MimeTypes   types;
