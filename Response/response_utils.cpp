@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/16 19:29:52 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 10:50:19 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 400 Bad Request\r\n");
     else if (status == 413)
         return (re_st._protocol_ver + " 413 Content Too Large\r\n");
+	else if (status == 302)
+		return (re_st._protocol_ver + " 302 Found\r\n");
     return "";
 }
 
@@ -70,13 +72,14 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     // std::cout<<"get_response"<<std::endl;
     Response *a = get_response_object(re_st, configs);
     a->get_error_page();
+	std::cout<<a->get_status()<<std::endl;
     response += create_status_line(a->get_status(), re_st);
 	if (a->is_cgi_response == false)
     	response += a->get_content_type();
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
-	// std::cout << response << std::endl;
+	std::cout << response << std::endl;
     delete a;
     return response;
 }
@@ -201,7 +204,7 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         // close(f);
         // close(f_R);
     }
-    // std::cout<<"that is the buffer :"<<buff<<std::endl;
+    std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
 }
 //get content type 

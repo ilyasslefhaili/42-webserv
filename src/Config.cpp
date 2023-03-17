@@ -280,7 +280,7 @@ void	Config::parse_upload( std::istringstream &ss )
 	else
 		throw ConfigFileException();
 	if (!_location_bracket_open)
-		_current._upload = b;
+		throw ConfigFileException();
 	else
 		_current_location._upload = b;
 }
@@ -290,7 +290,7 @@ void	Config::parse_upload_dir( std::istringstream &ss )
 	if (!_server_bracket_open)
 		throw ConfigFileException();
 	if (!_location_bracket_open)
-		ss >> _current._upload_dir;
+		throw ConfigFileException();
 	else
 		ss >> _current_location._upload_dir;
 }
