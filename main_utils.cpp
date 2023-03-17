@@ -18,6 +18,7 @@ void	init_client(ClientInfo &client)
 	client.received = 0;
 }
 
+
 void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<Server> &servers)
 {
     fds = Server::wait_on_clients(servers);

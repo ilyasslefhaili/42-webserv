@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 11:08:45 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 11:11:05 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,8 +149,6 @@ std::vector<std::string> Response::set_env(){
 }
 
 std::string Response::cgi_execute(std::string cgi_path, std::string file, char **env){
-
-	// std::cout << "CGI EXECUTING  :"<< file << std::endl;
     int fd[2];
     int fd_r[2];
     int for_k;
@@ -163,10 +161,8 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
     std::string buff;
     char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
     pipe(fd);
-    //pipe(fd_r);
     for_k = fork(); 
     int i = 0;
-    // FILE* temp = tmpfile();
     int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
     int f_r = open("/tmp/l", O_RDONLY);
     if (f_w < 0 || f_r < 0){
@@ -185,7 +181,6 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         dup2(fd[1], 1);
         close(fd[1]);
         close(fd[0]);
-        // close(fd_r[0]);
         execve(cgi_path.c_str(), argv, envp);
         write(2, "cgi fail()\n", 12);
         exit(1);
@@ -202,50 +197,11 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
         buff += c;
     }
     close(fd[0]);
+	close(f_r);// c -f
+    close(f_w);
     unlink("/tmp/l");
-    // close(fd_r[0]);
-    // close(f);
-    // close(f_R);
-    // std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
 }
-//get content type 
-// std::string content_from_path(std::string& path){
-//     size_t pos = path.rfind('.');
-//     if (pos != std::string::npos) {
-//         std::string last_dot = path.substr(pos + 1, path.size() - pos);
-//         if (last_dot == ".css")
-//             return "Content-Type: text/css\r\n";
-//         else if (last_dot == ".csv")
-//             return "Content-Type: text/csv\r\n";
-//         else if (last_dot == ".gif")
-//             return "Content-Type: image/gif\r\n";
-//         else if (last_dot == ".htm")
-//             return "Content-Type: text/html\r\n";
-//         else if (last_dot == ".html")
-//             return "Content-Type: text/html\r\n";
-//         else if (last_dot ==  ".ico")
-//             return "Content-Type: image/x-icon\r\n";
-//         else if (last_dot == ".jpeg")
-//             return "Content-Type: image/jpeg\r\n";
-//         else if (last_dot == ".jpg")
-//             return ("Content-Type: image/jpeg\r\n");
-//         else if (last_dot == ".js")
-//             return "Content-Type: application/javascript\r\n";
-//         else if (last_dot == ".json")
-//             return "Content-Type: application/json\r\n";
-//         else if (last_dot == ".png")
-//              return "Content-Type: image/png\r\n";
-//         else if (last_dot == ".pdf")
-//             return "Content-Type: application/pdf\r\n";
-//         else if (last_dot == ".svg")
-//             return "Content-Type: image/svg+xml\r\n";
-//         else if (last_dot == ".txt")
-//             return "Content-Type: text/plain\r\n";
-//     }
-//     return "Content-Type: application/octet-stream\r\n";
-// }
-
 //split the host and the port
 std::vector<std::string> split_host_port(std::string host_port){
     size_t pos = 0;
