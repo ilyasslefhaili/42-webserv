@@ -43,6 +43,7 @@ void customSplit(std::string str, std::vector<std::string> &strings, char c)
 Request::Request(const char *request, size_t length, ClientInfo &client)
 	: _client(client), _raw(std::string(request, length))
 {
+	_header_only = false;
 	_client.chunk_finished = true;
 	_client.first_time = true;
 	_client.chunk_size = 0;
@@ -172,14 +173,52 @@ void    Request::parse_request(const char *request, size_t length)
 	//5107830
 }
 
+Request::Request( ClientInfo &client, const char *header, size_t length) :_client(client)
+{
+	_header_only = true;
+	std::string req(header, length);
+
+	std::vector < std::string > strings;
+    customSplit(std::string(header), strings, '\n');
+
+    std::cout << "currently parsing the request" << std::endl;
+    get_method_and_path(strings[0]);
+    for (int i = 1; i < strings.size(); i++)
+    {
+        int pos = strings[i].find(": ");
+        if (pos != std::string::npos)
+        {
+            std::string value = strings[i].substr(pos + 2);
+            _header[strings[i].substr(0, pos)] = value.substr(0, value.size() - 1); // to remove the \r
+        }
+    }
+	// std::cout << "req " << req << std::endl;
+	// print_request();
+	// std::cout << "length " << length << std::endl;
+	// std::cout << "map content length " << _header["Content-Length"] << std::endl;
+	// std::cout << "content length " << atoi(_header["Content-Length"].c_str()) << std::endl;
+	buffer_size = length + 4 + atoi(_header["Content-Length"].c_str());
+	std::cout << "buffer_size " << buffer_size << std::endl;
+
+}
+
+
 bool Request::request_is_complete(const char* buffer, size_t length, int added_length, ClientInfo &client)
 {
-    const char* end = (const char *) memmem(buffer, length, "\r\n\r\n", 4); // double CRLF sequence that marks the end of the header
-    if (end == NULL) {
-		// std::cout << "LULE" << std::endl;
-        return false; // header was not yet received
-    }
-
+	
+	const char* end = (const char *) memmem(buffer, length,  "\r\n\r\n", 4); // double CRLF sequence that marks the end of the header
+	if (!client.header_reached)
+	{
+		if (end != NULL)
+		{
+			std::cout << "reached" << std::endl;
+			if (client.request_obj != nullptr)
+				delete client.request_obj;
+			client.request_obj = new Request(client, buffer, end - buffer);
+			client.header_reached = true;
+		}
+	}
+    
     void* chunked = memmem(buffer, length,  "Transfer-Encoding: Chunked", 26);
 	if (chunked != NULL) // find away to collect while collencting ghh
 	{

@@ -299,6 +299,11 @@ void    Config::parse()
 {
    	std::ifstream 	file(_file_path);
 	std::string		line;
+	if (!file.is_open())
+	{
+		std::cerr << _file_path << ": error" << std::endl;
+		exit (1);
+	}
 
 	typedef void (Config::*fun)(std::istringstream &ss);
 	std::map<std::string, fun> handlers;

@@ -13,7 +13,7 @@ void	init_client(ClientInfo &client)
 	client.first_time = true;
 	client.chunk_finished = true;
 	client.chunk_size = 0;
-
+	client.header_reached = false;
 	client.fd = -1;
 	client.received = 0;
 }

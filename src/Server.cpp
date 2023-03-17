@@ -171,12 +171,13 @@ void	Server::send_500(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
-	delete client.request_obj;
+	// delete client.request_obj;
 	client.request_obj = nullptr;
 	free(client.request);
 	client.request = (char *) malloc(BASE_REQUEST_SIZE * sizeof(char));
 	client.capacity = BASE_REQUEST_SIZE;
 	client.received = 0;
+	client.header_reached = false;
 	client.response = "";
 }
 
@@ -257,17 +258,27 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 {
 	if (it->received == it->capacity)
 	{
-		it->capacity *= 2;
-		if (it->capacity > MAX_REQUEST_SIZE)
+		size_t new_capacity;
+		if (it->header_reached && it->request_obj != nullptr)
+		{
+			std::cout << "needs to allocate to the buffer size" << it->request_obj->buffer_size << std::endl;
+			new_capacity = it->request_obj->buffer_size;
+		}
+		else
+			new_capacity = it->capacity * 2;
+		if (new_capacity > MAX_REQUEST_SIZE || new_capacity < it->capacity)
 		{
 			send_413(*it);
+			std::cout << "HERE 413" << std::endl;
 			it->is_receiving = true;
 			return false ;
 		}
+		it->capacity = new_capacity;
 		char *temp = (char *) malloc(sizeof(char) * it->capacity);
 		if (!temp)
 		{
-			send_413(*it);
+			std::cout << "HERE 500" << std::endl;
+			send_500(*it);
 			it->is_receiving = true;
 			return false ;
 		}
@@ -302,7 +313,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		// std::cout <<  it->received << " bytes received from client: " << it->socket  << std::endl;
 		if (Request::request_is_complete(it->request, it->received, r, *it)) // true if request is fully received; start processing
 		{
-			// std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
+			std::cout <<  it->received << " total bytes received from client: " << it->socket  << std::endl;
 			if (it->request_obj != nullptr)
 				delete it->request_obj;
 			it->request_obj = new Request(it->request, it->received, *it);
