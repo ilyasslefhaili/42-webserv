@@ -51,7 +51,8 @@ class Request;
 		std::string				body;
 		std::string				new_body;
 
-		bool header_reached;
+		bool 					header_reached;
+		bool					body_len_check;
 	};
 
 #endif

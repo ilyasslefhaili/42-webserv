@@ -171,13 +171,14 @@ void	Server::send_500(ClientInfo &client)
 
 void	reset_req(ClientInfo &client)
 {
-	// delete client.request_obj;
+	delete client.request_obj;
 	client.request_obj = nullptr;
 	free(client.request);
 	client.request = (char *) malloc(BASE_REQUEST_SIZE * sizeof(char));
 	client.capacity = BASE_REQUEST_SIZE;
 	client.received = 0;
 	client.header_reached = false;
+	client.body_len_check = false;
 	client.response = "";
 }
 
@@ -279,6 +280,7 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 		{
 			std::cout << "HERE 500" << std::endl;
 			send_500(*it);
+			it->force_drop_connection = true;
 			it->is_receiving = true;
 			return false ;
 		}
@@ -322,6 +324,17 @@ bool			Server::receive_request(std::vector<ClientInfo>::iterator &it, char **env
 			{
 			    it = this->drop_client(*it);
 			    return true ;
+			}
+		}
+		else if (it->header_reached && !it->body_len_check)
+		{
+			it->body_len_check = true;
+			if (it->request_obj != nullptr && !check_body_size(_configs, *it->request_obj))
+			{
+				send_413(*it);
+				std::cout << "HERE 413" << std::endl;
+				it->is_receiving = true;
+				return false ;
 			}
 		}
 	}
