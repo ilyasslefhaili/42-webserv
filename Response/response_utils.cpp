@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 11:11:05 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 12:43:12 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,20 +72,21 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     // std::cout<<"get_response"<<std::endl;
     Response *a = get_response_object(re_st, configs);
     a->get_error_page();
-	std::cout<<a->get_status()<<std::endl;
+	// std::cout<<a->get_status()<<std::endl;
     response += create_status_line(a->get_status(), re_st);
 	if (a->is_cgi_response == false)
     	response += a->get_content_type();
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
-	std::cout << response << std::endl;
+	// std::cout << response << std::endl;
     delete a;
     return response;
 }
 
 
 void    give_error_page(Request& re_st, std::vector<ServerConfig> &configs, int status){
+	std::cout << "give_error_page" << std::endl;
     Response respo(re_st);
 
     respo.set_config(get_server(re_st, configs));
@@ -215,6 +216,7 @@ std::vector<std::string> split_host_port(std::string host_port){
 }
 //find the matching config
 ServerConfig& get_server(Request& re_st,  std::vector<ServerConfig> &configs){
+	std::cout << re_st._header["Host"] << std::endl;
     std::vector<std::string> host_vec = split_host_port(re_st._header["Host"]);
     for (size_t i = 0; i < configs.size();i++){
         if (host_vec.at(0) == configs[i]._server_name)

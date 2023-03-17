@@ -50,6 +50,8 @@ class Request;
 		size_t					chunk_size;
 		std::string				body;
 		std::string				new_body;
+
+		bool header_reached;
 	};
 
 #endif

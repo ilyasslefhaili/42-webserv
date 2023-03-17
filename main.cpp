@@ -4,6 +4,30 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
 
 void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Server> &servers, char** env);
 
+std::vector<Server> *g_servers = nullptr;
+
+void	handle_term(int sign)
+{
+	if (g_servers != nullptr)
+	{
+		std::vector<Server>::iterator serv = g_servers->begin();
+		while (serv != g_servers->end())
+		{
+			close(serv->get_socket());
+			std::vector<ClientInfo>::iterator cl = serv->clients.begin();
+			while (cl != serv->clients.end())
+			{
+				close(cl->socket);
+				if (cl->fd != -1)
+					close(cl->fd);
+				++cl;
+			}
+			++serv;
+		}
+	}
+	exit(0);
+}
+
 int	main(int argc, char **argv, char **env)
 {
 	if (argc > 2)
@@ -26,9 +50,11 @@ int	main(int argc, char **argv, char **env)
 		exit(1);
 	}
 	signal(SIGPIPE, SIG_IGN);
+	signal(SIGINT, handle_term);
 	std::vector<Server> servers;
 	config.generate_servers(servers);
 	Server::create_sockets(servers);
+	g_servers = &servers;
 	while (1)
 	{
 		std::pair<fd_set, fd_set> fds;

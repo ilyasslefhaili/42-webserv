@@ -27,6 +27,8 @@ class Request {
 		std::string 						_path;
 		ClientInfo							&_client;
 		bool								_is_chunked;
+		bool								_header_only;
+		size_t								buffer_size;
 
 
 	private:
@@ -35,6 +37,7 @@ class Request {
 	public:
 		Request(ClientInfo &client);
 		Request(const char *request, size_t length, ClientInfo &client);
+		Request(ClientInfo &client, const char *header, size_t length);
 		Request(const Request &src);
 		Request & operator=(const Request &rhs);
 		~Request();
