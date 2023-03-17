@@ -1,4 +1,4 @@
-CFLAGS = -fsanitize=address -g3
+CFLAGS = 
 
 NAME = webserv
 

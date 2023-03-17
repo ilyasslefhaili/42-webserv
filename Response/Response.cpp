@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/26 00:54:52 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 10:59:55 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 17:16:24 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ void  Response::get_files_in_dir(){
     DIR*            dir;
     struct dirent*  to_incriment;
 
+	if (this->_request._path[_request._path.size() - 1] != '/')
+		_request._path += "/";
     dir = opendir(this->_path.c_str()); 
     to_incriment = readdir(dir);
     _body = "<html>\n";
@@ -46,15 +48,12 @@ void  Response::get_files_in_dir(){
     _body += "</head>";
     _body += "\n";
     while (to_incriment != NULL){
-        // std::cout<<to_incriment->d_name<<std::endl;
         if (std::string(to_incriment->d_name) == "." || std::string(to_incriment->d_name) == ".."){
             to_incriment = readdir(dir);
             continue;
         }
-        // std::cout<<to_incriment->d_name<<std::endl;
         _body += "<a href= \"";
-        _body += "http://" + _request._header["Host"] + "/";
-        _body += this->_path;
+        _body += this->_request._path;
         _body +=  to_incriment->d_name;
         _body += "\"> ";
         _body += to_incriment->d_name;
@@ -143,7 +142,7 @@ void Response::fill_body(){
                     this->_status = 502;
             }
             else
-                this->_status = 404;
+                this->_status = 502;
     }
     else {
         if (this->_request._client.fd != -1)
@@ -418,7 +417,7 @@ void    Response::get_location(){
 
 void    Response::get_the_absolute_path(){
     if (isDirectory(this->_path)){
-        if (this->_path[_path.size() - 1] != '/'){
+        if (this->_path[_path.size() - 1] != '/' && this->_request._method != "DELETE"){
             this->_path += "/";
             this->_location._path += "/";
             this->_status = 301;
@@ -462,11 +461,12 @@ int Response::get_status(){
 }
 
 void Response::link_root_path(Request& re_st){
-
-    _path = this->_root;
+	this->_path = this->_root;
+	std::cout<<"rest  "<<re_st._path<<std::endl;
     if (this->_root.find("/") == this->_root.size() - 1 && re_st._path.find("/") == 0)
         re_st._path.erase(0, 1);
-    
+	else if (this->_root.find("/") == std::string::npos && re_st._path.find("/") == std::string::npos)
+		_path += "/";
 	size_t pos = re_st._path.find("?");
 	if (pos != std::string::npos)
 	{
@@ -476,7 +476,8 @@ void Response::link_root_path(Request& re_st){
 	} else {
 		_path += re_st._path;
 	}
-
+	
+	std::cout<<"path  {"<<this->_path<<"}"<<std::endl;
 }
 
 void   Response::set_config(ServerConfig& conf){
