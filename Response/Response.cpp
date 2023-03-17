@@ -32,7 +32,6 @@ void Response::fill_directive(){
     _cgi_path = _location._cgi_path.size() > 0 ? _location._cgi_path : _configs._cgi_path;
     _max_body_size = _configs._max_body;
     _max_body_size =_location._max_body !=  -1 ? _location._max_body : _configs._max_body;
-	// std::cout << "_max_body_size " << _max_body_size << std::endl;
 }
 
 void  Response::get_files_in_dir(){
@@ -92,9 +91,9 @@ void    Response::get_index(){
         this->_path += "i.html";
         throw (std::exception());
     }
-    else
-    {
-        this->_status = 404;
+    else{
+        this->_status = 403;
+        throw (std::exception());
     }
 }
 
@@ -155,7 +154,6 @@ void Response::fill_body(){
             this->_status = 500;
 			return ;
 		}
-		// fcntl(_request._client.fd, F_SETFL, O_NONBLOCK);
 		_request._client.file_name = _path;
 		struct stat buf;
 		fstat(_request._client.fd, &buf);

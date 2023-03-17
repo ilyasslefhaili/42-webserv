@@ -40,10 +40,10 @@ void    check_incoming_connections(std::pair<fd_set, fd_set> &fds, std::vector<S
 				std::cerr << "accept() failed. (" << errno << ") " << strerror(errno) << std::endl;
 				exit(1);
 			}
-			std::cout << "######################################################" << std::endl;
+			// std::cout << "######################################################" << std::endl;
 			std::cout << "New connection from " << s->get_client_address(client)
 				<< " : " << s->get_port() << " using socket " << client.socket << std::endl;
-			std::cout << "####################################################" << std::endl;
+			// std::cout << "####################################################" << std::endl;
         }
         s++;
     }
@@ -54,7 +54,7 @@ bool	read_chunk_file(std::vector<ClientInfo>::iterator &it)
 {
 	if (it->response.empty())
 	{
-		std::cout << "reading file" << std::endl;
+		// std::cout << "reading file" << std::endl;
 		ssize_t  r;
 		size_t byte_to_read = it->file_size - it->total_bytes_read;
 		if (byte_to_read > CHUNK_SIZE_SEND)
@@ -100,7 +100,7 @@ bool	save_chunk_file(std::vector<ClientInfo>::iterator &it)
 		bytes_to_write);
 	if (r < 0)
 	{
-		std::cout << strerror(errno) << " " << errno << std::endl;
+		std::cout << strerror(errno) << " : " << errno << std::endl;
 		if (it->fd != -1)
 			close(it->fd);
 		it->fd = -1;
@@ -133,7 +133,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
         std::vector<ClientInfo>::iterator e = server->clients.end();
         while (it != e)
         {
-			if (!it->is_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
+			if (it->fd != -1 && !it->is_receiving && it->is_reading && FD_ISSET(it->fd, &fds.first))
 			{
 				int r = read_chunk_file(it);
 				if (r)
@@ -157,7 +157,7 @@ void    check_incoming_requests(std::pair<fd_set, fd_set> &fds, std::vector<Serv
                     continue ;
 				}
 			}
-			else if (it->is_saving && FD_ISSET(it->fd, &fds.second))
+			else if (it->fd != -1 && it->is_saving && FD_ISSET(it->fd, &fds.second))
 			{
 				bool r = save_chunk_file(it);
 				if (r)

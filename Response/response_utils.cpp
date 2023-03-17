@@ -6,7 +6,7 @@
 /*   By: mkorchi <mkorchi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 17:10:05 by ilefhail          #+#    #+#             */
-/*   Updated: 2023/03/17 10:50:19 by mkorchi          ###   ########.fr       */
+/*   Updated: 2023/03/17 11:08:45 by mkorchi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,10 +112,10 @@ Response* get_response_object(Request& re_st, std::vector<ServerConfig> &configs
             a->fill_attributes(re_st);
         }
         else if (re_st._method == "POST"){
-            std::cout<<"POST"<<std::endl;
+            // std::cout<<"POST"<<std::endl;
             a->post_method();
         }else if (re_st._method == "DELETE"){
-            std::cout<<"DELETE"<<std::endl;
+            // std::cout<<"DELETE"<<std::endl;
             a->delete_response();
         }
         else
@@ -150,7 +150,7 @@ std::vector<std::string> Response::set_env(){
 
 std::string Response::cgi_execute(std::string cgi_path, std::string file, char **env){
 
-	std::cout << "CGI EXECUTING  :"<< file << std::endl;
+	// std::cout << "CGI EXECUTING  :"<< file << std::endl;
     int fd[2];
     int fd_r[2];
     int for_k;
@@ -159,52 +159,54 @@ std::string Response::cgi_execute(std::string cgi_path, std::string file, char *
 
     for (int i = 0;i < vec_str.size(); i++)
         envp[i] = (char *)vec_str[i].c_str();
-    // for (int i = 0;i < 7; i++)
-    //     std::cout<<envp[i]<<std::endl;
     envp[7] = NULL;
     std::string buff;
-    if (access(file.c_str(), F_OK) != -1)
-    {
-        char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
-        pipe(fd);
-        //pipe(fd_r);
-        for_k = fork(); 
-        int i = 0;
-        // FILE* temp = tmpfile();
-        int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
-        int f_r = open("/tmp/l", O_RDONLY);
-        if (for_k == 0){
-            write(f_w, this->_request._body.c_str(),this->_request._body.size());//w - f
-            // std::cout<<this->_request._body<<std::endl;
-            dup2(f_r, 0);// d - f
-            close(f_r);// c -f
-            close(f_w);
-            dup2(fd[1], 1);
-            close(fd[1]);
-            close(fd[0]);
-            // close(fd_r[0]);
-            execve(cgi_path.c_str(), argv, envp);
-            write(2, "cgi fail()\n", 12);
-            exit(1);
-        }
-        wait(NULL); 
-        char c[2];
-        int r = 1;
-        close(fd[1]);
-        while (r != 0){
-            r = read(fd[0], c, 1);
-            if (r <= 0)
-                break ;
-            c[1] = '\0';
-            buff += c;
-        }
-        close(fd[0]);
-        unlink("/tmp/l");
-        // close(fd_r[0]);
-        // close(f);
-        // close(f_R);
+    char *argv[3] = {(char*)cgi_path.c_str(), (char*)file.c_str(), NULL};
+    pipe(fd);
+    //pipe(fd_r);
+    for_k = fork(); 
+    int i = 0;
+    // FILE* temp = tmpfile();
+    int f_w = open("/tmp/l", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    int f_r = open("/tmp/l", O_RDONLY);
+    if (f_w < 0 || f_r < 0){
+        this->_status = 500;
+        return "";
     }
-    std::cout<<"that is the buffer :"<<buff<<std::endl;
+    if (for_k == 0){
+        if (write(f_w, this->_request._body.c_str(),this->_request._body.size()) < 0)
+        {
+            write(2, "cgi fail()\n", 12);
+            exit(1);//w - f
+        }
+        dup2(f_r, 0);// d - f
+        close(f_r);// c -f
+        close(f_w);
+        dup2(fd[1], 1);
+        close(fd[1]);
+        close(fd[0]);
+        // close(fd_r[0]);
+        execve(cgi_path.c_str(), argv, envp);
+        write(2, "cgi fail()\n", 12);
+        exit(1);
+    }
+    wait(NULL); 
+    char c[2];
+    int r = 1;
+    close(fd[1]);
+    while (r != 0){
+        r = read(fd[0], c, 1);
+        if (r <= 0)
+            break ;
+        c[1] = '\0';
+        buff += c;
+    }
+    close(fd[0]);
+    unlink("/tmp/l");
+    // close(fd_r[0]);
+    // close(f);
+    // close(f_R);
+    // std::cout<<"that is the buffer :"<<buff<<std::endl;
     return buff;
 }
 //get content type 
