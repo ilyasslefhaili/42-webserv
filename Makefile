@@ -1,5 +1,4 @@
-CFLAGS = 
-
+CFLAGS = -Wall -Werror -Wextra
 NAME = webserv
 
 HEADERS = main.hpp src/ClientInfo.hpp src/Config.hpp src/Location.hpp src/Request.hpp src/Server.hpp src/ServerConfig.hpp \
