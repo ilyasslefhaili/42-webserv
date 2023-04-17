@@ -12,7 +12,7 @@ This project was developed collaboratively with <a href="https://github.com/mkor
 - set up your config file.
 - ```./webserv [config file path]```
 - ```./webserv``` Run with default config-file.
-- access the server in your web browser.
+- You can access the server in your web browser.
 # Supported HTTP Methods
 The server currently supports the following HTTP methods:
 - GET: Used to request a resource from the server.
