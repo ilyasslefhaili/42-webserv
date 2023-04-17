@@ -1,5 +1,5 @@
 # 42-webserv
-This is a custom HTTP server implemented in C/C++98. 
+42-webserv is a custom HTTP server implemented in C/C++98. 
 It allows you to host and serve web content, videos and images, and handle basic HTTP requests.
 This project was developed collaboratively with <a href="https://github.com/mkorchi">Mohamed Korchi</a>
 # Features
