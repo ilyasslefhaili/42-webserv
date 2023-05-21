@@ -372,6 +372,12 @@ int Server::create_socket(const char* host, const char *port)
 		exit(1);
 	}
 	std::cout << "Binding socket to local address..." << std::endl;
+	int optval = 1;
+	if (setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+	{
+		std::cerr << "setsockopt() failed. (" << errno << ") " << strerror(errno) << std::endl;
+        return 1;
+    }
 	if (bind(socket_listen,
 		bind_address->ai_addr, bind_address->ai_addrlen))
 	{
@@ -380,12 +386,6 @@ int Server::create_socket(const char* host, const char *port)
 	}
 	freeaddrinfo(bind_address);
 	std::cout << "Listening to port " << port << std::endl;
-	int optval = 1;
-	if (setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
-	{
-		std::cerr << "setsockopt() failed. (" << errno << ") " << strerror(errno) << std::endl;
-        return 1;
-    }
 	if (listen(socket_listen, SOMAXCONN) < 0)
 	{
 		std::cerr << "listen() failed. (" << errno << ") " << strerror(errno) << std::endl;
