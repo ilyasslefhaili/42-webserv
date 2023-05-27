@@ -51,7 +51,9 @@ std::string create_status_line(int status, Request&re_st){
         return (re_st._protocol_ver + " 405 Method Not Allowed\r\n");
     else if (status == 414)
         return (re_st._protocol_ver + " 414 URI Too Long\r\n");
-    return "";
+    else if (status == 300)
+        return (re_st._protocol_ver + " 300 Multiple Choices\r\n");
+    return re_st._protocol_ver + " " + std::to_string(status) + " \r\n";
 }
 
 std::string get_content_lenght(Response &a, Request &re_st){
@@ -74,14 +76,14 @@ std::string get_response(Request& re_st, std::vector<ServerConfig> &configs){
     // std::cout<<"get_response"<<std::endl;
     Response *a = get_response_object(re_st, configs);
     a->get_error_page();
-	// std::cout<<a->get_status()<<std::endl;
+	std::cout<<a->get_status()<<std::endl;
     response += create_status_line(a->get_status(), re_st);
+	// std::cout << response << std::endl;
 	if (a->is_cgi_response == false)
     	response += a->get_content_type();
     response += get_content_lenght(*a, re_st);
     response += "\r\n";
     response += a->get_body();
-	// std::cout << response << std::endl;
     delete a;
     return response;
 }
